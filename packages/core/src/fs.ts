@@ -33,8 +33,10 @@ export async function computeFileHash(filePath: string): Promise<string> {
 
 /**
  * Recursive dir hash for skill canonical dir.
- * Fast path: if mtime+size stable use cached, else full tree sha256 of contents (excluding .git etc).
- * For MVP: always compute full content hash of SKILL.md + key files.
+ * PR12 Performance: callers use getDirStatSignature + stored integrity (from lock/cache)
+ * to fast-skip full re-hash when mtime/size/count unchanged (drift detection).
+ * Only re-compute SHA on add --force or detected change. Cache uses integrity key.
+ * Always full content hash for correctness of integrity value.
  */
 export async function computeDirIntegrity(dir: string): Promise<string> {
   const files: string[] = [];

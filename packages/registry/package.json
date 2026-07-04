@@ -1,6 +1,6 @@
 {
   "name": "@skillctl/registry",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Registry manager, sources (github, local, skills.sh, basic npm) + resolution + materialize + integrity for skillctl",
   "license": "MIT",
   "author": "skillctl contributors",

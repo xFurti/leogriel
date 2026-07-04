@@ -1,6 +1,6 @@
 {
   "name": "skillctl",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "description": "Universal package-manager-like CLI for Agent Skills",
   "license": "MIT",
@@ -19,7 +19,9 @@
     "clean": "pnpm -r clean",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
-    "prepublishOnly": "pnpm build"
+    "prepublishOnly": "pnpm build",
+    "publish:dry": "pnpm --filter @skillctl/cli pack --dry-run",
+    "version": "0.1.0"
   },
   "devDependencies": {
     "typescript": "^5.6.3"

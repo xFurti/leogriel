@@ -1,6 +1,6 @@
 {
   "name": "@skillctl/adapters",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Agent adapters for Claude Code, Cursor, OpenCode (first set) + base + coexistence scan for skillctl (PR6)",
   "license": "MIT",
   "author": "skillctl contributors",

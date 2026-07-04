@@ -42,7 +42,17 @@ import * as tar from 'tar';
 import semver from 'semver';
 
 import type { RegistrySource, ResolvedSource, Provenance, LockfileEntry } from '@skillctl/core';
-import { loadConfig, ensureDir, computeDirIntegrity, getDefaultLinkMode } from '@skillctl/core';
+import {
+  loadConfig,
+  ensureDir,
+  computeDirIntegrity,
+  getDefaultLinkMode,
+  getCachedSkill,
+  putCachedSkill,
+  getCachedDownload,
+  putCachedDownload,
+  ensureCacheDir,
+} from '@skillctl/core';
 import { loadManifest, saveManifest } from '@skillctl/manifest';
 import { loadLockfile, saveLockfile, createEmptyLockfile, addOrUpdateEntry, makeLockEntry } from '@skillctl/lockfile';
 
@@ -57,6 +67,47 @@ export interface ResolvedSourceInternal extends ResolvedSource {
   localPath?: string;
   // original spec for provenance
   originalSpec: string;
+}
+
+// PR12: limited parallel + content addressable cache support
+const MAX_PARALLEL = Math.max(1, Math.min(16, parseInt(process.env.SKILLCTL_PARALLEL || '6', 10) || 6));
+
+/**
+ * Simple concurrency limiter for network fetches (PR12 perf).
+ */
+function createConcurrencyLimiter(maxConcurrent: number) {
+  let active = 0;
+  const queue: Array<() => void> = [];
+  return <T>(fn: () => Promise<T>): Promise<T> => {
+    return new Promise<T>((resolve, reject) => {
+      const run = async () => {
+        active++;
+        try {
+          const res = await fn();
+          resolve(res);
+        } catch (e) {
+          reject(e);
+        } finally {
+          active--;
+          if (queue.length > 0) {
+            const next = queue.shift()!;
+            next();
+          }
+        }
+      };
+      if (active < maxConcurrent) {
+        run();
+      } else {
+        queue.push(run);
+      }
+    });
+  };
+}
+
+const fetchLimiter = createConcurrencyLimiter(MAX_PARALLEL);
+
+async function limitedFetch<T>(fn: () => Promise<T>): Promise<T> {
+  return fetchLimiter(fn);
 }
 
 // --- Helpers: parse frontmatter from SKILL.md (basic, no full yaml dep) ---
@@ -258,7 +309,19 @@ export class GitHubSource implements RegistrySource {
     const owner = match[1]; const repo = match[2];
     const url = `https://api.github.com/repos/${owner}/${repo}/tarball/${encodeURIComponent(ref)}`;
 
-    const buf = await httpsGet(url, { Accept: 'application/vnd.github.v3.raw' });
+    // PR12: try download cache for github tarball (keyed by ref+repo for stability)
+    const ghDlKey = `gh-${owner}-${repo}-${encodeURIComponent(ref).slice(0,32)}`;
+    let buf: Buffer;
+    const cachedGh = await getCachedDownload(ghDlKey);
+    if (cachedGh) {
+      buf = await readFile(cachedGh);
+    } else {
+      buf = await httpsGet(url, { Accept: 'application/vnd.github.v3.raw' });
+      const tmpGhTar = join(tmpdir(), `gh-dl-${Date.now()}.tgz`);
+      await writeFile(tmpGhTar, buf);
+      await putCachedDownload(ghDlKey, tmpGhTar).catch(() => {});
+      await rm(tmpGhTar, { force: true }).catch(() => {});
+    }
     // GitHub tarball has a top level dir like owner-repo-sha/
     const tmpExtract = join(tmpdir(), `skillctl-gh-${Date.now()}`);
     await ensureDir(tmpExtract);
@@ -437,8 +500,20 @@ export class NpmSource implements RegistrySource {
     const r = resolved as ResolvedSourceInternal;
     if (!r.tarballUrl) throw new Error('Invalid npm resolved, no tarballUrl');
 
-    // 4. download
-    const tarBuf = await httpsGet(r.tarballUrl);
+    // PR12: download cache by tarballHash or url-derived key (content addressable downloads)
+    let tarBuf: Buffer;
+    const dlKey = r.tarballHash ? `npm-${r.tarballHash}` : `npm-${createHash('sha256').update(r.tarballUrl).digest('hex').slice(0,16)}`;
+    const cachedTarPath = await getCachedDownload(dlKey);
+    if (cachedTarPath) {
+      tarBuf = await readFile(cachedTarPath);
+    } else {
+      tarBuf = await httpsGet(r.tarballUrl);
+      // write to temp then cache
+      const tmpTar = join(tmpdir(), `dl-${Date.now()}.tgz`);
+      await writeFile(tmpTar, tarBuf);
+      await putCachedDownload(dlKey, tmpTar).catch(() => {});
+      await rm(tmpTar, { force: true }).catch(() => {});
+    }
     // 4b. verify (basic shasum if sha1)
     if (r.tarballHash && r.tarballHash.length === 40) {
       const got = computeSha1(tarBuf);
@@ -608,7 +683,7 @@ export class RegistryManager {
       // find source to fetch? or use generic - for simplicity call matching source's fetch
       const source = this.sources.find(s => s.match(resolved.originalSpec || '')) || this.sources.find(s => s.id === resolved.sourceType);
       if (!source) throw new Error('no source for materialize');
-      const resFetch = await source.fetch(resolved as any, tmpDest);
+      const resFetch = await limitedFetch(() => source.fetch(resolved as any, tmpDest));
       fetchIntegrity = resFetch.integrity;
     } catch (err) {
       await rm(tmpDest, { recursive: true, force: true }).catch(() => {});
@@ -618,16 +693,35 @@ export class RegistryManager {
     // compute (should match)
     const treeIntegrity = await computeDirIntegrity(tmpDest);
 
-    // atomic move to target: if exists, for basic we overwrite (later PRs use versioned)
+    // PR12: content-addressable cache by integrity (skip re-extract work for identical trees)
+    await ensureCacheDir().catch(() => {});
+    const cached = await getCachedSkill(treeIntegrity);
+    let sourceForTarget = tmpDest;
+    if (cached) {
+      sourceForTarget = cached;
+      // cleanup the fresh tmp since we have cached copy
+      await rm(tmpDest, { recursive: true, force: true }).catch(() => {});
+    } else {
+      // populate cache for future
+      await putCachedSkill(treeIntegrity, tmpDest).catch(() => {});
+    }
+
+    // atomic move/copy to target: if exists, for basic we overwrite (later PRs use versioned)
     if (await exists(target)) {
       await rm(target, { recursive: true, force: true });
     }
-    // rename tmp to target (cross volume may fail, fallback copy+rm)
+    // rename tmp (or cached) to target (cross volume may fail, fallback copy+rm)
     try {
-      await (await import('node:fs/promises')).rename(tmpDest, target);
+      if (sourceForTarget === tmpDest) {
+        await (await import('node:fs/promises')).rename(sourceForTarget, target);
+      } else {
+        await copyDir(sourceForTarget, target);
+      }
     } catch {
-      await copyDir(tmpDest, target);
-      await rm(tmpDest, { recursive: true, force: true });
+      await copyDir(sourceForTarget, target);
+      if (sourceForTarget === tmpDest) {
+        await rm(sourceForTarget, { recursive: true, force: true });
+      }
     }
 
     return {

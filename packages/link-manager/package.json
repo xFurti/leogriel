@@ -1,6 +1,6 @@
 {
   "name": "@skillctl/link-manager",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Link manager for symlinks, junctions, copies across agent adapters for skillctl",
   "license": "MIT",
   "author": "skillctl contributors",

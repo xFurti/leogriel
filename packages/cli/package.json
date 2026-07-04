@@ -1,6 +1,6 @@
 {
   "name": "@skillctl/cli",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "skillctl CLI - universal manager for Agent Skills",
   "license": "MIT",
   "author": "skillctl contributors",
