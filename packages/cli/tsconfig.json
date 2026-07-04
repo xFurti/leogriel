@@ -9,7 +9,9 @@
     { "path": "../core" },
     { "path": "../manifest" },
     { "path": "../lockfile" },
-    { "path": "../registry" }
+    { "path": "../registry" },
+    { "path": "../link-manager" },
+    { "path": "../adapters" }
   ],
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules"]

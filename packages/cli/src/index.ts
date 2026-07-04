@@ -6,6 +6,7 @@ import { loadManifest, createDefaultManifest } from '@skillctl/manifest';
 import { loadLockfile, createEmptyLockfile } from '@skillctl/lockfile';
 import { loadConfig } from '@skillctl/core';
 import { RegistryManager } from '@skillctl/registry';
+import { scanCoexistence, getEnabledAdapters, allAdapters } from '@skillctl/adapters';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -57,16 +58,21 @@ program
   .option('--json', 'output JSON')
   .action(async (options) => {
     const cwd = process.cwd();
-    const [config, manifest, lock] = await Promise.all([
+    const [config, manifest, lock, coexist, enabledAdapters] = await Promise.all([
       loadConfig(),
       loadManifest(cwd),
       loadLockfile(cwd),
+      scanCoexistence(cwd),
+      getEnabledAdapters(),
     ]);
     const issues: string[] = [];
     if (!manifest) issues.push('No agent-skills.json in project');
     if (!lock) issues.push('No agent-skills.lock (run install in future)');
     // collision policy note surfaced
     issues.push('Collision policy: project manifest wins over global (future); duplicates checked in manifest parser');
+    if (coexist.detected) {
+      issues.push('Coexistence markers detected (see details)');
+    }
     const report = {
       status: issues.length ? 'issues' : 'ok',
       config: { store: config.store, defaultMode: config.defaultMode },
@@ -74,7 +80,12 @@ program
       lockPresent: !!lock,
       lockVersion: lock?.lockfileVersion,
       issues,
-      note: 'PR3 stubs + basic validation. Full checks in later PRs.',
+      adapters: {
+        registered: allAdapters.map((a) => a.id),
+        enabled: enabledAdapters.map((a) => a.id),
+      },
+      coexistence: coexist,
+      note: 'PR6: adapters (claude-code,cursor,opencode) + coexistence scan + minimal sync wiring. Full checks/commands in later PRs.',
     };
     if (options.json) {
       console.log(JSON.stringify(report, null, 2));
@@ -84,6 +95,11 @@ program
     console.log('Config store:', report.config.store);
     console.log('Manifest:', report.manifestPresent ? 'present' : 'missing');
     console.log('Lockfile v' + (report.lockVersion || '?') + ':', report.lockPresent ? 'present' : 'missing');
+    console.log('Adapters enabled:', report.adapters.enabled.join(', '));
+    if (coexist.detected) {
+      console.log('Coexistence:', coexist.details.join('; '));
+      if (coexist.recommendations.length) console.log('Recommendations:', coexist.recommendations.join('; '));
+    }
     if (issues.length) console.log('Issues:', issues.join('; '));
     console.log('Exit code would be', issues.length ? 1 : 0, '(warnings=1, errors=2 per design)');
   });

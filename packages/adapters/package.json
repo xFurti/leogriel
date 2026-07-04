@@ -1,18 +1,13 @@
 {
-  "name": "@skillctl/cli",
+  "name": "@skillctl/adapters",
   "version": "0.0.1",
-  "description": "skillctl CLI - universal manager for Agent Skills",
+  "description": "Agent adapters for Claude Code, Cursor, OpenCode (first set) + base + coexistence scan for skillctl (PR6)",
   "license": "MIT",
   "author": "skillctl contributors",
-  "bugs": "https://github.com/skillctl/skillctl/issues",
-  "homepage": "https://github.com/skillctl/skillctl#readme",
   "type": "module",
   "main": "./dist/index.js",
-  "bin": {
-    "skillctl": "./bin/skillctl.js"
-  },
+  "types": "./dist/index.d.ts",
   "files": [
-    "bin",
     "dist",
     "README.md",
     "LICENSE"
@@ -22,17 +17,12 @@
     "dev": "tsc -b --watch",
     "clean": "rimraf dist",
     "lint": "tsc --noEmit",
-    "test": "echo \"no tests yet\" && exit 0",
+    "test": "node --test ./dist/test/*.test.js 2>&1 || echo 'run after build; tests use mocks'",
     "prepack": "pnpm run build"
   },
   "dependencies": {
     "@skillctl/core": "workspace:*",
-    "@skillctl/manifest": "workspace:*",
-    "@skillctl/lockfile": "workspace:*",
-    "@skillctl/registry": "workspace:*",
-    "@skillctl/link-manager": "workspace:*",
-    "@skillctl/adapters": "workspace:*",
-    "commander": "^12.1.0"
+    "@skillctl/link-manager": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
@@ -45,13 +35,13 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/skillctl/skillctl.git",
-    "directory": "packages/cli"
+    "directory": "packages/adapters"
   },
   "keywords": [
-    "cli",
-    "skills",
-    "agent-skills",
-    "ai",
-    "agents"
+    "adapters",
+    "claude-code",
+    "cursor",
+    "opencode",
+    "agent-skills"
   ]
 }

@@ -19,6 +19,8 @@
     { "path": "./packages/manifest" },
     { "path": "./packages/lockfile" },
     { "path": "./packages/registry" },
+    { "path": "./packages/link-manager" },
+    { "path": "./packages/adapters" },
     { "path": "./packages/cli" }
   ],
   "include": [],
