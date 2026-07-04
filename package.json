@@ -1,0 +1,27 @@
+{
+  "name": "skillctl",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Universal package-manager-like CLI for Agent Skills",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/skillctl/skillctl.git"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "packageManager": "pnpm@11.8.0",
+  "scripts": {
+    "build": "pnpm -r build",
+    "build:cli": "pnpm --filter @skillctl/cli build",
+    "dev": "pnpm --filter @skillctl/cli dev",
+    "clean": "pnpm -r clean",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "prepublishOnly": "pnpm build"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}
