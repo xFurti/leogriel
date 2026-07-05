@@ -1,0 +1,1 @@
+export { canonicalizeName } from '@skillctl/core';

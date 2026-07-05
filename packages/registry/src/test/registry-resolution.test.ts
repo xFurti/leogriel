@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { RegistryManager, LocalSource, GitHubSource, NpmSource, SkillsShSource, canonicalizeName, parseSkillFrontmatterAsync } from '../registry.js';
+import { RegistryManager, LocalSource, GitHubSource, NpmSource, SkillsShSource, canonicalizeName, parseSkillFrontmatterAsync } from '../index.js';
 import { loadLockfile } from '@skillctl/lockfile';
 import { loadConfig } from '@skillctl/core';
 
@@ -46,7 +46,9 @@ async function runTests() {
   assert.ok(r2.resolved.includes('@HEAD/skills/foo') || r2.resolved.includes('skills/foo'));
   console.log('✓ resolve github + subpath');
 
-  const r3 = await mgr.resolve('skills.sh/example-skill');
+  // name-only skills.sh specs require owner/repo form
+  await assert.rejects(() => mgr.resolve('skills.sh/example-skill'), /owner\/repo/);
+  const r3 = await mgr.resolve('skills.sh/vercel-labs/agent-skills');
   assert.equal(r3.sourceType, 'skills.sh');
   assert.ok(r3.resolved.startsWith('skills.sh/'));
   console.log('✓ resolve skills.sh alias');
