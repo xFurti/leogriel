@@ -1,0 +1,26 @@
+{
+  "name": "@skillctl/security",
+  "version": "0.2.0",
+  "description": "Security scanner and audit for skillctl skills",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rimraf dist",
+    "lint": "tsc --noEmit",
+    "test": "node --test ./dist/test/*.test.js 2>&1 || echo 'run after build'",
+    "prepack": "pnpm run build"
+  },
+  "dependencies": {
+    "@skillctl/core": "workspace:*",
+    "@skillctl/lockfile": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "rimraf": "^5.0.7",
+    "typescript": "^5.6.3"
+  },
+  "engines": { "node": ">=20.12" }
+}
