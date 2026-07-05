@@ -21,7 +21,10 @@
     { "path": "./packages/registry" },
     { "path": "./packages/link-manager" },
     { "path": "./packages/adapters" },
-    { "path": "./packages/cli" }
+    { "path": "./packages/cli" },
+    { "path": "./packages/import" },
+    { "path": "./packages/security" },
+    { "path": "./packages/plugin-system" }
   ],
   "include": [],
   "exclude": ["node_modules", "dist", "**/dist"]

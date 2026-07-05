@@ -39,6 +39,9 @@ importers:
       '@skillctl/core':
         specifier: workspace:*
         version: link:../core
+      '@skillctl/import':
+        specifier: workspace:*
+        version: link:../import
       '@skillctl/link-manager':
         specifier: workspace:*
         version: link:../link-manager
@@ -48,9 +51,15 @@ importers:
       '@skillctl/manifest':
         specifier: workspace:*
         version: link:../manifest
+      '@skillctl/plugin-system':
+        specifier: workspace:*
+        version: link:../plugin-system
       '@skillctl/registry':
         specifier: workspace:*
         version: link:../registry
+      '@skillctl/security':
+        specifier: workspace:*
+        version: link:../security
       commander:
         specifier: ^12.1.0
         version: 12.1.0
@@ -66,6 +75,34 @@ importers:
         version: 5.9.3
 
   packages/core:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.0
+        version: 20.19.43
+      rimraf:
+        specifier: ^5.0.7
+        version: 5.0.10
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+
+  packages/import:
+    dependencies:
+      '@skillctl/adapters':
+        specifier: workspace:*
+        version: link:../adapters
+      '@skillctl/core':
+        specifier: workspace:*
+        version: link:../core
+      '@skillctl/lockfile':
+        specifier: workspace:*
+        version: link:../lockfile
+      '@skillctl/manifest':
+        specifier: workspace:*
+        version: link:../manifest
+      '@skillctl/registry':
+        specifier: workspace:*
+        version: link:../registry
     devDependencies:
       '@types/node':
         specifier: ^20.14.0
@@ -137,6 +174,22 @@ importers:
         specifier: ^5.6.3
         version: 5.9.3
 
+  packages/plugin-system:
+    dependencies:
+      '@skillctl/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.0
+        version: 20.19.43
+      rimraf:
+        specifier: ^5.0.7
+        version: 5.0.10
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+
   packages/registry:
     dependencies:
       '@skillctl/core':
@@ -164,6 +217,25 @@ importers:
       '@types/tar':
         specifier: ^6.1.13
         version: 6.1.13
+      rimraf:
+        specifier: ^5.0.7
+        version: 5.0.10
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+
+  packages/security:
+    dependencies:
+      '@skillctl/core':
+        specifier: workspace:*
+        version: link:../core
+      '@skillctl/lockfile':
+        specifier: workspace:*
+        version: link:../lockfile
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.0
+        version: 20.19.43
       rimraf:
         specifier: ^5.0.7
         version: 5.0.10

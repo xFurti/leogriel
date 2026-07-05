@@ -11,7 +11,10 @@
     { "path": "../lockfile" },
     { "path": "../registry" },
     { "path": "../link-manager" },
-    { "path": "../adapters" }
+    { "path": "../adapters" },
+    { "path": "../import" },
+    { "path": "../security" },
+    { "path": "../plugin-system" }
   ],
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules"]
