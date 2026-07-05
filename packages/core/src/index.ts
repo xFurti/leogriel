@@ -3,3 +3,6 @@ export * from './config.js';
 export * from './fs.js';
 export * from './adapters.js';
 export * from './cache.js';
+export * from './names.js';
+export * from './paths.js';
+export * from './operations.js';

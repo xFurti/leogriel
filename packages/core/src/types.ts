@@ -27,7 +27,10 @@ export interface Provenance {
   commit?: string; // for git/github
   tarballHash?: string; // for npm etc
   subpath?: string; // e.g. 'skills/foo' inside repo/pkg
-  // future: signature, registry etc.
+  migratedFrom?: 'npx' | 'python-skillctl';
+  originalHash?: string;
+  originalSource?: string;
+  signature?: string;
 }
 
 // Agent adapter interface (used by link/sync, stubbed for now)
@@ -53,7 +56,14 @@ export interface ResolvedSource {
   name: string;
   resolved: string; // canonical resolved form e.g. github:owner/repo@sha/sub
   sourceType: 'github' | 'npm' | 'local' | 'skills.sh';
-  // extra for fetch
+  sourceId: string;
+  originalSpec: string;
+  tarballUrl?: string;
+  tarballHash?: string;
+  gitUrl?: string;
+  ref?: string;
+  subpath?: string;
+  localPath?: string;
 }
 
 // Skill manifest (project level agent-skills.json)
@@ -81,7 +91,10 @@ export interface SkillLockfile {
   lockfileVersion: '1.0';
   agents?: string[];
   skills: Record<string, LockfileEntry>;
-  // future: metadata, etc.
+  metadata?: {
+    migratedAt?: string;
+    toolVersion?: string;
+  };
 }
 
 // Config for ~/.skillctl/config.json
@@ -92,7 +105,10 @@ export interface SkillctlConfig {
   agents: Record<string, boolean>; // enabled agents e.g. { 'claude-code': true }
   registries?: string[];
   trustedSources?: string[];
-  // future experimental etc.
+  experimental?: {
+    plugins?: boolean;
+  };
+  plugins?: Array<{ name: string; path: string; enabled: boolean }>;
 }
 
 export type LinkMode = 'symlink' | 'copy' | 'junction';
