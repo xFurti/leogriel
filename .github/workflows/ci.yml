@@ -108,6 +108,7 @@ jobs:
       - name: Coexistence smoke (${{ matrix.coexist }})
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Continue'
           $CLI = Join-Path $env:GITHUB_WORKSPACE "packages/cli/bin/skillctl.js"
           $WORK = Join-Path $env:RUNNER_TEMP "skillctl-win-smoke"
           New-Item -ItemType Directory -Force -Path $WORK | Out-Null
@@ -122,7 +123,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "init failed" }
           node $CLI add file:./win-skill
           if ($LASTEXITCODE -ne 0) { throw "add failed" }
-          node $CLI doctor --json | Out-File doctor.json
-          if ($LASTEXITCODE -ne 0) { Write-Host "doctor exit $LASTEXITCODE (non-fatal)" }
-          $r = Get-Content doctor.json | ConvertFrom-Json
+          node $CLI doctor --json *> doctor.json
+          Write-Host "doctor exit: $LASTEXITCODE (warnings are ok)"
+          $r = Get-Content doctor.json -Raw | ConvertFrom-Json
+          if (-not $r.manifestPresent) { throw "doctor: manifest missing" }
           Write-Host "doctor:" $r.status "coexistence:" $r.coexistence.detected
