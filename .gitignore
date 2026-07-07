@@ -43,14 +43,21 @@ coverage/
 # skillctl specific (future)
 .skillctl/
 
-# Agent skill links + project manifest (created by skillctl sync in local dev)
+# Agent skill links (created by skillctl sync in local dev)
 .agents/
 .claude/
 .codex/
 .opencode/
 .gemini/
+.grok/
+
+# Consumer projects: ignore generated manifest/lock by default
 agent-skills.json
 agent-skills.lock
+
+# skillctl repo dogfoods its own manifest + lock at repository root
+!/agent-skills.json
+!/agent-skills.lock
 
 
 
