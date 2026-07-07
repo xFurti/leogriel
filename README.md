@@ -1,8 +1,8 @@
+# skillctl
+
 <p align="center">
   <img src="brand/skillctl-banner.png" alt="skillctl — Universal package manager for Agent Skills" width="100%">
 </p>
-
-# skillctl
 
 Universal, package-manager-style CLI for managing **Agent Skills** across AI coding agents.
 
