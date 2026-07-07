@@ -6,6 +6,12 @@ export const ProvenanceSchema = z.object({
   commit: z.string().optional(),
   tarballHash: z.string().optional(),
   subpath: z.string().optional(),
+  migratedFrom: z.enum(['npx', 'python-skillctl', 'project-scan']).optional(),
+  originalHash: z.string().optional(),
+  originalSource: z.string().optional(),
+  originalPath: z.string().optional(),
+  adapter: z.string().optional(),
+  signature: z.string().optional(),
 });
 
 export const LockfileEntrySchema = z.object({

@@ -27,9 +27,11 @@ export interface Provenance {
   commit?: string; // for git/github
   tarballHash?: string; // for npm etc
   subpath?: string; // e.g. 'skills/foo' inside repo/pkg
-  migratedFrom?: 'npx' | 'python-skillctl';
+  migratedFrom?: 'npx' | 'python-skillctl' | 'project-scan';
   originalHash?: string;
   originalSource?: string;
+  originalPath?: string;
+  adapter?: string;
   signature?: string;
 }
 

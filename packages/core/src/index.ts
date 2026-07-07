@@ -6,3 +6,4 @@ export * from './cache.js';
 export * from './names.js';
 export * from './paths.js';
 export * from './operations.js';
+export * from './specifiers.js';
