@@ -8,7 +8,7 @@ Universal, package-manager-style CLI for managing **Agent Skills** across AI cod
 
 `skillctl` keeps a single canonical store at `~/.skillctl/skills/` and syncs skills (symlink, junction on Windows, or copy) into Claude Code, Cursor, OpenCode, Codex, Gemini CLI, and other [agentskills.io](https://agentskills.io)-compatible agents.
 
-> **Status**: v0.3.0 — see [CHANGELOG.md](./CHANGELOG.md).
+> **Status**: v0.3.1 on npm; `main` includes the first-party **skillctl** meta-skill (target release **0.4.0**). See [CHANGELOG.md](./CHANGELOG.md).
 
 **Documentation** (commands, configuration, migration, troubleshooting): **[xfurti.github.io/skillctl](https://xfurti.github.io/skillctl/)** · IT/EN
 
@@ -52,8 +52,29 @@ Canonical store: `~/.skillctl/skills/<name>/SKILL.md` (+ optional `scripts/`, `r
 | OpenCode | `.opencode/skills` | `~/.config/opencode/skills` |
 | Codex | `.codex/skills` | `~/.codex/skills` |
 | Gemini CLI | `.gemini/skills` | `~/.gemini/skills` |
+| Grok | `.grok/skills` | `~/.grok/skills` |
 
 More agents via plugins (experimental) or future adapter releases.
+
+## skillctl as a skill
+
+The repo ships a first-party Agent Skill at `skills/skillctl/` so coding agents know how to use the CLI (manifest, lock, import, audit). The skillctl repo dogfoods it via root `agent-skills.json`.
+
+```bash
+# New project — add meta-skill from GitHub
+skillctl init --with-skill
+
+# Or explicitly
+skillctl add github:xFurti/skillctl#skills/skillctl
+skillctl install
+
+# In-repo (e.g. skillctl monorepo)
+skillctl add file:./skills/skillctl
+skillctl install && skillctl sync
+
+# Lint a skill directory
+skillctl skill validate skills/skillctl
+```
 
 ## Common Tasks
 

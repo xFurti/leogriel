@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - Unreleased
+
+### Added
+
+- **First-party meta-skill** — `skills/skillctl/` (`SKILL.md` + `references/`) teaches agents how to use skillctl; repo dogfoods via root `agent-skills.json` + `agent-skills.lock`.
+- **Grok adapter** — sync to `.grok/skills` (project) and `~/.grok/skills` (global).
+- **`skillctl skill validate [path]`** — lint a `SKILL.md` directory (frontmatter, scripts, size); CI validates `skills/skillctl`.
+- **`skillctl init --with-skill`** — bootstrap manifest and add meta-skill from GitHub (or `file:./skills/skillctl` when developing skillctl itself).
+
+### Changed
+
+- Default `trustedSources` includes `github:xFurti/skillctl/*`.
+
 ## [0.3.1] - 2026-07-07
 
 ### Fixed

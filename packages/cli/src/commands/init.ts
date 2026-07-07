@@ -1,32 +1,85 @@
 import type { Command } from 'commander';
+import { stat } from 'node:fs/promises';
+import { join } from 'node:path';
 import { loadManifest, createDefaultManifest, saveManifest } from '@skillctl/manifest';
+import { loadLockfile, createEmptyLockfile } from '@skillctl/lockfile';
 import { discoverProjectSkills, executeImport } from '@skillctl/import';
+import { lockToSkillTargets } from '@skillctl/core';
+import { RegistryManager } from '@skillctl/registry';
+import { syncSkillsToAgents } from '@skillctl/adapters';
 import { confirm } from '../lib/prompt.js';
 
-export function registerInit(program: Command): void {
+const META_SKILL_REMOTE = 'github:xFurti/skillctl#skills/skillctl';
+const META_SKILL_LOCAL = 'file:./skills/skillctl';
+
+async function resolveMetaSkillSpecifier(cwd: string): Promise<string> {
+  try {
+    await stat(join(cwd, 'skills', 'skillctl', 'SKILL.md'));
+    return META_SKILL_LOCAL;
+  } catch {
+    return META_SKILL_REMOTE;
+  }
+}
+
+async function addMetaSkill(cwd: string, registry: RegistryManager, sync: boolean): Promise<void> {
+  const spec = await resolveMetaSkillSpecifier(cwd);
+  console.log(`Adding skillctl meta-skill from ${spec}...`);
+  await registry.add(spec, { cwd, updateManifest: true });
+  if (sync) {
+    const lock = (await loadLockfile(cwd)) || createEmptyLockfile();
+    const skills = await lockToSkillTargets(lock);
+    const res = await syncSkillsToAgents(skills);
+    console.log(`Synced ${res.synced} agent target(s).`);
+    if (res.notes.length) console.log('Notes:', res.notes.join('; '));
+  }
+}
+
+export function registerInit(program: Command, mgr?: RegistryManager): void {
   program
     .command('init')
     .description('Initialize agent-skills.json in current project')
     .option('--no-prompt', 'skip post-init import wizard')
+    .option('--with-skill', 'add the skillctl meta-skill and sync to agents')
     .action(async (options) => {
-      const existing = await loadManifest();
+      const cwd = process.cwd();
+      const existing = await loadManifest(cwd);
       if (existing) {
         console.log('agent-skills.json already exists');
         return;
       }
       const sample = createDefaultManifest('demo-project');
-      await saveManifest(sample);
+      await saveManifest(sample, cwd);
       console.log('Created agent-skills.json');
 
+      const registry = mgr || new RegistryManager();
+
+      if (options.withSkill) {
+        const shouldAdd = options.noPrompt
+          ? true
+          : await confirm('Add the skillctl meta-skill to this project?', true);
+        if (shouldAdd) {
+          try {
+            await addMetaSkill(cwd, registry, true);
+          } catch (err) {
+            console.error(`Meta-skill add failed: ${(err as Error).message}`);
+            console.log('You can retry with: skillctl add github:xFurti/skillctl#skills/skillctl');
+          }
+        }
+      }
+
       if (options.noPrompt) {
-        console.log('Run `skillctl add <spec>` or `skillctl import from-project` to populate, then `install` or `sync`.');
+        if (!options.withSkill) {
+          console.log('Run `skillctl add <spec>` or `skillctl import from-project` to populate, then `install` or `sync`.');
+        }
         return;
       }
 
-      const { deduped, sources } = await discoverProjectSkills();
+      const { deduped, sources } = await discoverProjectSkills({ cwd });
       const unmanaged = deduped.length;
       if (!unmanaged || !sources.length) {
-        console.log('Run `skillctl add <spec>` to populate, then `install` or `sync`.');
+        if (!options.withSkill) {
+          console.log('Run `skillctl add <spec>` to populate, then `install` or `sync`.');
+        }
         return;
       }
 
@@ -37,7 +90,7 @@ export function registerInit(program: Command): void {
         return;
       }
 
-      const result = await executeImport({ source: 'project', sync: true });
+      const result = await executeImport({ source: 'project', cwd, sync: true });
       console.log(`Imported: ${result.imported.join(', ') || '(none)'}`);
       if (result.errors.length) {
         console.error('Import errors:', result.errors.join('; '));

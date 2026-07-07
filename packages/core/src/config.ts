@@ -20,7 +20,7 @@ const DEFAULT_CONFIG: SkillctlConfig = {
     grok: true,
   },
   registries: [],
-  trustedSources: ['github:vercel-labs/*', 'skills.sh/*'],
+  trustedSources: ['github:vercel-labs/*', 'skills.sh/*', 'github:xFurti/skillctl/*'],
 };
 
 export async function loadConfig(customPath?: string): Promise<SkillctlConfig> {

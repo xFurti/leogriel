@@ -31,9 +31,22 @@ node packages/cli/bin/skillctl.js --help
 cd packages/cli && pnpm link --global
 ```
 
+## First-party meta-skill
+
+Agent-facing instructions live in `skills/skillctl/`. After editing `SKILL.md` or `references/`:
+
+```bash
+pnpm build
+node packages/cli/bin/skillctl.js skill validate skills/skillctl
+skillctl install   # refresh canonical copy if lock already tracks file:./skills/skillctl
+```
+
+Commit changes to `skills/skillctl/`, `agent-skills.json`, and `agent-skills.lock` when the skill content or integrity hash changes.
+
 ## Project structure
 
 ```
+skills/skillctl/    First-party meta-skill (SKILL.md + references)
 packages/
 ├── cli/            Public npm package (@skillctl/cli)
 ├── core/           Shared types, config, fs, cache
