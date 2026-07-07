@@ -56,7 +56,7 @@ export interface AgentAdapter {
 export interface RegistrySource {
   readonly id: string;
   match(spec: string): boolean;
-  resolve(spec: string, options?: { ref?: string }): Promise<ResolvedSource>;
+  resolve(spec: string, options?: { ref?: string; cwd?: string }): Promise<ResolvedSource>;
   fetch(resolved: ResolvedSource, dest: string): Promise<{ integrity: string }>;
 }
 

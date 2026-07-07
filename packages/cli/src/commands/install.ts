@@ -50,7 +50,7 @@ export function registerInstall(program: Command, mgr?: RegistryManager): void {
         console.log(`Install complete. ${installed} fetched, ${skipped} from store.`);
 
         if (options.sync !== false) {
-          const skills = lockToSkillTargets(lock);
+          const skills = await lockToSkillTargets(lock);
           const res = await syncSkillsToAgents(skills);
           console.log(`Synced ${res.synced} links via adapters: ${res.adaptersUsed.join(', ') || 'none'}`);
           if (res.notes.length) console.log('Notes:', res.notes.join('; '));

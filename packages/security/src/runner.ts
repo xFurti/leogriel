@@ -1,3 +1,4 @@
+import { resolveEntryCanonicalPath } from '@skillctl/core';
 import { loadLockfile } from '@skillctl/lockfile';
 import type { AuditReport, AuditFinding } from './types.js';
 import { checkIntegrityDrift } from './rules/integrity-drift.js';
@@ -16,10 +17,11 @@ export async function runAudit(cwd = process.cwd()): Promise<AuditReport> {
   findings.push(...(await checkIntegrityDrift(lock)));
 
   for (const [name, entry] of Object.entries(lock.skills)) {
-    findings.push(...(await checkNameDirMatch(name, entry.canonicalPath)));
-    findings.push(...(await checkScriptHeuristics(name, entry.canonicalPath)));
-    findings.push(...(await checkPathTraversal(name, entry.canonicalPath)));
-    findings.push(...(await checkSizeLimits(name, entry.canonicalPath)));
+    const canonicalPath = await resolveEntryCanonicalPath(entry);
+    findings.push(...(await checkNameDirMatch(name, canonicalPath)));
+    findings.push(...(await checkScriptHeuristics(name, canonicalPath)));
+    findings.push(...(await checkPathTraversal(name, canonicalPath)));
+    findings.push(...(await checkSizeLimits(name, canonicalPath)));
   }
 
   const hasError = findings.some((f) => f.severity === 'error');

@@ -42,7 +42,7 @@ export function registerUpdate(program: Command, mgr?: RegistryManager): void {
         console.log(`Updated ${updated} skill(s).`);
         if (options.sync !== false) {
           const freshLock = (await loadLockfile(cwd)) || lock;
-          const res = await syncSkillsToAgents(lockToSkillTargets(freshLock));
+          const res = await syncSkillsToAgents(await lockToSkillTargets(freshLock));
           console.log(`Synced ${res.synced} links.`);
         }
       } catch (err) {

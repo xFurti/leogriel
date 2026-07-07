@@ -4,7 +4,9 @@ import {
   canonicalizeName,
   computeDirIntegrity,
   ensureDir,
+  formatCanonicalPathForLock,
   importedSpecifier,
+  lockToSkillTargets,
   type LockfileEntry,
   type Provenance,
 } from '@skillctl/core';
@@ -66,7 +68,7 @@ async function materializeLocal(
     specifier,
     specifier,
     integrity,
-    target,
+    formatCanonicalPathForLock(canonicalName),
     prov
   );
 }
@@ -79,7 +81,14 @@ async function registerExistingCanonical(
   const canonicalName = canonicalizeName(name);
   const integrity = await computeDirIntegrity(canonicalPath);
   const specifier = importedSpecifier(canonicalName);
-  return makeLockEntry(canonicalName, specifier, specifier, integrity, canonicalPath, prov);
+  return makeLockEntry(
+    canonicalName,
+    specifier,
+    specifier,
+    integrity,
+    formatCanonicalPathForLock(canonicalName),
+    prov
+  );
 }
 
 export async function planImportFromNpx(cwd: string): Promise<ImportPlanItem[]> {
@@ -269,7 +278,7 @@ export async function executeImport(opts: ImportOptions): Promise<ImportResult> 
     }
   }
 
-  lock.metadata = { ...lock.metadata, migratedAt: new Date().toISOString(), toolVersion: '0.3.0' };
+  lock.metadata = { ...lock.metadata, migratedAt: new Date().toISOString(), toolVersion: '0.3.1' };
   await saveLockfile(lock, cwd);
 
   if (shouldWriteManifest(opts)) {
@@ -284,10 +293,9 @@ export async function executeImport(opts: ImportOptions): Promise<ImportResult> 
   }
 
   if (shouldSync(opts) && result.imported.length > 0) {
-    const skills = result.imported.map((n) => ({
-      name: n,
-      canonicalPath: lock.skills[n].canonicalPath,
-    }));
+    const allTargets = await lockToSkillTargets(lock);
+    const imported = new Set(result.imported);
+    const skills = allTargets.filter((s) => imported.has(s.name));
     await syncSkillsToAgents(skills);
   }
 

@@ -17,7 +17,7 @@ export function registerSync(program: Command): void {
           console.log('No lockfile or skills to sync. Run install or add first.');
           return;
         }
-        const skills = lockToSkillTargets(lock);
+        const skills = await lockToSkillTargets(lock);
         const res = await syncSkillsToAgents(skills, { dryRun: options.dryRun });
         console.log(`sync: ${res.synced} targets processed (adapters: ${res.adaptersUsed.join(', ') || 'none'})`);
         if (res.notes.length) console.log('Notes:', res.notes.join(' | '));

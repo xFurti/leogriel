@@ -1,8 +1,13 @@
 import { cp, stat } from 'node:fs/promises';
-import { resolve as pathResolve, join, basename } from 'node:path';
+import { isAbsolute, join, normalize as pathNormalize } from 'node:path';
 import type { RegistrySource, ResolvedSource } from '@skillctl/core';
-import { ensureDir, computeDirIntegrity, loadConfig, parseImportedSpecifier } from '@skillctl/core';
-import { canonicalizeName } from '../names.js';
+import {
+  ensureDir,
+  computeDirIntegrity,
+  loadConfig,
+  parseImportedSpecifier,
+  normalizeLocalSpecifier,
+} from '@skillctl/core';
 
 export class LocalSource implements RegistrySource {
   readonly id = 'local';
@@ -18,14 +23,32 @@ export class LocalSource implements RegistrySource {
     );
   }
 
-  async resolve(spec: string, _options?: { ref?: string }): Promise<ResolvedSource> {
+  async resolve(spec: string, options?: { ref?: string; cwd?: string }): Promise<ResolvedSource> {
+    const cwd = options?.cwd ?? process.cwd();
+    // Legacy lock/manifest: local:/absolute/path (pre-0.3.1 resolved form)
+    if (spec.startsWith('local:') && !spec.startsWith('local:imported/')) {
+      const legacyPath = pathNormalize(spec.slice('local:'.length));
+      if (isAbsolute(legacyPath)) {
+        const norm = normalizeLocalSpecifier(`file:${legacyPath}`, cwd);
+        return {
+          name: norm.name,
+          resolved: norm.portable,
+          sourceType: 'local',
+          sourceId: this.id,
+          originalSpec: spec,
+          localPath: legacyPath,
+        };
+      }
+    }
+
     const importedName = parseImportedSpecifier(spec);
     if (importedName) {
       const config = await loadConfig();
       const abs = join(config.store, importedName);
+      const portable = `local:imported/${importedName}`;
       return {
         name: importedName,
-        resolved: `local:imported/${importedName}`,
+        resolved: portable,
         sourceType: 'local',
         sourceId: this.id,
         originalSpec: spec,
@@ -33,17 +56,14 @@ export class LocalSource implements RegistrySource {
       };
     }
 
-    let localPath = spec;
-    if (spec.startsWith('file:')) localPath = spec.slice(5);
-    else if (spec.startsWith('local:')) localPath = spec.slice(6);
-    const abs = pathResolve(process.cwd(), localPath);
+    const norm = normalizeLocalSpecifier(spec, cwd);
     return {
-      name: canonicalizeName(basename(abs)),
-      resolved: `local:${abs}`,
+      name: norm.name,
+      resolved: norm.portable,
       sourceType: 'local',
       sourceId: this.id,
       originalSpec: spec,
-      localPath: abs,
+      localPath: norm.absPath,
     };
   }
 

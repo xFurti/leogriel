@@ -1,5 +1,5 @@
 import { rm, cp, stat } from 'node:fs/promises';
-import { join, sep } from 'node:path';
+import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { Provenance, LockfileEntry, ResolvedSource } from '@skillctl/core';
 import {
@@ -9,10 +9,13 @@ import {
   getCachedSkill,
   putCachedSkill,
   ensureCacheDir,
+  canonicalizeName,
+  formatCanonicalPathForLock,
+  portableSpecifierForResolved,
 } from '@skillctl/core';
 import { loadManifest, saveManifest } from '@skillctl/manifest';
 import { loadLockfile, saveLockfile, createEmptyLockfile, addOrUpdateEntry, makeLockEntry } from '@skillctl/lockfile';
-import { canonicalizeName } from './names.js';
+
 import { limitedFetch } from './fetch/concurrency.js';
 import { LocalSource } from './sources/local.js';
 import { GitHubSource } from './sources/github.js';
@@ -38,7 +41,7 @@ export class RegistryManager {
     return [...this.sources];
   }
 
-  async resolve(spec: string, options?: { ref?: string }): Promise<ResolvedSource> {
+  async resolve(spec: string, options?: { ref?: string; cwd?: string }): Promise<ResolvedSource> {
     for (const src of this.sources) {
       if (src.match(spec)) {
         const res = await src.resolve(spec, options);
@@ -111,7 +114,7 @@ export class RegistryManager {
 
   async add(spec: string, opts: { cwd?: string; updateManifest?: boolean } = {}): Promise<LockfileEntry> {
     const cwd = opts.cwd || process.cwd();
-    const resolved = await this.resolve(spec);
+    const resolved = await this.resolve(spec, { cwd });
     const mat = await this.materialize(resolved);
 
     const prov: Provenance = {
@@ -125,12 +128,16 @@ export class RegistryManager {
       prov.tarballHash = resolved.tarballHash;
     }
 
+    const skillName = canonicalizeName(resolved.name);
+    const portableSpec = portableSpecifierForResolved(spec, resolved, cwd);
+    const lockResolved = resolved.sourceType === 'local' ? portableSpec : resolved.resolved;
+
     const entry = makeLockEntry(
-      mat.canonicalPath.split(sep).pop()!,
-      resolved.originalSpec || spec,
-      resolved.resolved,
+      skillName,
+      portableSpec,
+      lockResolved,
       mat.integrity,
-      mat.canonicalPath,
+      formatCanonicalPathForLock(skillName),
       prov
     );
 
@@ -143,12 +150,7 @@ export class RegistryManager {
       if (manifest) {
         if (!manifest.agentSkills) manifest.agentSkills = { dependencies: {}, devDependencies: {} };
         if (!manifest.agentSkills.dependencies) manifest.agentSkills.dependencies = {};
-        let normSpec = spec;
-        if (!/^(github:|npm:|skills\.sh\/|file:)/.test(spec)) {
-          if (resolved.sourceType === 'github') normSpec = `github:${spec}`;
-          else if (resolved.sourceType === 'npm') normSpec = `npm:${spec}`;
-        }
-        manifest.agentSkills.dependencies[entry.name] = normSpec;
+        manifest.agentSkills.dependencies[entry.name] = portableSpec;
         await saveManifest(manifest, cwd);
       }
     }

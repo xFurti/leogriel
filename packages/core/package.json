@@ -1,6 +1,6 @@
 {
   "name": "@skillctl/core",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Core types, config, and FS utilities for skillctl",
   "license": "MIT",
   "author": "xFurti & Gabry848",
@@ -15,7 +15,7 @@
     "dev": "tsc -b --watch",
     "clean": "rimraf dist",
     "lint": "tsc --noEmit",
-    "test": "echo \"no tests yet for core\" && exit 0",
+    "test": "node --test ./dist/test/*.test.js",
     "prepack": "pnpm run build"
   },
   "devDependencies": {

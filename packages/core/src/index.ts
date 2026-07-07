@@ -7,3 +7,5 @@ export * from './names.js';
 export * from './paths.js';
 export * from './operations.js';
 export * from './specifiers.js';
+export * from './normalize-specifier.js';
+export * from './portable-lock.js';
