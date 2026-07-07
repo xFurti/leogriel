@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import type { SkillManifest } from '@skillctl/core';
 
-// Specifier grammar (MVP): (github:|skills.sh/|npm:|file:)[^ ]+ (optional @ref or ^semver range)
+// Specifier grammar: github:, skills.sh/, npm:, file:, local:imported/
 const SpecifierSchema = z.string().regex(
-  /^(github:|skills\.sh\/|npm:|file:).+/,
-  'Invalid specifier. Must start with github:, skills.sh/, npm:, or file:'
+  /^(github:|skills\.sh\/|npm:|file:|local:imported\/).+/,
+  'Invalid specifier. Must start with github:, skills.sh/, npm:, file:, or local:imported/'
 );
 
 export const AgentSkillsManifestSchema = z.object({
