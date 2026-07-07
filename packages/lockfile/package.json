@@ -1,6 +1,6 @@
 {
   "name": "@skillctl/lockfile",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "agent-skills.lock YAML parser/generator with lockfileVersion and provenance for skillctl",
   "license": "MIT",
   "author": "skillctl contributors",

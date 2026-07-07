@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-07-07
+
+### Added
+
+- **`skillctl import from-project`** — Discovers skills in agent directories (`.codex/skills`, `.claude/skills`, `.agents/skills`, `.opencode/skills`, `.gemini/skills`) and migrates them into the canonical store with zero manual paths.
+- **Interactive import wizard on `skillctl init`** — Offers to import detected project skills after creating `agent-skills.json` (skip with `--no-prompt`).
+- **`local:imported/<name>` manifest specifier** — Migrated skills reference the canonical store, not legacy agent paths.
+- **Lock provenance fields** — `migratedFrom: project-scan`, `originalPath`, `adapter` preserved in `agent-skills.lock`.
+
+### Changed
+
+- **`import from-project` defaults** — Updates manifest and lock by default; use `--no-manifest` / `--lock-only` for advanced cases.
+- **`--sync` flag** — Replaces `--adopt` on import commands (`--adopt` kept as deprecated alias).
+- **`doctor` coexistence** — Scans all adapter project skill directories, recommends `import from-project --dry-run`.
+
 ## [0.2.0] - 2026-07-05
 
 ### Added

@@ -1,6 +1,6 @@
 {
   "name": "@skillctl/core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Core types, config, and FS utilities for skillctl",
   "license": "MIT",
   "author": "skillctl contributors",
