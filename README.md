@@ -6,9 +6,9 @@
 
 Universal, package-manager-style CLI for managing **Agent Skills** across AI coding agents.
 
-`skillctl` keeps a single canonical store at `~/.skillctl/skills/` and syncs skills (symlink, junction on Windows, or copy) into Claude Code, Cursor, OpenCode, Codex, Gemini CLI, and other [agentskills.io](https://agentskills.io)-compatible agents.
+`skillctl` keeps a single canonical store at `~/.skillctl/skills/` and syncs skills (symlink, junction on Windows, or copy) into Claude Code, Cursor, OpenCode, Codex, Gemini CLI, Grok, and other [agentskills.io](https://agentskills.io)-compatible agents.
 
-> **Status**: v0.3.1 on npm; `main` includes the first-party **skillctl** meta-skill (target release **0.4.0**). See [CHANGELOG.md](./CHANGELOG.md).
+> **Status**: v0.4.0 on npm — first-party **skillctl** meta-skill, Grok adapter, `skill validate`, `init --with-skill`. See [CHANGELOG.md](./CHANGELOG.md).
 
 **Documentation** (commands, configuration, migration, troubleshooting): **[xfurti.github.io/skillctl](https://xfurti.github.io/skillctl/)** · IT/EN
 

@@ -33,7 +33,7 @@ window.TRANSLATIONS = {
 </section>
 
 <div class="alert alert-info">
-  <strong>Versione 0.4</strong> (npm <code>@skillctl/cli</code> 0.3.1 fino al tag <code>v0.4.0</code>)
+  <strong>Versione 0.4</strong> — npm <code>@skillctl/cli@0.4.0</code>
   Meta-skill <code>skills/skillctl/</code>, adapter <strong>Grok</strong> (<code>.grok/skills</code>), manifest/lock portabili (0.3.1+), <code>init --with-skill</code>, <code>skill validate</code>. Sync verso Claude Code, Cursor, OpenCode, Codex, Gemini CLI, Grok e altri agenti <a href="https://agentskills.io" target="_blank" rel="noopener">agentskills.io</a>.
 </div>
 
@@ -718,7 +718,7 @@ skills.sh/vercel-labs/agent-skills</code></pre>
 </section>
 
 <div class="alert alert-info">
-  <strong>Version 0.4</strong> (npm <code>@skillctl/cli</code> 0.3.1 until <code>v0.4.0</code> tag)
+  <strong>Version 0.4</strong> — npm <code>@skillctl/cli@0.4.0</code>
   First-party meta-skill <code>skills/skillctl/</code>, <strong>Grok</strong> adapter (<code>.grok/skills</code>), portable manifest/lock (0.3.1+), <code>init --with-skill</code>, <code>skill validate</code>. Sync to Claude Code, Cursor, OpenCode, Codex, Gemini CLI, Grok, and other <a href="https://agentskills.io" target="_blank" rel="noopener">agentskills.io</a> agents.
 </div>
 
