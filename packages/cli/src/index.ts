@@ -17,6 +17,7 @@ import { registerImport } from './commands/import-cmd.js';
 import { registerAudit } from './commands/audit.js';
 import { registerUpdate } from './commands/update.js';
 import { registerPlugin } from './commands/plugin.js';
+import { registerSkill } from './commands/skill.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -50,6 +51,7 @@ registerImport(program);
 registerAudit(program);
 registerUpdate(program, registryManager);
 registerPlugin(program);
+registerSkill(program);
 
 export async function prepareProgram(): Promise<Command> {
   await loadPlugins(program as import('@skillctl/plugin-system').PluginProgram, registryManager);

@@ -60,6 +60,7 @@ jobs:
           node "$CLI" doctor --json > doctor.json || true
           node --input-type=commonjs -e "const d=JSON.parse(require('fs').readFileSync('doctor.json','utf8')); if(!d.manifestPresent) process.exit(1); console.log('doctor ok:', d.status);"
           node "$CLI" audit || true
+          node "$CLI" skill validate "$GITHUB_WORKSPACE/skills/skillctl" --json
 
   publish-dry-run:
     runs-on: ubuntu-latest
