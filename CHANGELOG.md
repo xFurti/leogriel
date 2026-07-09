@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Prevented overlapping typing/render timers from corrupting the animated terminal on the documentation home page.
 - `skillctl sync --dry-run` no longer creates links or copies.
 - Mutable GitHub refs bypass the immutable download cache; `GITHUB_TOKEN` and `GH_TOKEN` are honored.
 - `install --frozen` checks manifest/lock consistency, and install/update/remove now handle `devDependencies`.

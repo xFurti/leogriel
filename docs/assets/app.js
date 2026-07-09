@@ -4,7 +4,7 @@
   const PAGES = ['index', 'config', 'commands', 'problems'];
   const HERO_COMMANDS = [
     'skillctl init --with-skill',
-    'skillctl add github:xFurti/skillctl#skills/skillctl',
+    'skillctl add github:xFurti/skillctl@main#skills/skillctl',
     'skillctl import from-project --dry-run',
     'skillctl install',
     'skillctl sync',
@@ -15,7 +15,10 @@
 
   let currentLang = DEFAULT_LANG;
   let currentPage = 'index';
-  let heroInterval = null;
+  let renderTimer = null;
+  let renderRunId = 0;
+  let heroTimer = null;
+  let heroRunId = 0;
   let heroIndex = 0;
 
   /* ── DOM refs ── */
@@ -97,6 +100,13 @@
   }
 
   function renderPage(page, animate = true) {
+    stopHeroAnimation();
+    renderRunId++;
+    const runId = renderRunId;
+    if (renderTimer !== null) {
+      clearTimeout(renderTimer);
+      renderTimer = null;
+    }
     currentPage = page;
     document.body.dataset.page = page;
 
@@ -121,11 +131,14 @@
 
     if (animate) {
       main.classList.add('page-exit');
-      setTimeout(() => {
+      renderTimer = window.setTimeout(() => {
+        renderTimer = null;
+        if (runId !== renderRunId) return;
         main.classList.remove('page-exit');
         doRender();
       }, 120);
     } else {
+      main.classList.remove('page-exit');
       doRender();
     }
   }
@@ -291,34 +304,47 @@
 
   /* ── Hero typing animation ── */
   function startHeroAnimation(container) {
+    stopHeroAnimation();
     const codeEl = container.querySelector('#hero-cmd');
     if (!codeEl) return;
+    const runId = heroRunId;
 
-    function typeCommand(cmd) {
-      let i = 0;
-      codeEl.textContent = '';
-      const tick = () => {
-        if (i <= cmd.length) {
-          codeEl.textContent = cmd.slice(0, i);
-          i++;
-          setTimeout(tick, 45 + Math.random() * 30);
-        }
-      };
-      tick();
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      codeEl.textContent = HERO_COMMANDS[0];
+      return;
     }
 
-    typeCommand(HERO_COMMANDS[0]);
+    function schedule(callback, delay) {
+      heroTimer = window.setTimeout(() => {
+        heroTimer = null;
+        if (runId !== heroRunId || !codeEl.isConnected) return;
+        callback();
+      }, delay);
+    }
+
+    function typeCommand(cmd, position = 0) {
+      if (runId !== heroRunId || !codeEl.isConnected) return;
+      codeEl.textContent = cmd.slice(0, position);
+      if (position < cmd.length) {
+        schedule(() => typeCommand(cmd, position + 1), 45 + Math.random() * 30);
+        return;
+      }
+
+      schedule(() => {
+        heroIndex = (heroIndex + 1) % HERO_COMMANDS.length;
+        typeCommand(HERO_COMMANDS[heroIndex]);
+      }, 1600);
+    }
+
     heroIndex = 0;
-    heroInterval = setInterval(() => {
-      heroIndex = (heroIndex + 1) % HERO_COMMANDS.length;
-      typeCommand(HERO_COMMANDS[heroIndex]);
-    }, 4000);
+    typeCommand(HERO_COMMANDS[heroIndex]);
   }
 
   function stopHeroAnimation() {
-    if (heroInterval) {
-      clearInterval(heroInterval);
-      heroInterval = null;
+    heroRunId++;
+    if (heroTimer !== null) {
+      clearTimeout(heroTimer);
+      heroTimer = null;
     }
   }
 
@@ -414,6 +440,13 @@
     window.addEventListener('hashchange', () => navigate(pageFromHash(), false));
     window.addEventListener('popstate', () => navigate(pageFromHash(), false));
     window.addEventListener('scroll', updateProgress, { passive: true });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopHeroAnimation();
+      } else if (currentPage === 'index') {
+        startHeroAnimation(main);
+      }
+    });
 
     searchInput?.addEventListener('input', (e) => applySearch(e.target.value));
 
@@ -436,9 +469,9 @@
     });
 
     const page = pageFromHash();
+    currentPage = page;
     if (!location.hash) history.replaceState({ page }, '', `#${page}`);
     applyLang(currentLang);
-    navigate(page, false);
   }
 
   document.addEventListener('DOMContentLoaded', init);
