@@ -54,14 +54,15 @@ jobs:
           set -euo pipefail
           CLI="$GITHUB_WORKSPACE/packages/cli/bin/skillctl.js"
           WORK="$RUNNER_TEMP/skillctl-smoke"
-          mkdir -p "$WORK/.ci-skill"
+          export SKILLCTL_STORE="$WORK/.store"
+          mkdir -p "$WORK"
+          cp -R "$GITHUB_WORKSPACE/packages/cli/src/test/fixtures/ci-smoke" "$WORK/ci-smoke"
           cd "$WORK"
-          printf '%s\n' '---' 'name: ci-smoke' '---' 'Test skill for CI.' > .ci-skill/SKILL.md
-          node "$CLI" init
-          node "$CLI" add file:./.ci-skill
+          node "$CLI" init --no-prompt
+          node "$CLI" add file:./ci-smoke
           node "$CLI" list
           node "$CLI" doctor --json > doctor.json
-          node --input-type=commonjs -e "const d=JSON.parse(require('fs').readFileSync('doctor.json','utf8')); if(!d.manifestPresent) process.exit(1); console.log('doctor ok:', d.status);"
+          node --input-type=commonjs -e "const d=JSON.parse(require('fs').readFileSync('doctor.json','utf8')); if(!d.ok || !d.data?.manifestPresent) process.exit(1); console.log('doctor ok:', d.data.status);"
           node "$CLI" audit --strict
           node "$CLI" skill validate "$GITHUB_WORKSPACE/skills/skillctl" --json
 

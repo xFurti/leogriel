@@ -112,7 +112,9 @@ Release preparation is local and does not publish by itself:
 3. `node scripts/release-check.mjs --allow-dirty`
 4. `node scripts/pack-all.mjs`
 
-The manual `Release` workflow always checks and packs. Publication is disabled by default and requires `publish=true`, approval through the protected `npm-production` environment, and npm Trusted Publisher configuration. It publishes in dependency order and only then creates the tag and GitHub Release.
+The manual `Release` workflow always checks and packs. Publication is disabled by default and requires `publish=true` plus approval through the protected `npm-production` environment. It publishes in dependency order and only then creates the tag and GitHub Release.
+
+For the first 0.5 publication, configure an environment secret named `NPM_TOKEN` because `@skillctl/project-state` does not exist on npm yet and therefore has no package settings page for Trusted Publishing. Use a granular token limited to the `@skillctl` packages and revoke it after the release. Then configure each package's npm Trusted Publisher for repository `xFurti/skillctl`, workflow `release.yml`, environment `npm-production`; subsequent releases use short-lived OIDC credentials.
 
 ## Code of conduct
 
