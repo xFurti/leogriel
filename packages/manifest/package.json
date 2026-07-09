@@ -15,7 +15,7 @@
     "dev": "tsc -b --watch",
     "clean": "rimraf dist",
     "lint": "tsc --noEmit",
-    "test": "node --test ./dist/test/*.test.js 2>&1 || echo 'no dist tests or node test runner skipped; run after build'",
+    "test": "node --test ./dist/test/*.test.js",
     "prepack": "pnpm run build"
   },
   "dependencies": {

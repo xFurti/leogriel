@@ -2,6 +2,7 @@
  * Validation tests + fixtures for lockfile (YAML + detailed provenance).
  */
 import assert from 'node:assert/strict';
+import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -66,8 +67,6 @@ async function runTests() {
   console.log('All lockfile validation tests passed.');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  runTests().catch((e) => { console.error(e); process.exit(1); });
-}
+test('lockfile validation and persistence', runTests);
 
 export { runTests };

@@ -26,7 +26,7 @@
     "dev": "tsc -b --watch",
     "clean": "rimraf dist",
     "lint": "tsc --noEmit",
-    "test": "echo \"no tests yet\" && exit 0",
+    "test": "node --test ./dist/test/*.test.js",
     "prepack": "pnpm run build"
   },
   "dependencies": {

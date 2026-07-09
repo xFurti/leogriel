@@ -5,6 +5,7 @@
  * No network dependent in CI path (github/npm resolve tested structurally).
  */
 import assert from 'node:assert/strict';
+import test from 'node:test';
 import { mkdtemp, rm, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -14,6 +15,11 @@ import { loadConfig } from '@skillctl/core';
 
 async function runTests() {
   console.log('Running registry resolution tests...');
+  const originalStore = process.env.SKILLCTL_STORE;
+  const isolatedRoot = await mkdtemp(join(tmpdir(), 'skillctl-registry-store-'));
+  process.env.SKILLCTL_STORE = join(isolatedRoot, 'store');
+
+  try {
 
   const mgr = new RegistryManager();
   const localSrc = new LocalSource();
@@ -134,10 +140,13 @@ async function runTests() {
   } catch {}
 
   console.log('All registry resolution + materialize tests passed.');
+  } finally {
+    if (originalStore === undefined) delete process.env.SKILLCTL_STORE;
+    else process.env.SKILLCTL_STORE = originalStore;
+    await rm(isolatedRoot, { recursive: true, force: true });
+  }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  runTests().catch((e) => { console.error(e); process.exit(1); });
-}
+test('registry resolution and materialization', runTests);
 
 export { runTests };

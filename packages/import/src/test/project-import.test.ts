@@ -64,3 +64,18 @@ test('classifySkillPath detects skillctl-link under store root', async () => {
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test('project import refuses conflicting skills with the same canonical name', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'skillctl-project-conflict-'));
+  try {
+    await writeSkill(join(root, '.codex', 'skills'), 'same-name');
+    const other = await writeSkill(join(root, '.claude', 'skills'), 'same-name');
+    await writeFile(join(other, 'extra.txt'), 'different content');
+
+    const { plan } = await planImportFromProject(root);
+    const conflict = plan.find((item) => item.name === 'same-name');
+    assert.equal(conflict?.action, 'skip-conflict');
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
