@@ -24,7 +24,8 @@
     { "path": "./packages/cli" },
     { "path": "./packages/import" },
     { "path": "./packages/security" },
-    { "path": "./packages/plugin-system" }
+    { "path": "./packages/plugin-system" },
+    { "path": "./packages/project-state" }
   ],
   "include": [],
   "exclude": ["node_modules", "dist", "**/dist"]

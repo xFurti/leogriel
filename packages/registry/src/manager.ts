@@ -14,8 +14,8 @@ import {
   formatCanonicalPathForLock,
   portableSpecifierForResolved,
 } from '@skillctl/core';
-import { loadManifest, saveManifest } from '@skillctl/manifest';
-import { loadLockfile, saveLockfile, createEmptyLockfile, addOrUpdateEntry, makeLockEntry } from '@skillctl/lockfile';
+import { createEmptyLockfile, addOrUpdateEntry, makeLockEntry } from '@skillctl/lockfile';
+import { updateProjectState, withOperationLocks } from '@skillctl/project-state';
 
 import { limitedFetch } from './fetch/concurrency.js';
 import { LocalSource } from './sources/local.js';
@@ -145,6 +145,15 @@ export class RegistryManager {
     opts: { cwd?: string; updateManifest?: boolean; name?: string } = {}
   ): Promise<LockfileEntry> {
     const cwd = opts.cwd || process.cwd();
+    const config = await loadConfig();
+    return withOperationLocks({ cwd, store: config.store }, () => this.addUnlocked(spec, { ...opts, cwd }));
+  }
+
+  private async addUnlocked(
+    spec: string,
+    opts: { cwd: string; updateManifest?: boolean; name?: string }
+  ): Promise<LockfileEntry> {
+    const cwd = opts.cwd;
     const resolved = await this.resolve(spec, { cwd });
     const mat = await this.materialize(resolved, { name: opts.name });
 
@@ -176,19 +185,16 @@ export class RegistryManager {
       prov
     );
 
-    let lock = (await loadLockfile(cwd)) || createEmptyLockfile();
-    lock = addOrUpdateEntry(lock, entry.name, entry);
-    await saveLockfile(lock, cwd);
-
-    if (opts.updateManifest) {
-      let manifest = await loadManifest(cwd);
-      if (manifest) {
+    await updateProjectState(cwd, async (state) => {
+      const lock = addOrUpdateEntry(state.lockfile || createEmptyLockfile(), entry.name, entry);
+      const manifest = state.manifest;
+      if (opts.updateManifest && manifest) {
         if (!manifest.agentSkills) manifest.agentSkills = { dependencies: {}, devDependencies: {} };
         if (!manifest.agentSkills.dependencies) manifest.agentSkills.dependencies = {};
         manifest.agentSkills.dependencies[entry.name] = portableSpec;
-        await saveManifest(manifest, cwd);
       }
-    }
+      return { state: { manifest, lockfile: lock }, result: undefined };
+    });
 
     return entry;
   }
@@ -198,6 +204,15 @@ export class RegistryManager {
     options: { cwd?: string; expectedIntegrity?: string; name?: string } = {}
   ): Promise<{ canonicalPath: string; integrity: string; sourceType: string }> {
     const cwd = options.cwd || process.cwd();
+    const config = await loadConfig();
+    return withOperationLocks({ cwd, store: config.store }, () => this.installLockedEntryUnlocked(entry, { ...options, cwd }));
+  }
+
+  private async installLockedEntryUnlocked(
+    entry: LockfileEntry,
+    options: { cwd: string; expectedIntegrity?: string; name?: string }
+  ): Promise<{ canonicalPath: string; integrity: string; sourceType: string }> {
+    const cwd = options.cwd;
     const resolved = await this.resolveLockedEntry(entry, cwd);
     return this.materialize(resolved, {
       name: options.name || entry.name,

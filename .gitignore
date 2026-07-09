@@ -67,3 +67,7 @@ terminals/
 # Misc
 *.tgz
 *.tar.gz
+.skillctl-transaction.json
+.skillctl-transaction-*
+.skillctl-operation.lock
+.skillctl-store.lock

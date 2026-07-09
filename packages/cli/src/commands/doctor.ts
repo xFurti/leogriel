@@ -4,6 +4,7 @@ import { loadManifest } from '@skillctl/manifest';
 import { loadLockfile } from '@skillctl/lockfile';
 import { scanCoexistence, getEnabledAdapters, syncSkillsToAgents } from '@skillctl/adapters';
 import { runAudit, auditExitCode } from '@skillctl/security';
+import { withOperationLocks } from '@skillctl/project-state';
 
 export function registerDoctor(program: Command): void {
   program
@@ -39,7 +40,10 @@ export function registerDoctor(program: Command): void {
       }
 
       if (options.fix && lock) {
-        const res = await syncSkillsToAgents(await lockToSkillTargets(lock));
+        const res = await withOperationLocks(
+          { cwd, store: config.store },
+          async () => syncSkillsToAgents(await lockToSkillTargets(lock))
+        );
         info.push(`--fix: re-synced ${res.synced} targets`);
       }
 

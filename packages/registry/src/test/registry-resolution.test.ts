@@ -139,6 +139,21 @@ async function runTests() {
   } catch {}
   console.log('✓ portable lock paths for in-project and outside-project local adds');
 
+  const concurrentA = join(fixtureRoot, 'concurrent-a');
+  const concurrentB = join(fixtureRoot, 'concurrent-b');
+  await mkdir(concurrentA);
+  await mkdir(concurrentB);
+  await writeFile(join(concurrentA, 'SKILL.md'), '---\nname: concurrent-a\n---\n');
+  await writeFile(join(concurrentB, 'SKILL.md'), '---\nname: concurrent-b\n---\n');
+  await Promise.all([
+    mgr.add('file:./concurrent-a', { cwd: fixtureRoot, updateManifest: false }),
+    mgr.add('file:./concurrent-b', { cwd: fixtureRoot, updateManifest: false }),
+  ]);
+  const concurrentLock = await loadLockfile(fixtureRoot);
+  assert.ok(concurrentLock?.skills['concurrent-a']);
+  assert.ok(concurrentLock?.skills['concurrent-b']);
+  console.log('✓ concurrent adds preserve both lock entries');
+
   // manifest updated
   // (manifest load may have created? no, add uses if present; for test we didn't init, skip strict)
   console.log('✓ materialize + add + lock integration (local path)');

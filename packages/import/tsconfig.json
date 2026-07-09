@@ -10,7 +10,8 @@
     { "path": "../lockfile" },
     { "path": "../manifest" },
     { "path": "../registry" },
-    { "path": "../adapters" }
+    { "path": "../adapters" },
+    { "path": "../project-state" }
   ],
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules"]

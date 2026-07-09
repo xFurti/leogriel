@@ -1,13 +1,14 @@
 import type { Command } from 'commander';
 import { stat } from 'node:fs/promises';
 import { basename, join } from 'node:path';
-import { loadManifest, createDefaultManifest, saveManifest } from '@skillctl/manifest';
+import { createDefaultManifest } from '@skillctl/manifest';
 import { loadLockfile, createEmptyLockfile } from '@skillctl/lockfile';
 import { discoverProjectSkills, executeImport } from '@skillctl/import';
-import { lockToSkillTargets } from '@skillctl/core';
+import { loadConfig, lockToSkillTargets } from '@skillctl/core';
 import { RegistryManager } from '@skillctl/registry';
 import { syncSkillsToAgents } from '@skillctl/adapters';
 import { confirm } from '../lib/prompt.js';
+import { updateProjectState, withOperationLocks } from '@skillctl/project-state';
 
 const META_SKILL_REMOTE = 'github:xFurti/skillctl#skills/skillctl';
 const META_SKILL_LOCAL = 'file:./skills/skillctl';
@@ -42,13 +43,18 @@ export function registerInit(program: Command, mgr?: RegistryManager): void {
     .option('--with-skill', 'add the skillctl meta-skill and sync to agents')
     .action(async (options) => {
       const cwd = process.cwd();
-      const existing = await loadManifest(cwd);
-      if (existing) {
+      const config = await loadConfig();
+      const sample = createDefaultManifest(basename(cwd));
+      const created = await withOperationLocks({ cwd, store: config.store }, async () =>
+        updateProjectState(cwd, async (state) => {
+          if (state.manifest) return { state, result: false };
+          return { state: { ...state, manifest: sample }, result: true };
+        })
+      );
+      if (!created) {
         console.log('agent-skills.json already exists');
         return;
       }
-      const sample = createDefaultManifest(basename(cwd));
-      await saveManifest(sample, cwd);
       console.log('Created agent-skills.json');
 
       const registry = mgr || new RegistryManager();

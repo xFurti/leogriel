@@ -4,6 +4,7 @@ import { loadManifest } from '@skillctl/manifest';
 import { loadLockfile, createEmptyLockfile } from '@skillctl/lockfile';
 import {
   lockToSkillTargets,
+  loadConfig,
   needsInstall,
   resolveEntryCanonicalPath,
   type LockfileEntry,
@@ -11,6 +12,7 @@ import {
 import { RegistryManager } from '@skillctl/registry';
 import { syncSkillsToAgents } from '@skillctl/adapters';
 import { handleCommandError } from '../lib/errors.js';
+import { withOperationLocks } from '@skillctl/project-state';
 
 export interface InstallSummary {
   installed: string[];
@@ -99,7 +101,8 @@ export function registerInstall(program: Command, mgr?: RegistryManager): void {
             const allowed = new Set(Object.keys(production));
             skills = skills.filter((skill) => allowed.has(skill.name));
           }
-          const result = await syncSkillsToAgents(skills);
+          const config = await loadConfig();
+          const result = await withOperationLocks({ cwd, store: config.store }, () => syncSkillsToAgents(skills));
           console.log(`Synced ${result.synced} links via adapters: ${result.adaptersUsed.join(', ') || 'none'}`);
           if (result.notes.length) console.log('Notes:', result.notes.join('; '));
         }

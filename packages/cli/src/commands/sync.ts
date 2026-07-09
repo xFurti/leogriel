@@ -1,7 +1,8 @@
 import type { Command } from 'commander';
 import { loadLockfile } from '@skillctl/lockfile';
-import { lockToSkillTargets } from '@skillctl/core';
+import { loadConfig, lockToSkillTargets } from '@skillctl/core';
 import { syncSkillsToAgents, type SyncScope } from '@skillctl/adapters';
+import { withOperationLocks } from '@skillctl/project-state';
 import { handleCommandError } from '../lib/errors.js';
 
 function collectAgents(value: string, previous: string[]): string[] {
@@ -24,17 +25,19 @@ export function registerSync(program: Command): void {
         }
         const scope: SyncScope = options.project ? 'project' : options.global ? 'global' : 'both';
         const cwd = process.cwd();
-        const lock = await loadLockfile(cwd);
-        if (!lock || Object.keys(lock.skills || {}).length === 0) {
-          console.log('No lockfile or skills to sync. Run install or add first.');
-          return;
-        }
-        const skills = await lockToSkillTargets(lock);
-        const result = await syncSkillsToAgents(skills, {
-          dryRun: options.dryRun,
-          scope,
-          adapterIds: options.agent,
-          prune: options.prune,
+        const config = await loadConfig();
+        const result = await withOperationLocks({ cwd, store: config.store }, async () => {
+          const lock = await loadLockfile(cwd);
+          if (!lock || Object.keys(lock.skills || {}).length === 0) {
+            throw new Error('No lockfile or skills to sync. Run install or add first.');
+          }
+          const skills = await lockToSkillTargets(lock);
+          return syncSkillsToAgents(skills, {
+            dryRun: options.dryRun,
+            scope,
+            adapterIds: options.agent,
+            prune: options.prune,
+          });
         });
         console.log(
           `sync: ${result.counts.created} created, ${result.counts.updated} updated, ` +

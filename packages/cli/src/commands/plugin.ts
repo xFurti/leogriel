@@ -10,6 +10,7 @@ import {
 } from '@skillctl/plugin-system';
 import { loadConfig, saveConfig } from '@skillctl/core';
 import { handleCommandError } from '../lib/errors.js';
+import { withOperationLocks } from '@skillctl/project-state';
 
 export function registerPlugin(program: Command): void {
   const pluginCmd = program.command('plugin').description('Manage skillctl plugins');
@@ -40,8 +41,11 @@ export function registerPlugin(program: Command): void {
     .description('Enable plugin loading (experimental)')
     .action(async () => {
       const config = await loadConfig();
-      config.experimental = { ...config.experimental, plugins: true };
-      await saveConfig(config);
+      await withOperationLocks({ cwd: process.cwd(), store: config.store }, async () => {
+        const current = await loadConfig();
+        current.experimental = { ...current.experimental, plugins: true };
+        await saveConfig(current);
+      });
       console.log('Plugins enabled. Restart skillctl to load plugins.');
     });
 
@@ -60,7 +64,8 @@ export function registerPlugin(program: Command): void {
         const pkg = JSON.parse(await (await import('node:fs/promises')).readFile(join(abs, 'package.json'), 'utf8'));
         const name = pkg.name || abs.split(/[/\\]/).pop()!;
         await mkdir(getPluginsDir(), { recursive: true });
-        await addPluginRecord(name, entry);
+        const config = await loadConfig();
+        await withOperationLocks({ cwd: process.cwd(), store: config.store }, () => addPluginRecord(name, entry));
         console.log(`Registered plugin ${name} at ${entry}`);
         console.log('Run `skillctl plugin enable` if not already enabled.');
       } catch (err) {
@@ -72,7 +77,11 @@ export function registerPlugin(program: Command): void {
     .command('remove <name>')
     .description('Unregister a plugin')
     .action(async (name) => {
-      const ok = await removePluginRecord(name);
+      const config = await loadConfig();
+      const ok = await withOperationLocks(
+        { cwd: process.cwd(), store: config.store },
+        () => removePluginRecord(name)
+      );
       if (!ok) {
         console.log(`Plugin not found: ${name}`);
         process.exitCode = 1;

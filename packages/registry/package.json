@@ -22,6 +22,7 @@
     "@skillctl/core": "workspace:*",
     "@skillctl/lockfile": "workspace:*",
     "@skillctl/manifest": "workspace:*",
+    "@skillctl/project-state": "workspace:*",
     "semver": "^7.6.3",
     "tar": "^7.5.16"
   },

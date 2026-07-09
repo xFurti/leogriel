@@ -1,13 +1,14 @@
 import type { Command } from 'commander';
-import { loadManifest, saveManifest } from '@skillctl/manifest';
-import { loadLockfile, saveLockfile } from '@skillctl/lockfile';
 import {
   canonicalizeName,
+  loadConfig,
   purgeCanonical,
   resolveAdapterTarget,
   resolveEntryCanonicalPath,
+  type LockfileEntry,
 } from '@skillctl/core';
 import { getEnabledAdapters } from '@skillctl/adapters';
+import { updateProjectState, withOperationLocks } from '@skillctl/project-state';
 import { handleCommandError } from '../lib/errors.js';
 
 export function registerRemove(program: Command): void {
@@ -19,50 +20,45 @@ export function registerRemove(program: Command): void {
     .action(async (name, options) => {
       try {
         const cwd = process.cwd();
-        let manifest = await loadManifest(cwd);
-        let lock = await loadLockfile(cwd);
+        const config = await loadConfig();
         const canonicalName = canonicalizeName(name);
-        let changed = false;
+        await withOperationLocks({ cwd, store: config.store }, async () => {
+          let removedEntry: LockfileEntry | undefined;
+          let changed = false;
+          await updateProjectState(cwd, async (state) => {
+            const manifest = state.manifest;
+            const lock = state.lockfile;
+            if (manifest?.agentSkills?.dependencies?.[canonicalName]) {
+              delete manifest.agentSkills.dependencies[canonicalName];
+              changed = true;
+            }
+            if (manifest?.agentSkills?.devDependencies?.[canonicalName]) {
+              delete manifest.agentSkills.devDependencies[canonicalName];
+              changed = true;
+            }
+            if (lock?.skills[canonicalName]) {
+              removedEntry = lock.skills[canonicalName];
+              delete lock.skills[canonicalName];
+              changed = true;
+            }
+            return { state: { manifest, lockfile: lock }, result: undefined };
+          });
 
-        if (manifest?.agentSkills?.dependencies?.[canonicalName]) {
-          delete manifest.agentSkills.dependencies[canonicalName];
-          await saveManifest(manifest, cwd);
-          changed = true;
-          console.log(`Removed ${canonicalName} from manifest.`);
-        }
-        if (manifest?.agentSkills?.devDependencies?.[canonicalName]) {
-          delete manifest.agentSkills.devDependencies[canonicalName];
-          await saveManifest(manifest, cwd);
-          changed = true;
-          console.log(`Removed ${canonicalName} from manifest devDependencies.`);
-        }
-
-        if (lock?.skills?.[canonicalName]) {
-          const entry = lock.skills[canonicalName];
-          const canonicalPath = await resolveEntryCanonicalPath(entry);
-          delete lock.skills[canonicalName];
-          await saveLockfile(lock, cwd);
-          changed = true;
-          console.log(`Removed ${canonicalName} from lock (was at ${entry.canonicalPath}).`);
-
-          const adapters = await getEnabledAdapters();
-          for (const ad of adapters) {
-            for (const p of [...ad.projectPaths, ...ad.globalPaths]) {
-              const target = resolveAdapterTarget(p, canonicalName, cwd);
-              await ad.removeTarget(canonicalName, target, canonicalPath).catch((err) => {
-                console.warn(`Skipped unsafe target ${target}: ${(err as Error).message}`);
-              });
+          if (removedEntry) {
+            const canonicalPath = await resolveEntryCanonicalPath(removedEntry);
+            for (const adapter of await getEnabledAdapters()) {
+              for (const path of [...adapter.projectPaths, ...adapter.globalPaths]) {
+                const target = resolveAdapterTarget(path, canonicalName, cwd);
+                await adapter.removeTarget(canonicalName, target, canonicalPath).catch((err) => {
+                  console.warn(`Skipped unsafe target ${target}: ${(err as Error).message}`);
+                });
+              }
             }
           }
-        }
-
-        if (options.purge) {
-          await purgeCanonical(canonicalName);
-          console.log('Purged canonical dir.');
-        }
-
-        if (!changed) console.log(`No entry for ${name} found.`);
-        else console.log('Done. Run `sync` if needed.');
+          if (options.purge) await purgeCanonical(canonicalName);
+          if (!changed && !options.purge) console.log(`No entry for ${name} found.`);
+          else console.log(`Removed ${canonicalName}.`);
+        });
       } catch (err) {
         handleCommandError(err, 'remove');
       }

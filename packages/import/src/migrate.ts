@@ -6,18 +6,19 @@ import {
   ensureDir,
   formatCanonicalPathForLock,
   importedSpecifier,
+  loadConfig,
   lockToSkillTargets,
   type LockfileEntry,
   type Provenance,
 } from '@skillctl/core';
-import { loadLockfile, saveLockfile, createEmptyLockfile, addOrUpdateEntry, makeLockEntry } from '@skillctl/lockfile';
-import { loadManifest, saveManifest } from '@skillctl/manifest';
+import { loadLockfile, createEmptyLockfile, addOrUpdateEntry, makeLockEntry } from '@skillctl/lockfile';
 import { RegistryManager } from '@skillctl/registry';
 import { syncSkillsToAgents } from '@skillctl/adapters';
 import { parseNpxSkillsLock, findNpxLock } from './parsers/npx-skills-lock.js';
 import { scanSkillsDir } from './parsers/scan-skills-dir.js';
 import { scanPythonSkillctlRepos } from './parsers/python-skillctl.js';
 import { discoverProjectSkills } from './discover-project-skills.js';
+import { updateProjectState, withOperationLocks } from '@skillctl/project-state';
 
 export interface ImportOptions {
   cwd?: string;
@@ -293,25 +294,36 @@ export async function executeImport(opts: ImportOptions): Promise<ImportResult> 
     }
   }
 
-  lock.metadata = { ...lock.metadata, migratedAt: new Date().toISOString(), toolVersion: '0.4.0' };
-  await saveLockfile(lock, cwd);
-
-  if (shouldWriteManifest(opts)) {
-    let manifest = (await loadManifest(cwd)) || (await import('@skillctl/manifest')).createDefaultManifest();
-    if (!manifest.agentSkills) manifest.agentSkills = { dependencies: {}, devDependencies: {} };
-    if (!manifest.agentSkills.dependencies) manifest.agentSkills.dependencies = {};
-    for (const name of result.imported) {
-      const entry = lock.skills[name];
-      if (entry) manifest.agentSkills.dependencies[name] = entry.specifier;
-    }
-    await saveManifest(manifest, cwd);
-  }
+  lock.metadata = { ...lock.metadata, migratedAt: new Date().toISOString(), toolVersion: '0.5.0' };
+  const config = await loadConfig();
+  await withOperationLocks({ cwd, store: config.store }, async () => {
+    await updateProjectState(cwd, async (state) => {
+      const existingLock = state.lockfile || createEmptyLockfile();
+      const mergedLock = {
+        ...existingLock,
+        ...lock,
+        skills: { ...existingLock.skills, ...lock.skills },
+        metadata: { ...existingLock.metadata, ...lock.metadata },
+      };
+      let manifest = state.manifest;
+      if (shouldWriteManifest(opts)) {
+        manifest = manifest || (await import('@skillctl/manifest')).createDefaultManifest();
+        if (!manifest.agentSkills) manifest.agentSkills = { dependencies: {}, devDependencies: {} };
+        if (!manifest.agentSkills.dependencies) manifest.agentSkills.dependencies = {};
+        for (const name of result.imported) {
+          const entry = mergedLock.skills[name];
+          if (entry) manifest.agentSkills.dependencies[name] = entry.specifier;
+        }
+      }
+      return { state: { manifest, lockfile: mergedLock }, result: undefined };
+    });
+  });
 
   if (shouldSync(opts) && result.imported.length > 0) {
     const allTargets = await lockToSkillTargets(lock);
     const imported = new Set(result.imported);
     const skills = allTargets.filter((s) => imported.has(s.name));
-    await syncSkillsToAgents(skills);
+    await withOperationLocks({ cwd, store: config.store }, () => syncSkillsToAgents(skills));
   }
 
   return result;

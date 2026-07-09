@@ -8,6 +8,7 @@
   "references": [
     { "path": "../core" },
     { "path": "../manifest" },
+    { "path": "../project-state" },
     { "path": "../lockfile" }
   ],
   "include": ["src/**/*"],

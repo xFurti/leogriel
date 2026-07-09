@@ -1,10 +1,11 @@
 import type { Command } from 'commander';
 import { loadManifest } from '@skillctl/manifest';
 import { loadLockfile } from '@skillctl/lockfile';
-import { lockToSkillTargets, canonicalizeName } from '@skillctl/core';
+import { lockToSkillTargets, canonicalizeName, loadConfig } from '@skillctl/core';
 import { RegistryManager } from '@skillctl/registry';
 import { syncSkillsToAgents } from '@skillctl/adapters';
 import { handleCommandError } from '../lib/errors.js';
+import { withOperationLocks } from '@skillctl/project-state';
 
 export function registerUpdate(program: Command, mgr?: RegistryManager): void {
   program
@@ -45,7 +46,11 @@ export function registerUpdate(program: Command, mgr?: RegistryManager): void {
         console.log(`Updated ${updated} skill(s).`);
         if (options.sync !== false) {
           const freshLock = (await loadLockfile(cwd)) || lock;
-          const res = await syncSkillsToAgents(await lockToSkillTargets(freshLock));
+          const config = await loadConfig();
+          const res = await withOperationLocks(
+            { cwd, store: config.store },
+            async () => syncSkillsToAgents(await lockToSkillTargets(freshLock))
+          );
           console.log(`Synced ${res.synced} links.`);
         }
       } catch (err) {

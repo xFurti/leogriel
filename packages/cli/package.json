@@ -39,6 +39,7 @@
     "@skillctl/import": "workspace:*",
     "@skillctl/security": "workspace:*",
     "@skillctl/plugin-system": "workspace:*",
+    "@skillctl/project-state": "workspace:*",
     "commander": "^12.1.0"
   },
   "devDependencies": {

@@ -31,6 +31,10 @@ export const SkillLockfileSchema = z.object({
   lockfileVersion: z.literal('1.0'),
   agents: z.array(z.string()).optional(),
   skills: z.record(z.string(), LockfileEntrySchema),
+  metadata: z.object({
+    migratedAt: z.string().optional(),
+    toolVersion: z.string().optional(),
+  }).optional(),
 });
 
 export type { LockfileEntry, SkillLockfile, Provenance };
