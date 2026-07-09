@@ -39,6 +39,7 @@ export function registerInit(program: Command, mgr?: RegistryManager): void {
   program
     .command('init')
     .description('Initialize agent-skills.json in current project')
+    .option('--json', 'machine-readable output')
     .option('--no-prompt', 'skip post-init import wizard')
     .option('--with-skill', 'add the skillctl meta-skill and sync to agents')
     .action(async (options) => {

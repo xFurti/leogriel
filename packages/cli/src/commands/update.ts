@@ -11,6 +11,7 @@ export function registerUpdate(program: Command, mgr?: RegistryManager): void {
   program
     .command('update [names...]')
     .description('Re-fetch and update skills from their specifiers')
+    .option('--json', 'machine-readable output')
     .option('--no-sync', 'skip agent sync after update')
     .action(async (names, options) => {
       try {

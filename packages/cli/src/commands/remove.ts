@@ -16,6 +16,7 @@ export function registerRemove(program: Command): void {
     .command('remove <name>')
     .alias('rm')
     .description('Remove skill from manifest/lock and unlink agent targets')
+    .option('--json', 'machine-readable output')
     .option('--purge', 'also remove from canonical ~/.skillctl/skills/<name>')
     .action(async (name, options) => {
       try {

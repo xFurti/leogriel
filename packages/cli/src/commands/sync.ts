@@ -13,6 +13,7 @@ export function registerSync(program: Command): void {
   program
     .command('sync')
     .description('Sync canonical skills to enabled agent directories')
+    .option('--json', 'machine-readable output')
     .option('--dry-run', 'show what would be done')
     .option('--project', 'sync project-scoped agent directories only')
     .option('--global', 'sync global agent directories only')

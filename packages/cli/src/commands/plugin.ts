@@ -39,6 +39,7 @@ export function registerPlugin(program: Command): void {
   pluginCmd
     .command('enable')
     .description('Enable plugin loading (experimental)')
+    .option('--json', 'machine-readable output')
     .action(async () => {
       const config = await loadConfig();
       await withOperationLocks({ cwd: process.cwd(), store: config.store }, async () => {
@@ -52,6 +53,7 @@ export function registerPlugin(program: Command): void {
   pluginCmd
     .command('add <path>')
     .description('Register a local plugin (directory with package.json skillctl.plugin entry)')
+    .option('--json', 'machine-readable output')
     .action(async (pluginPath) => {
       try {
         const abs = resolve(process.cwd(), pluginPath);
@@ -76,6 +78,7 @@ export function registerPlugin(program: Command): void {
   pluginCmd
     .command('remove <name>')
     .description('Unregister a plugin')
+    .option('--json', 'machine-readable output')
     .action(async (name) => {
       const config = await loadConfig();
       const ok = await withOperationLocks(

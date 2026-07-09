@@ -6,6 +6,7 @@ export function registerAdd(program: Command, mgr?: RegistryManager): void {
   program
     .command('add <spec>')
     .description('Add a skill from github, npm, local, skills.sh (registry + cache)')
+    .option('--json', 'machine-readable output')
     .option('--no-manifest', 'do not update agent-skills.json')
     .action(async (spec, options) => {
       try {

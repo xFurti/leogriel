@@ -69,3 +69,41 @@ test('frozen install restores an empty store without changing the lockfile', asy
   });
   assert.match(await readFile(join(store, 'demo', 'SKILL.md'), 'utf8'), /locked content/);
 });
+
+test('JSON mode emits one stable envelope without human output', async () => {
+  const cwd = await mkdtemp(join(tmpdir(), 'skillctl-json-'));
+  const store = join(cwd, '.store');
+  const init = await execFileAsync(process.execPath, [cli, 'init', '--no-prompt', '--json'], {
+    cwd,
+    env: { ...process.env, SKILLCTL_STORE: store },
+  });
+  const initEnvelope = JSON.parse(init.stdout);
+  assert.equal(initEnvelope.schemaVersion, 1);
+  assert.equal(initEnvelope.command, 'init');
+  assert.equal(initEnvelope.ok, true);
+  assert.ok(Array.isArray(initEnvelope.data.messages));
+
+  const list = await execFileAsync(process.execPath, [cli, 'list', '--json'], {
+    cwd,
+    env: { ...process.env, SKILLCTL_STORE: store },
+  });
+  const listEnvelope = JSON.parse(list.stdout);
+  assert.equal(listEnvelope.schemaVersion, 1);
+  assert.equal(listEnvelope.command, 'list');
+  assert.equal(listEnvelope.data.manifest.name, cwd.split(/[\\/]/).pop());
+  assert.deepEqual(listEnvelope.errors, []);
+});
+
+test('JSON mode wraps command failures and uses exit code 2', async () => {
+  const cwd = await mkdtemp(join(tmpdir(), 'skillctl-json-error-'));
+  await assert.rejects(
+    execFileAsync(process.execPath, [cli, 'sync', '--json'], {
+      cwd,
+      env: { ...process.env, SKILLCTL_STORE: join(cwd, '.store') },
+    }),
+    (err: NodeJS.ErrnoException & { code?: number; stdout?: string }) => {
+      const envelope = JSON.parse(err.stdout || '{}');
+      return err.code === 2 && envelope.ok === false && envelope.errors.length === 1;
+    }
+  );
+});

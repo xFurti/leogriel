@@ -36,6 +36,7 @@ export function registerImport(program: Command): void {
   importCmd
     .command('from-project')
     .description('Import skills from detected agent directories (.codex/skills, .claude/skills, .agents/skills, ...)')
+    .option('--json', 'machine-readable output')
     .option('--dry-run', 'show migration plan only')
     .option('--yes, -y', 'skip confirmation prompts')
     .option('--sync', 'sync agent links after import')
@@ -102,6 +103,7 @@ export function registerImport(program: Command): void {
   importCmd
     .command('from-npx')
     .description('Migrate from npx skills (skills-lock.json / .agents/skills)')
+    .option('--json', 'machine-readable output')
     .option('--dry-run', 'show migration plan only')
     .option('--yes', 'skip confirmation prompts')
     .option('--sync', 'sync agent links after import')
@@ -137,6 +139,7 @@ export function registerImport(program: Command): void {
   importCmd
     .command('from-skillctl')
     .description('Migrate from Python skillctl (~/.skillctl/repos)')
+    .option('--json', 'machine-readable output')
     .option('--dry-run', 'show migration plan only')
     .option('--sync', 'sync agent links after import')
     .option('--adopt', 'deprecated alias for --sync')

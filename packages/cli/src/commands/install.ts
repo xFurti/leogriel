@@ -27,6 +27,7 @@ export function registerInstall(program: Command, mgr?: RegistryManager): void {
     .command('install')
     .alias('i')
     .description('Install/ensure all skills from agent-skills.json into canonical store')
+    .option('--json', 'machine-readable output')
     .option('--no-sync', 'skip linking to agents after install')
     .option('--frozen', 'install exactly from lock without modifying it')
     .option('--prod', 'exclude devDependencies')
