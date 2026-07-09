@@ -24,11 +24,11 @@ Uses `local:imported/<name>` specifiers pointing at canonical store.
 
 ```bash
 git clone <repo> && cd <repo>
-skillctl install
-skillctl sync
+skillctl install --frozen
+skillctl sync --project
 ```
 
-Lock paths are portable; install resolves `~/.skillctl/skills/<name>` per machine.
+Lock paths are portable; frozen install restores an empty store from immutable remote entries and resolves `~/.skillctl/skills/<name>` per machine.
 
 ## CI pipeline
 
@@ -39,6 +39,15 @@ skillctl audit --strict --json
 ```
 
 Exit codes: `doctor`/`audit` 2 on errors, 1 on warnings.
+
+## Remove stale managed targets
+
+```bash
+skillctl sync --project --agent codex --prune --dry-run
+skillctl sync --project --agent codex --prune
+```
+
+Prune never removes unverified user-managed directories.
 
 ## Add skillctl meta-skill to a project
 

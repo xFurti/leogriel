@@ -57,10 +57,11 @@ packages/
 ├── adapters/       Agent target directories
 ├── import/         Migration from npx skills / Python skillctl
 ├── security/       Audit scanner
-└── plugin-system/  Experimental plugins
+├── plugin-system/  Experimental plugins
+└── project-state/  Cross-process locks and transactional manifest/lock writes
 ```
 
-Only `@skillctl/cli` is intended for npm publication today. Other packages are workspace-internal.
+All eleven workspace packages are versioned together and publishable. The CLI depends on the other scoped packages.
 
 ## Making changes
 
@@ -72,6 +73,7 @@ Only `@skillctl/cli` is intended for npm publication today. Other packages are w
    ```bash
    pnpm build
    pnpm test
+   pnpm test:coverage
    pnpm -r lint
    ```
 
@@ -103,12 +105,14 @@ We follow [Semantic Versioning](https://semver.org/). All workspace packages are
 
 ## Publishing (maintainers)
 
-GitHub and npm are separate steps:
+Release preparation is local and does not publish by itself:
 
-1. Tag: `git tag v0.4.0 && git push origin v0.4.0`
-2. npm (from `packages/cli` after build): `npm publish --access public`
+1. `node scripts/set-version.mjs <version>`
+2. Update the dated changelog and root meta-skill lock.
+3. `node scripts/release-check.mjs --allow-dirty`
+4. `node scripts/pack-all.mjs`
 
-Do not publish until `@skillctl/cli` is verified with `pnpm publish:dry`.
+The manual `Release` workflow always checks and packs. Publication is disabled by default and requires `publish=true`, approval through the protected `npm-production` environment, and npm Trusted Publisher configuration. It publishes in dependency order and only then creates the tag and GitHub Release.
 
 ## Code of conduct
 

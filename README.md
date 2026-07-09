@@ -8,7 +8,7 @@ Universal, package-manager-style CLI for managing **Agent Skills** across AI cod
 
 `skillctl` keeps a single canonical store at `~/.skillctl/skills/` and syncs skills (symlink, junction on Windows, or copy) into Claude Code, Cursor, OpenCode, Codex, Gemini CLI, Grok, and other [agentskills.io](https://agentskills.io)-compatible agents.
 
-> **Status**: v0.4.0 on npm — first-party **skillctl** meta-skill, Grok adapter, `skill validate`, `init --with-skill`. See [CHANGELOG.md](./CHANGELOG.md).
+> **Status**: v0.4.0 — immutable GitHub/npm resolutions, frozen store restoration, scoped sync/prune, transactional state, and uniform JSON output. See [CHANGELOG.md](./CHANGELOG.md).
 
 **Documentation** (commands, configuration, migration, troubleshooting): **[xfurti.github.io/skillctl](https://xfurti.github.io/skillctl/)** · IT/EN
 
@@ -28,8 +28,8 @@ Published package: `@skillctl/cli` (scoped). The `skillctl` command is still ava
 
 ```bash
 skillctl init
-skillctl add vercel-labs/agent-skills#web-design-guidelines
-skillctl add npm:some-skill-pkg
+skillctl add github:vercel-labs/agent-skills@main#web-design-guidelines
+skillctl add npm:some-skill-pkg@^2
 skillctl add file:./my-skill
 skillctl install          # fetch + sync all agents
 skillctl sync             # re-link only
@@ -42,6 +42,29 @@ Project files (commit these):
 - `agent-skills.lock` — reproducible YAML lockfile (like `pnpm-lock.yaml`)
 
 Canonical store: `~/.skillctl/skills/<name>/SKILL.md` (+ optional `scripts/`, `references/`).
+
+## Reproducible installs
+
+Remote requests remain readable in the manifest, while the lock pins GitHub and skills.sh sources to a full commit SHA and npm sources to an exact version plus tarball integrity. On a new machine, or after deleting the store, this restores the exact locked content without changing the lockfile:
+
+```bash
+skillctl install --frozen
+```
+
+`update` is the operation that intentionally refreshes a valid remote resolution. A missing `local:imported/...` copy cannot be reconstructed on another machine; prefer a remote source or `file:./...` for team workflows.
+
+## Selective sync and automation
+
+Without scope flags, `sync` keeps the compatible default and targets both project and global directories. Pruning is opt-in and removes only targets that skillctl can prove it manages.
+
+```bash
+skillctl sync --project --agent codex
+skillctl sync --global --agent codex,claude-code
+skillctl sync --project --prune --dry-run
+skillctl doctor --json
+```
+
+Every first-party command supports `--json` and writes one envelope with `schemaVersion`, `ok`, `command`, `data`, `warnings`, and `errors`. Exit codes are 0 for success, 1 for operational warnings/partial results, and 2 for fatal or validation failures.
 
 ## Supported Agents
 

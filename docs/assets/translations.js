@@ -33,8 +33,8 @@ window.TRANSLATIONS = {
 </section>
 
 <div class="alert alert-info">
-  <strong>Versione 0.4</strong> — npm <code>@skillctl/cli@0.4.0</code>
-  Meta-skill <code>skills/skillctl/</code>, adapter <strong>Grok</strong> (<code>.grok/skills</code>), manifest/lock portabili (0.3.1+), <code>init --with-skill</code>, <code>skill validate</code>. Sync verso Claude Code, Cursor, OpenCode, Codex, Gemini CLI, Grok e altri agenti <a href="https://agentskills.io" target="_blank" rel="noopener">agentskills.io</a>.
+  <strong>Versione 0.5</strong> — npm <code>@skillctl/cli@0.4.0</code>
+  Lock remoto immutabile, ripristino frozen su macchine nuove, sync selettivo/prune, transazioni concorrenti e output JSON uniforme. Sync verso Claude Code, Cursor, OpenCode, Codex, Gemini CLI, Grok e altri agenti <a href="https://agentskills.io" target="_blank" rel="noopener">agentskills.io</a>.
 </div>
 
 <h2>Cos'è skillctl</h2>
@@ -288,7 +288,7 @@ progetto/
     <tr><th>Formato</th><th>Esempio</th><th>Note</th></tr>
   </thead>
   <tbody>
-    <tr><td>GitHub (esplicito)</td><td><code>github:owner/repo#skill-name</code></td><td>Repo + skill in sottocartella.</td></tr>
+    <tr><td>GitHub (esplicito)</td><td><code>github:owner/repo@main#skill-name</code></td><td>Ref opzionale; il lock salva sempre il commit SHA.</td></tr>
     <tr><td>GitHub (shorthand)</td><td><code>owner/repo#skill-name</code></td><td>Equivalente al prefisso <code>github:</code>.</td></tr>
     <tr><td>npm</td><td><code>npm:package-name</code></td><td>Pacchetto npm che espone una skill.</td></tr>
     <tr><td>skills.sh</td><td><code>skills.sh/owner/repo</code></td><td>Richiede forma <code>owner/repo</code>; il solo nome skill fallisce.</td></tr>
@@ -330,7 +330,8 @@ skillctl plugin remove my-plugin</code></pre>
         title: 'Comandi — skillctl',
         html: `
 <h1>Comandi CLI</h1>
-<p class="lead">Riferimento completo ai comandi skillctl v0.4. I blocchi comando restano in inglese come nell'interfaccia CLI.</p>
+<p class="lead">Riferimento completo ai comandi skillctl v0.5. I blocchi comando restano in inglese come nell'interfaccia CLI.</p>
+<p>Con <code>--json</code>, ogni comando first-party emette un solo envelope con <code>schemaVersion</code>, <code>ok</code>, <code>command</code>, <code>data</code>, <code>warnings</code> ed <code>errors</code>. Exit code: 0 successo, 1 warning/risultato parziale, 2 errore fatale o validazione.</p>
 
 <h2>Workflow principali</h2>
 <div class="card-grid">
@@ -381,8 +382,9 @@ skillctl add owner/repo --no-manifest</code></pre>
   <pre><code>skillctl install
 skillctl install --frozen
 skillctl install --no-sync
+skillctl install --prod
 SKILLCTL_PARALLEL=4 skillctl install</code></pre>
-  <p>Flag: <code>--frozen</code> — fallisce (exit 2) se l'integrità lock ≠ store; <code>--no-sync</code> — salta il linking agli agenti.</p>
+  <p>Flag: <code>--frozen</code> — usa esclusivamente il lock e può ripopolare uno store vuoto senza modificarlo; <code>--prod</code> — esclude devDependencies; <code>--no-sync</code> — salta il linking agli agenti.</p>
 </div>
 
 <div class="cmd-block">
@@ -398,7 +400,10 @@ skillctl update --no-sync</code></pre>
   <div class="cmd-name">skillctl sync</div>
   <p class="cmd-desc">Collega le skill del lockfile agli agenti abilitati senza nuovi download. I link nelle directory agente del progetto sono <strong>relativi</strong> (portabili in git).</p>
   <pre><code>skillctl sync
-skillctl sync --dry-run</code></pre>
+skillctl sync --project --agent codex
+skillctl sync --global --agent codex,claude-code
+skillctl sync --project --prune --dry-run</code></pre>
+  <p>Senza scope sincronizza progetto e globale. <code>--prune</code> rimuove solo target con ownership skillctl verificata.</p>
 </div>
 
 <div class="cmd-block">
@@ -420,7 +425,7 @@ skillctl rm my-skill --purge</code></pre>
 
 <div class="cmd-block">
   <div class="cmd-name">skillctl doctor</div>
-  <p class="cmd-desc">Verifica config, manifest, lock, adattatori, coesistenza (directory agente del progetto, npx, Python) e riepilogo audit. Avvisa su path non portabili in manifest/lock (0.3.1+). Suggerisce <code>import from-project --dry-run</code> se trova skill in <code>.codex/skills</code>, <code>.claude/skills</code>, ecc.</p>
+  <p class="cmd-desc">Verifica config, manifest, lock, adattatori, coesistenza e audit. Segnala path non portabili, <code>mutable-resolution</code>, import locali non riproducibili, journal interrotti e lock stale.</p>
   <pre><code>skillctl doctor
 skillctl doctor --fix
 skillctl doctor --json</code></pre>
@@ -434,7 +439,7 @@ skillctl doctor --json</code></pre>
 skillctl audit --json
 skillctl audit --strict
 skillctl audit --json --strict</code></pre>
-  <p>Exit code: 0 ok, 1 errori, 2 warning (o warning trattati come errori con <code>--strict</code>).</p>
+  <p>Exit code: 0 ok, 1 warning o risultato parziale, 2 errore audit/validazione o warning con <code>--strict</code>.</p>
 </div>
 
 <div class="cmd-block">
@@ -552,6 +557,9 @@ skillctl &lt;comando&gt; --help</code></pre>
   <li>Riduci parallelismo: <code>SKILLCTL_PARALLEL=2 skillctl install</code></li>
   <li>Riprova dopo il reset del rate limit; verifica URL repo e nome skill</li>
 </ul>
+
+<h2>Lock legacy mobile / contesa</h2>
+<p><code>doctor</code> segnala <code>mutable-resolution</code> per branch/tag/HEAD legacy: esegui <code>skillctl update &lt;name&gt;</code> e committa il lock. <code>E_LOCK_TIMEOUT</code> indica un'altra operazione mutante; attendi o usa <code>doctor</code> per journal/lock stale.</p>
 
 <h2>Spec non riconosciuto</h2>
 <p><strong>Sintomo:</strong> <code>Could not resolve</code> o registry non trovato.</p>
@@ -719,8 +727,8 @@ skills.sh/vercel-labs/agent-skills</code></pre>
 </section>
 
 <div class="alert alert-info">
-  <strong>Version 0.4</strong> — npm <code>@skillctl/cli@0.4.0</code>
-  First-party meta-skill <code>skills/skillctl/</code>, <strong>Grok</strong> adapter (<code>.grok/skills</code>), portable manifest/lock (0.3.1+), <code>init --with-skill</code>, <code>skill validate</code>. Sync to Claude Code, Cursor, OpenCode, Codex, Gemini CLI, Grok, and other <a href="https://agentskills.io" target="_blank" rel="noopener">agentskills.io</a> agents.
+  <strong>Version 0.5</strong> — npm <code>@skillctl/cli@0.4.0</code>
+  Immutable remote locks, frozen restoration on new machines, scoped sync/prune, concurrent transactions, and uniform JSON output. Sync to Claude Code, Cursor, OpenCode, Codex, Gemini CLI, Grok, and other <a href="https://agentskills.io" target="_blank" rel="noopener">agentskills.io</a> agents.
 </div>
 
 <h2>What is skillctl</h2>
@@ -974,7 +982,7 @@ project/
     <tr><th>Format</th><th>Example</th><th>Notes</th></tr>
   </thead>
   <tbody>
-    <tr><td>GitHub (explicit)</td><td><code>github:owner/repo#skill-name</code></td><td>Repo + skill in subfolder.</td></tr>
+    <tr><td>GitHub (explicit)</td><td><code>github:owner/repo@main#skill-name</code></td><td>Optional ref; the lock always records the commit SHA.</td></tr>
     <tr><td>GitHub (shorthand)</td><td><code>owner/repo#skill-name</code></td><td>Equivalent to <code>github:</code> prefix.</td></tr>
     <tr><td>npm</td><td><code>npm:package-name</code></td><td>npm package exposing a skill.</td></tr>
     <tr><td>skills.sh</td><td><code>skills.sh/owner/repo</code></td><td>Requires <code>owner/repo</code> form; name-only specs fail.</td></tr>
@@ -1016,7 +1024,8 @@ skillctl plugin remove my-plugin</code></pre>
         title: 'Commands — skillctl',
         html: `
 <h1>CLI commands</h1>
-<p class="lead">Complete reference for skillctl v0.4 commands. Command blocks remain in English as in the CLI interface.</p>
+<p class="lead">Complete reference for skillctl v0.5 commands. Command blocks remain in English as in the CLI interface.</p>
+<p>With <code>--json</code>, every first-party command emits one envelope containing <code>schemaVersion</code>, <code>ok</code>, <code>command</code>, <code>data</code>, <code>warnings</code>, and <code>errors</code>. Exit codes: 0 success, 1 warning/partial result, 2 fatal or validation failure.</p>
 
 <h2>Main workflows</h2>
 <div class="card-grid">
@@ -1067,8 +1076,9 @@ skillctl add owner/repo --no-manifest</code></pre>
   <pre><code>skillctl install
 skillctl install --frozen
 skillctl install --no-sync
+skillctl install --prod
 SKILLCTL_PARALLEL=4 skillctl install</code></pre>
-  <p>Flags: <code>--frozen</code> — fail (exit 2) if lock integrity ≠ store; <code>--no-sync</code> — skip agent linking.</p>
+  <p>Flags: <code>--frozen</code> — use only the lock and repopulate an empty store without changing it; <code>--prod</code> — exclude devDependencies; <code>--no-sync</code> — skip agent linking.</p>
 </div>
 
 <div class="cmd-block">
@@ -1084,7 +1094,10 @@ skillctl update --no-sync</code></pre>
   <div class="cmd-name">skillctl sync</div>
   <p class="cmd-desc">Links lockfile skills to enabled agents without new downloads. Project agent directory links are <strong>relative</strong> (git-portable).</p>
   <pre><code>skillctl sync
-skillctl sync --dry-run</code></pre>
+skillctl sync --project --agent codex
+skillctl sync --global --agent codex,claude-code
+skillctl sync --project --prune --dry-run</code></pre>
+  <p>Without scope flags, project and global targets are synced. <code>--prune</code> removes only targets with verified skillctl ownership.</p>
 </div>
 
 <div class="cmd-block">
@@ -1106,7 +1119,7 @@ skillctl rm my-skill --purge</code></pre>
 
 <div class="cmd-block">
   <div class="cmd-name">skillctl doctor</div>
-  <p class="cmd-desc">Checks config, manifest, lock, adapters, coexistence (project agent dirs, npx, Python), and audit summary. Warns on non-portable paths in manifest/lock (0.3.1+). Recommends <code>import from-project --dry-run</code> when skills are found under <code>.codex/skills</code>, <code>.claude/skills</code>, etc.</p>
+  <p class="cmd-desc">Checks config, manifest, lock, adapters, coexistence, and audit. Reports non-portable paths, <code>mutable-resolution</code>, non-reproducible local imports, interrupted journals, and stale locks.</p>
   <pre><code>skillctl doctor
 skillctl doctor --fix
 skillctl doctor --json</code></pre>
@@ -1120,7 +1133,7 @@ skillctl doctor --json</code></pre>
 skillctl audit --json
 skillctl audit --strict
 skillctl audit --json --strict</code></pre>
-  <p>Exit codes: 0 ok, 1 errors, 2 warnings (or warnings as errors with <code>--strict</code>).</p>
+  <p>Exit codes: 0 ok, 1 warning or partial result, 2 audit/validation error or warning under <code>--strict</code>.</p>
 </div>
 
 <div class="cmd-block">
@@ -1238,6 +1251,9 @@ skillctl &lt;command&gt; --help</code></pre>
   <li>Reduce parallelism: <code>SKILLCTL_PARALLEL=2 skillctl install</code></li>
   <li>Retry after rate limit reset; verify repo URL and skill name</li>
 </ul>
+
+<h2>Mutable legacy lock / contention</h2>
+<p><code>doctor</code> reports <code>mutable-resolution</code> for legacy branch/tag/HEAD entries: run <code>skillctl update &lt;name&gt;</code> and commit the lock. <code>E_LOCK_TIMEOUT</code> means another mutation is running; wait or use <code>doctor</code> to inspect journals/stale locks.</p>
 
 <h2>Spec not matched</h2>
 <p><strong>Symptom:</strong> <code>Could not resolve</code> or registry not found.</p>

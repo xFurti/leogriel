@@ -59,21 +59,33 @@ skillctl audit --json
 
 Expected after `add file:./my-skill` + `install`: manifest specifier `file:./my-skill`, lock `canonicalPath` like `~/.skillctl/skills/my-skill`.
 
-## Portability (0.3.1+)
+## Reproducibility (0.5+)
 
-- **Portable:** `file:./rel`, `local:imported/<name>`, remote specifiers, `canonicalPath: ~/.skillctl/skills/<name>`.
+- **Immutable remote lock:** GitHub and skills.sh resolve to a full commit SHA; npm resolves to an exact version and tarball integrity.
+- **Portable:** `file:./rel`, remote specifiers, `canonicalPath: ~/.skillctl/skills/<name>`.
+- **Machine-local:** `local:imported/<name>` is portable text but cannot restore a missing canonical copy on a new machine.
 - **Not portable:** absolute `file:/Users/...`, `local:/abs/path`, absolute `canonicalPath` from another machine.
-- If `doctor` warns about non-portable paths, run `skillctl install` to rewrite lock from manifest.
+- `install --frozen` restores a missing or corrupt store from immutable lock entries without changing the lock.
+- `update` is the normal operation that changes an existing valid resolution.
+
+## Scoped sync and JSON
+
+- No sync scope flags means project and global targets, as before.
+- Use `--project` or `--global`, plus repeatable/comma-separated `--agent` filters.
+- `--prune` is opt-in and only removes verified skillctl-managed links/copies; combine with `--dry-run` first.
+- First-party commands with `--json` emit one envelope. Exit codes: 0 success, 1 warning/partial result, 2 fatal/validation failure.
 
 ## Failure modes
 
 | Symptom | Action |
 |---------|--------|
-| `canonical path missing` | `skillctl install` |
+| `canonical path missing` | `skillctl install --frozen` when the lock is immutable |
 | Integrity mismatch | `skillctl update <name>` or `skillctl install` |
 | Symlink fails (Windows) | `doctor` notes; config `defaultMode: copy` |
 | No agents linked | `skillctl sync`; enable agents in `~/.skillctl/config.json` |
-| `Frozen install failed` | Store out of sync; run `install` without `--frozen` |
+| `Frozen install failed` | Fix manifest/lock drift; a missing store alone is restored from the lock |
+| `mutable-resolution` | Run `skillctl update <name>` once to upgrade a legacy lock entry |
+| `E_LOCK_TIMEOUT` | Wait for the other skillctl process or inspect stale locks with `doctor` |
 
 ## References
 

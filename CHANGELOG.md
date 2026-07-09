@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Immutable GitHub and skills.sh resolutions pinned to full commit SHAs, plus exact npm versions and tarball integrity in lock provenance.
+- Frozen installation can restore an empty or corrupt canonical store directly from a valid lockfile without rewriting it.
+- Scoped synchronization with `--project`, `--global`, repeatable/comma-separated `--agent`, and opt-in managed `--prune`.
+- Cross-process project/store locks and transactional manifest/lock updates with interrupted-operation recovery.
+- A uniform single-document JSON envelope for first-party commands and stable exit codes 0/1/2.
+- Repository-wide c8 coverage gates, CLI lifecycle E2E coverage, and guarded monorepo release/pack tooling.
+
 ### Security
 
 - Updated `tar` to the patched 7.x line and added archive entry/count/expanded-size limits.
@@ -25,6 +34,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Config parsing fails clearly on corrupt or invalid files, custom config writes are atomic, and `SKILLCTL_STORE` can override the canonical store for isolated environments.
 - Tests no longer mask failures; CLI, link safety, plugin containment, config, frozen installs, and dry-run behavior have regression coverage.
+- `sync` keeps project+global as its default scope; pruning remains disabled unless explicitly requested.
+- All eleven workspace packages are versioned and packed together in dependency order.
+
+### Migration notes
+
+- Lockfile schema remains `1.0`. Legacy 0.4 entries are readable, but frozen install rejects mobile GitHub/npm resolutions until `skillctl update` pins them.
+- `doctor` reports `mutable-resolution`, non-reproducible `local:imported` entries, interrupted journals, and stale operation locks.
 
 ## [0.4.0] - 2026-07-07
 

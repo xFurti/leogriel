@@ -1,5 +1,7 @@
 import type { Command } from 'commander';
-import { loadConfig, getRegisteredAdapters, lockToSkillTargets, findPortablePathWarnings } from '@skillctl/core';
+import { stat } from 'node:fs/promises';
+import { join } from 'node:path';
+import { loadConfig, getRegisteredAdapters, lockToSkillTargets, findPortablePathWarnings, findLockReproducibilityWarnings } from '@skillctl/core';
 import { loadManifest } from '@skillctl/manifest';
 import { loadLockfile } from '@skillctl/lockfile';
 import { scanCoexistence, getEnabledAdapters, syncSkillsToAgents } from '@skillctl/adapters';
@@ -33,7 +35,9 @@ export function registerDoctor(program: Command): void {
 
       if (lock) {
         warnings.push(...findPortablePathWarnings(lock, manifest));
+        warnings.push(...findLockReproducibilityWarnings(lock));
       }
+      warnings.push(...await findStateWarnings(cwd, config.store));
 
       for (const f of audit.findings.filter((x) => x.severity === 'error')) {
         issues.push(`[audit] ${f.skill}: ${f.message}`);
@@ -91,4 +95,20 @@ export function registerDoctor(program: Command): void {
 
       process.exitCode = issues.length ? 2 : warnings.length ? 1 : auditExitCode(audit);
     });
+}
+
+async function findStateWarnings(cwd: string, store: string): Promise<string[]> {
+  const warnings: string[] = [];
+  if (await exists(join(cwd, '.skillctl-transaction.json'))) {
+    warnings.push('transaction-journal: interrupted project update detected; the next mutating command will recover it');
+  }
+  for (const path of [join(cwd, '.skillctl-operation.lock'), join(store, '.skillctl-store.lock')]) {
+    const value = await stat(path).catch(() => null);
+    if (value && Date.now() - value.mtimeMs > 30_000) warnings.push(`stale-lock: ${path}`);
+  }
+  return warnings;
+}
+
+async function exists(path: string): Promise<boolean> {
+  return !!await stat(path).catch(() => null);
 }

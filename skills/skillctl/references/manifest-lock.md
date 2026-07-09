@@ -8,7 +8,7 @@ Project-level declarative dependencies (like `package.json`):
 {
   "agentSkills": {
     "dependencies": {
-      "my-skill": "github:owner/repo#path/to/skill"
+      "my-skill": "github:owner/repo@main#path/to/skill"
     }
   }
 }
@@ -21,9 +21,13 @@ Skill name keys are canonical lowercase-hyphen names.
 Reproducible YAML lock (like `pnpm-lock.yaml`). Key fields per skill:
 
 - `specifier` — mirrors manifest (portable)
-- `resolved` — canonical resolved form (same as specifier for local skills)
+- `resolved` — immutable GitHub commit or exact npm version (same as specifier for local skills)
 - `integrity` — `sha256:` tree hash of canonical copy
 - `canonicalPath` — `~/.skillctl/skills/<name>` (portable; expanded at runtime)
 - `provenance` — source metadata (`github`, `local`, `npm`, etc.)
+
+GitHub/skills.sh provenance includes `commit` and `requestedRef`; npm provenance includes `version`, `tarballUrl`, and `tarballHash`. The additive schema remains `lockfileVersion: '1.0'`.
+
+`install --frozen` may materialize an empty or repair a corrupt store from these locked fields, but never changes the lock. It rejects a missing entry, manifest mismatch, mobile legacy resolution, or integrity mismatch.
 
 Commit both files for team workflows. Machine-local agent symlinks (`.claude/skills`, `.grok/skills`, …) are **not** committed.
