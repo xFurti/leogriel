@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Security
+
+- Updated `tar` to the patched 7.x line and added archive entry/count/expanded-size limits.
+- Reject registry and plugin paths that escape their extraction root, escaping symlinks, invalid cache keys, oversized downloads, redirect loops, and npm integrity mismatches.
+- Refuse to overwrite or remove unmanaged agent targets; copy-mode targets now carry ownership metadata.
+
+### Fixed
+
+- `skillctl sync --dry-run` no longer creates links or copies.
+- Mutable GitHub refs bypass the immutable download cache; `GITHUB_TOKEN` and `GH_TOKEN` are honored.
+- `install --frozen` checks manifest/lock consistency, and install/update/remove now handle `devDependencies`.
+- CLI actions are awaited with Commander `parseAsync`; non-interactive confirmation no longer defaults to destructive consent.
+- Project import detects linked skills and refuses same-name content conflicts.
+
+### Changed
+
+- Config parsing fails clearly on corrupt or invalid files, custom config writes are atomic, and `SKILLCTL_STORE` can override the canonical store for isolated environments.
+- Tests no longer mask failures; CLI, link safety, plugin containment, config, frozen installs, and dry-run behavior have regression coverage.
+
 ## [0.4.0] - 2026-07-07
 
 ### Added

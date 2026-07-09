@@ -277,7 +277,8 @@ progetto/
   </thead>
   <tbody>
     <tr><td><code>SKILLCTL_PARALLEL</code></td><td>Numero massimo di fetch paralleli verso i registry (default 6, max 16). Esempio: <code>SKILLCTL_PARALLEL=4 skillctl install</code></td></tr>
-    <tr><td><code>GITHUB_TOKEN</code></td><td>Token GitHub per tarball API; consigliato con molte dipendenze <code>github:</code> per evitare rate limit 403.</td></tr>
+    <tr><td><code>SKILLCTL_STORE</code></td><td>Sovrascrive il percorso dello store canonico; utile per CI e ambienti isolati.</td></tr>
+    <tr><td><code>GITHUB_TOKEN</code> / <code>GH_TOKEN</code></td><td>Token GitHub per tarball API; consigliato con molte dipendenze <code>github:</code> per evitare rate limit 403.</td></tr>
   </tbody>
 </table>
 
@@ -962,7 +963,8 @@ project/
   </thead>
   <tbody>
     <tr><td><code>SKILLCTL_PARALLEL</code></td><td>Max parallel registry fetches (default 6, max 16). Example: <code>SKILLCTL_PARALLEL=4 skillctl install</code></td></tr>
-    <tr><td><code>GITHUB_TOKEN</code></td><td>GitHub token for tarball API; recommended with many <code>github:</code> deps to avoid 403 rate limits.</td></tr>
+    <tr><td><code>SKILLCTL_STORE</code></td><td>Overrides the canonical store path; useful in CI and isolated environments.</td></tr>
+    <tr><td><code>GITHUB_TOKEN</code> / <code>GH_TOKEN</code></td><td>GitHub token for tarball API; recommended with many <code>github:</code> deps to avoid 403 rate limits.</td></tr>
   </tbody>
 </table>
 
