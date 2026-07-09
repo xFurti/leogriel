@@ -1,8 +1,11 @@
 import type { RegistrySource, ResolvedSource } from '@skillctl/core';
 import { GitHubSource } from './github.js';
+import { defaultHttpClient, type HttpClient } from '../fetch/https.js';
 
 export class SkillsShSource implements RegistrySource {
   readonly id = 'skills.sh';
+
+  constructor(private readonly httpClient: HttpClient = defaultHttpClient) {}
 
   match(spec: string): boolean {
     return spec.startsWith('skills.sh/') || spec.startsWith('npx-skills/');
@@ -18,7 +21,7 @@ export class SkillsShSource implements RegistrySource {
       );
     }
 
-    const gh = new GitHubSource();
+    const gh = new GitHubSource(this.httpClient);
     const resolvedGh = await gh.resolve(`github:${inner}`, options);
     return {
       ...resolvedGh,
@@ -30,6 +33,6 @@ export class SkillsShSource implements RegistrySource {
   }
 
   async fetch(resolved: ResolvedSource, dest: string): Promise<{ integrity: string }> {
-    return new GitHubSource().fetch(resolved, dest);
+    return new GitHubSource(this.httpClient).fetch(resolved, dest);
   }
 }

@@ -25,6 +25,8 @@ export interface ResolvedSkill {
 export interface Provenance {
   type: 'github' | 'npm' | 'local' | 'skills.sh' | 'other';
   commit?: string; // for git/github
+  requestedRef?: string;
+  version?: string;
   tarballHash?: string; // for npm etc
   subpath?: string; // e.g. 'skills/foo' inside repo/pkg
   migratedFrom?: 'npx' | 'python-skillctl' | 'project-scan';
@@ -70,6 +72,7 @@ export interface ResolvedSource {
   tarballHash?: string;
   gitUrl?: string;
   ref?: string;
+  requestedRef?: string;
   subpath?: string;
   localPath?: string;
 }

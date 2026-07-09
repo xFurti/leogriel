@@ -8,11 +8,13 @@ import { ensureDir, computeDirIntegrity } from '@skillctl/core';
 import { canonicalizeName } from '../names.js';
 import { locateSkillDir, packageJsonSkillHints } from '../locate-skill.js';
 import { parseSkillFrontmatterAsync } from '../frontmatter.js';
-import { httpsGet } from '../fetch/https.js';
+import { defaultHttpClient, type HttpClient } from '../fetch/https.js';
 import { fetchCachedBuffer, extractTarball, computeSha1 } from '../fetch/tarball.js';
 
 export class NpmSource implements RegistrySource {
   readonly id = 'npm';
+
+  constructor(private readonly httpClient: HttpClient = defaultHttpClient) {}
 
   match(spec: string): boolean {
     return spec.startsWith('npm:');
@@ -33,7 +35,12 @@ export class NpmSource implements RegistrySource {
     const metaUrl = `https://registry.npmjs.org/${encodeURIComponent(pkg)}`;
     let metaBuf: Buffer;
     try {
-      metaBuf = await httpsGet(metaUrl, { Accept: 'application/json' });
+      const response = await this.httpClient.get(metaUrl, {
+        headers: { Accept: 'application/json' },
+        maxBytes: 10 * 1024 * 1024,
+      });
+      if (response.status !== 200) throw new Error(`HTTP ${response.status}`);
+      metaBuf = response.body;
     } catch (e) {
       throw new Error(`npm registry fetch failed for ${pkg}: ${(e as Error).message}`);
     }
@@ -63,6 +70,7 @@ export class NpmSource implements RegistrySource {
       tarballUrl: pkgInfo.dist.tarball,
       tarballHash: pkgInfo.dist.integrity || pkgInfo.dist.shasum,
       ref: version,
+      requestedRef: range,
     };
   }
 
@@ -73,7 +81,9 @@ export class NpmSource implements RegistrySource {
       ? `npm-${resolved.tarballHash}`
       : `npm-${createHash('sha256').update(resolved.tarballUrl).digest('hex').slice(0, 16)}`;
 
-    const tarBuf = await fetchCachedBuffer(dlKey, resolved.tarballUrl);
+    const tarBuf = await fetchCachedBuffer(dlKey, resolved.tarballUrl, undefined, {
+      httpClient: this.httpClient,
+    });
 
     verifyNpmIntegrity(tarBuf, resolved.tarballHash);
 

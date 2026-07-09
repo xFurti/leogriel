@@ -9,7 +9,7 @@ import test from 'node:test';
 import { mkdtemp, rm, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { RegistryManager, LocalSource, GitHubSource, NpmSource, SkillsShSource, canonicalizeName, parseSkillFrontmatterAsync } from '../index.js';
+import { RegistryManager, LocalSource, GitHubSource, NpmSource, SkillsShSource, canonicalizeName, parseSkillFrontmatterAsync, type HttpClient } from '../index.js';
 import { loadLockfile } from '@skillctl/lockfile';
 import { loadConfig } from '@skillctl/core';
 
@@ -21,7 +21,18 @@ async function runTests() {
 
   try {
 
-  const mgr = new RegistryManager();
+  const resolvedSha = 'a'.repeat(40);
+  const httpClient: HttpClient = {
+    async get(url) {
+      return {
+        status: 200,
+        body: Buffer.from(JSON.stringify({ sha: resolvedSha })),
+        finalUrl: url,
+        headers: {},
+      };
+    },
+  };
+  const mgr = new RegistryManager({ httpClient });
   const localSrc = new LocalSource();
   const ghSrc = new GitHubSource();
   const npmSrc = new NpmSource();
@@ -56,7 +67,8 @@ async function runTests() {
   const r2 = await mgr.resolve('github:acme/demo#skills/foo');
   assert.equal(r2.sourceType, 'github');
   assert.ok((r2 as any).subpath?.includes('skills'));
-  assert.ok(r2.resolved.includes('@HEAD/skills/foo') || r2.resolved.includes('skills/foo'));
+  assert.equal(r2.resolved, `github:acme/demo@${resolvedSha}#skills/foo`);
+  assert.equal(r2.requestedRef, 'HEAD');
   console.log('✓ resolve github + subpath');
 
   // name-only skills.sh specs require owner/repo form
@@ -64,6 +76,7 @@ async function runTests() {
   const r3 = await mgr.resolve('skills.sh/vercel-labs/agent-skills');
   assert.equal(r3.sourceType, 'skills.sh');
   assert.ok(r3.resolved.startsWith('skills.sh/'));
+  assert.equal(r3.ref, resolvedSha);
   console.log('✓ resolve skills.sh alias');
 
   // npm resolve structural (no net, will fail on fetch but resolve ok? wait, npm resolve does net - test resolve via mock? use try)

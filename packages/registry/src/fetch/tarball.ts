@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { createHash, randomUUID } from 'node:crypto';
 import * as tar from 'tar';
 import { getCachedDownload, putCachedDownload } from '@skillctl/core';
-import { httpsGet } from './https.js';
+import { defaultHttpClient, type HttpClient } from './https.js';
 
 export function computeSha1(buf: Buffer): string {
   return createHash('sha1').update(buf).digest('hex');
@@ -14,14 +14,16 @@ export async function fetchCachedBuffer(
   key: string,
   url: string,
   headers?: Record<string, string>,
-  options: { cache?: boolean } = {}
+  options: { cache?: boolean; httpClient?: HttpClient } = {}
 ): Promise<Buffer> {
   if (options.cache !== false) {
     const cached = await getCachedDownload(key);
     if (cached) return readFile(cached);
   }
 
-  const buf = await httpsGet(url, headers);
+  const response = await (options.httpClient || defaultHttpClient).get(url, { headers });
+  if (response.status !== 200) throw new Error(`HTTP ${response.status} for ${url}`);
+  const buf = response.body;
   if (options.cache === false) return buf;
 
   const tmp = join(tmpdir(), `skillctl-dl-${randomUUID()}.tgz`);

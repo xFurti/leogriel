@@ -4,6 +4,8 @@ import { canonicalizeName, type SkillLockfile, type LockfileEntry, type Provenan
 export const ProvenanceSchema = z.object({
   type: z.enum(['github', 'npm', 'local', 'skills.sh', 'other']),
   commit: z.string().optional(),
+  requestedRef: z.string().optional(),
+  version: z.string().optional(),
   tarballHash: z.string().optional(),
   subpath: z.string().optional(),
   migratedFrom: z.enum(['npx', 'python-skillctl', 'project-scan']).optional(),

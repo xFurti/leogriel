@@ -4,6 +4,26 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const DEFAULT_MAX_REDIRECTS = 5;
+const DEFAULT_MAX_BYTES = 100 * 1024 * 1024;
+
+export interface HttpResponse {
+  status: number;
+  body: Buffer;
+  finalUrl: string;
+  headers: Record<string, string | string[] | undefined>;
+}
+
+export interface HttpRequestOptions {
+  headers?: Record<string, string>;
+  maxBytes?: number;
+  maxRedirects?: number;
+  timeoutMs?: number;
+}
+
+export interface HttpClient {
+  get(url: string, options?: HttpRequestOptions): Promise<HttpResponse>;
+}
 
 function skillctlUserAgent(): string {
   try {
@@ -12,57 +32,86 @@ function skillctlUserAgent(): string {
   } catch {
     // fallback if package.json unavailable at runtime
   }
-  return 'skillctl/0.4.0';
+  return 'skillctl/0.5.0';
 }
 
-const MAX_REDIRECTS = 5;
-const MAX_DOWNLOAD_BYTES = 100 * 1024 * 1024;
+export class NodeHttpsClient implements HttpClient {
+  async get(url: string, options: HttpRequestOptions = {}): Promise<HttpResponse> {
+    return request(url, options, options.maxRedirects ?? DEFAULT_MAX_REDIRECTS);
+  }
+}
 
-export function httpsGet(
+export const defaultHttpClient: HttpClient = new NodeHttpsClient();
+
+async function request(
   url: string,
-  headers: Record<string, string> = {},
-  redirectsLeft = MAX_REDIRECTS
-): Promise<Buffer> {
+  options: HttpRequestOptions,
+  redirectsLeft: number
+): Promise<HttpResponse> {
   return new Promise((resolve, reject) => {
-    const parsed = new URL(url);
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch (err) {
+      reject(err);
+      return;
+    }
     if (parsed.protocol !== 'https:') {
       reject(new Error(`Refusing non-HTTPS download: ${url}`));
       return;
     }
 
-    const req = https.get(parsed, { headers: { 'User-Agent': skillctlUserAgent(), ...headers } }, (res) => {
-      if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        res.resume();
-        if (redirectsLeft <= 0) {
-          reject(new Error(`Too many redirects for ${url}`));
+    const req = https.get(
+      parsed,
+      { headers: { 'User-Agent': skillctlUserAgent(), ...(options.headers || {}) } },
+      (res) => {
+        const status = res.statusCode || 0;
+        if (status >= 300 && status < 400 && res.headers.location) {
+          res.resume();
+          if (redirectsLeft <= 0) {
+            reject(new Error(`Too many redirects for ${url}`));
+            return;
+          }
+          const next = new URL(res.headers.location, parsed).toString();
+          request(next, options, redirectsLeft - 1).then(resolve, reject);
           return;
         }
-        const next = new URL(res.headers.location, parsed).toString();
-        httpsGet(next, headers, redirectsLeft - 1).then(resolve).catch(reject);
-        return;
+
+        const chunks: Buffer[] = [];
+        let received = 0;
+        const maxBytes = options.maxBytes ?? DEFAULT_MAX_BYTES;
+        res.on('data', (chunk: Buffer) => {
+          received += chunk.length;
+          if (received > maxBytes) {
+            res.destroy(new Error(`Download exceeds ${maxBytes} bytes: ${url}`));
+            return;
+          }
+          chunks.push(chunk);
+        });
+        res.on('end', () => {
+          resolve({
+            status,
+            body: Buffer.concat(chunks),
+            finalUrl: parsed.toString(),
+            headers: res.headers,
+          });
+        });
+        res.on('error', reject);
       }
-      if (res.statusCode !== 200) {
-        res.resume();
-        reject(new Error(`HTTP ${res.statusCode} for ${url}`));
-        return;
-      }
-      const chunks: Buffer[] = [];
-      let received = 0;
-      res.on('data', (chunk: Buffer) => {
-        received += chunk.length;
-        if (received > MAX_DOWNLOAD_BYTES) {
-          res.destroy(new Error(`Download exceeds ${MAX_DOWNLOAD_BYTES} bytes: ${url}`));
-          return;
-        }
-        chunks.push(chunk);
-      });
-      res.on('end', () => resolve(Buffer.concat(chunks)));
-      res.on('error', reject);
-    });
+    );
     req.on('error', reject);
-    req.setTimeout(30000, () => {
-      req.destroy();
-      reject(new Error('timeout'));
+    req.setTimeout(options.timeoutMs ?? 30_000, () => {
+      req.destroy(new Error(`HTTP timeout for ${url}`));
     });
   });
+}
+
+export async function httpsGet(
+  url: string,
+  headers: Record<string, string> = {},
+  client: HttpClient = defaultHttpClient
+): Promise<Buffer> {
+  const response = await client.get(url, { headers });
+  if (response.status !== 200) throw new Error(`HTTP ${response.status} for ${url}`);
+  return response.body;
 }

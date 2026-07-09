@@ -23,14 +23,16 @@ import { GitHubSource } from './sources/github.js';
 import { NpmSource } from './sources/npm.js';
 import { SkillsShSource } from './sources/skills-sh.js';
 import type { RegistrySource } from '@skillctl/core';
+import { defaultHttpClient, type HttpClient } from './fetch/https.js';
 
 export class RegistryManager {
   private sources: RegistrySource[] = [];
 
-  constructor() {
-    this.register(new NpmSource());
-    this.register(new SkillsShSource());
-    this.register(new GitHubSource());
+  constructor(options: { httpClient?: HttpClient } = {}) {
+    const httpClient = options.httpClient || defaultHttpClient;
+    this.register(new NpmSource(httpClient));
+    this.register(new SkillsShSource(httpClient));
+    this.register(new GitHubSource(httpClient));
     this.register(new LocalSource());
   }
 
@@ -50,8 +52,8 @@ export class RegistryManager {
       }
     }
     if (spec.includes('/') && !spec.includes(':')) {
-      const gh = new GitHubSource();
-      if (gh.match(spec)) {
+      const gh = this.sources.find((source) => source.id === 'github');
+      if (gh?.match(spec)) {
         const res = await gh.resolve(spec, options);
         return { ...res, originalSpec: spec };
       }
@@ -147,9 +149,12 @@ export class RegistryManager {
     };
     if (resolved.sourceType === 'github' || resolved.sourceType === 'skills.sh') {
       prov.commit = resolved.ref;
+      prov.requestedRef = resolved.requestedRef;
     }
     if (resolved.sourceType === 'npm') {
       prov.tarballHash = resolved.tarballHash;
+      prov.version = resolved.ref;
+      prov.requestedRef = resolved.requestedRef;
     }
 
     const skillName = canonicalizeName(opts.name || resolved.name);
