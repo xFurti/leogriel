@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Exact version already prepared in the repository
+        required: true
+        type: string
+      publish:
+        description: Publish packages, tag, and create the GitHub Release
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  check-and-pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.8.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Verify requested version
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: node --input-type=module -e "import pkg from './package.json' with { type: 'json' }; if (pkg.version !== process.env.RELEASE_VERSION) throw new Error('Requested version does not match package.json');"
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/release-check.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skillctl-${{ inputs.version }}-packages
+          path: artifacts/${{ inputs.version }}/*.tgz
+          if-no-files-found: error
+
+  publish:
+    if: ${{ inputs.publish }}
+    needs: check-and-pack
+    runs-on: ubuntu-latest
+    environment: npm-production
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org
+      - uses: actions/download-artifact@v4
+        with:
+          name: skillctl-${{ inputs.version }}-packages
+          path: artifacts/${{ inputs.version }}
+      - name: Publish in dependency order
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          for package in core manifest lockfile link-manager plugin-system project-state adapters security registry import cli; do
+            npm publish "artifacts/$VERSION/skillctl-$package-$VERSION.tgz" --access public --provenance
+          done
+      - name: Tag and create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git tag -a "v$VERSION" -m "skillctl v$VERSION"
+          git push origin "v$VERSION"
+          gh release create "v$VERSION" "artifacts/$VERSION"/*.tgz --generate-notes --verify-tag

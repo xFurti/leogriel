@@ -7,7 +7,7 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist"],
+  "files": ["dist", "!dist/test", "!dist/*.tsbuildinfo"],
   "scripts": {
     "build": "tsc -b",
     "clean": "rimraf dist",

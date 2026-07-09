@@ -78,15 +78,6 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - name: Verify publishable CLI artifact
-        run: |
-          test -f packages/cli/dist/index.js
-          test -f packages/cli/bin/skillctl.js
-          node packages/cli/bin/skillctl.js --version
-          node --input-type=commonjs -e "
-            const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('packages/cli/package.json','utf8'));
-            if (pkg.name !== '@skillctl/cli') throw new Error('unexpected package name');
-            if (!pkg.bin || !pkg.bin.skillctl) throw new Error('missing bin.skillctl');
-            console.log('publish check ok:', pkg.name, Object.keys(pkg.bin));
-          "
+      - run: pnpm audit --prod
+      - name: Verify all publishable artifacts
+        run: node scripts/pack-all.mjs
