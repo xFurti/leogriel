@@ -1,0 +1,3 @@
+# Skill integrity hashes raw bytes; keep vendored and first-party skill content unchanged across platforms.
+.skillctl/skills/** -text
+skills/** -text

@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { rm } from 'node:fs/promises';
 import type { LockfileEntry, SkillLockfile } from './types.js';
 import { loadConfig } from './config.js';
-import { computeDirIntegrity } from './fs.js';
+import { matchesDirIntegrity } from './fs.js';
 import { canonicalizeName } from './names.js';
 import { resolveCanonicalPath } from './paths.js';
 
@@ -47,8 +47,7 @@ export async function needsInstall(entry: LockfileEntry, options?: { store?: str
     return true;
   }
   try {
-    const integrity = await computeDirIntegrity(path);
-    return integrity !== entry.integrity;
+    return !(await matchesDirIntegrity(path, entry.integrity));
   } catch {
     return true;
   }
@@ -63,8 +62,7 @@ export async function verifyLockIntegrity(
     const path = await resolveEntryCanonicalPath(entry, options);
     try {
       await stat(path);
-      const integrity = await computeDirIntegrity(path);
-      if (integrity !== entry.integrity) {
+      if (!(await matchesDirIntegrity(path, entry.integrity))) {
         errors.push(`${name}: integrity mismatch (expected ${entry.integrity.slice(0, 20)}...)`);
       }
     } catch {

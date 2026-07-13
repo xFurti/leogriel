@@ -4,6 +4,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { tmpdir } from 'node:os';
+import { createHash } from 'node:crypto';
 import {
   resolveCanonicalPath,
   formatCanonicalPathForLock,
@@ -11,6 +12,7 @@ import {
   lockToSkillTargets,
   resolveEntryCanonicalPath,
   computeDirIntegrity,
+  matchesDirIntegrity,
   type LockfileEntry,
 } from '../index.js';
 
@@ -31,6 +33,36 @@ test('resolveCanonicalPath expands portable tilde store paths', () => {
   const portable = formatCanonicalPathForLock('demo-skill');
   const resolved = resolveCanonicalPath(portable, customStore);
   assert.equal(resolved, join(customStore, 'demo-skill'));
+});
+
+test('directory integrity uses portable separators and accepts legacy Windows hashes', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'skillctl-portable-integrity-'));
+  const content = '---\nname: portable-integrity\n---\n';
+  try {
+    await mkdir(join(root, 'nested'), { recursive: true });
+    await writeFile(join(root, 'nested', 'SKILL.md'), content);
+
+    const expectedHash = createHash('sha256')
+      .update('/nested/SKILL.md')
+      .update('\0')
+      .update('file\0')
+      .update(content)
+      .update('\0')
+      .digest('hex');
+    const portable = `sha256:${expectedHash}`;
+    assert.equal(await computeDirIntegrity(root), portable);
+
+    const legacyHash = createHash('sha256')
+      .update('\\nested\\SKILL.md')
+      .update('\0')
+      .update('file\0')
+      .update(content)
+      .update('\0')
+      .digest('hex');
+    assert.equal(await matchesDirIntegrity(root, `sha256:${legacyHash}`), true);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test('resolveCanonicalPath keeps legacy absolute paths', () => {

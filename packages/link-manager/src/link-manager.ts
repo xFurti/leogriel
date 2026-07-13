@@ -20,7 +20,7 @@ import {
 import { join, dirname, relative, resolve as pathResolve, isAbsolute } from 'node:path';
 import { homedir } from 'node:os';
 import type { LinkMode } from '@skillctl/core';
-import { computeDirIntegrity, ensureDir } from '@skillctl/core';
+import { computeDirIntegrity, ensureDir, matchesDirIntegrity } from '@skillctl/core';
 
 const MANAGED_COPY_MARKER = '.skillctl-managed.json';
 
@@ -262,7 +262,7 @@ export class LinkManager {
     if (!marker) return false;
     const canonReal = await realpath(canonical).catch(() => pathResolve(canonical));
     if (pathResolve(marker.canonical) !== pathResolve(canonReal)) return false;
-    return marker.integrity === (await computeDirIntegrity(canonical));
+    return matchesDirIntegrity(canonical, marker.integrity);
   }
 }
 

@@ -1,5 +1,5 @@
 import { readFile, writeFile, mkdir, rename, stat, readdir, lstat, readlink, rm } from 'node:fs/promises';
-import { join, dirname } from 'node:path';
+import { join, dirname, relative } from 'node:path';
 import { createHash } from 'node:crypto';
 import type { LinkMode } from './types.js';
 
@@ -43,17 +43,27 @@ export async function computeFileHash(filePath: string): Promise<string> {
  * Always full content hash for correctness of integrity value.
  */
 export async function computeDirIntegrity(dir: string): Promise<string> {
+  return computeDirIntegrityWithSeparator(dir, '/');
+}
+
+/** Accept pre-0.6.1 hashes produced with either native path separator. */
+export async function matchesDirIntegrity(dir: string, expected: string): Promise<boolean> {
+  if (await computeDirIntegrityWithSeparator(dir, '/') === expected) return true;
+  return computeDirIntegrityWithSeparator(dir, '\\').then((integrity) => integrity === expected);
+}
+
+async function computeDirIntegrityWithSeparator(dir: string, separator: '/' | '\\'): Promise<string> {
   const files: string[] = [];
   await walk(dir, files);
-  files.sort(); // deterministic
+  files.sort((a, b) => portableRelative(dir, a).localeCompare(portableRelative(dir, b)));
   const hash = createHash('sha256');
   for (const f of files) {
     const fileStat = await lstat(f);
-    hash.update(f.slice(dir.length)); // relative
+    hash.update(`${separator}${portableRelative(dir, f).replaceAll('/', separator)}`);
     hash.update('\0');
     if (fileStat.isSymbolicLink()) {
       hash.update('symlink\0');
-      hash.update(await readlink(f));
+      hash.update((await readlink(f)).replaceAll('\\', separator).replaceAll('/', separator));
     } else {
       const buf = await readFile(f);
       hash.update('file\0');
@@ -62,6 +72,10 @@ export async function computeDirIntegrity(dir: string): Promise<string> {
     hash.update('\0');
   }
   return `sha256:${hash.digest('hex')}`;
+}
+
+function portableRelative(root: string, path: string): string {
+  return relative(root, path).replaceAll('\\', '/');
 }
 
 async function walk(dir: string, out: string[]): Promise<void> {

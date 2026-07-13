@@ -1,6 +1,6 @@
 import { stat } from 'node:fs/promises';
 import type { SkillLockfile } from '@skillctl/core';
-import { computeDirIntegrity, resolveEntryCanonicalPath } from '@skillctl/core';
+import { matchesDirIntegrity, resolveEntryCanonicalPath } from '@skillctl/core';
 import type { AuditFinding } from '../types.js';
 
 export async function checkIntegrityDrift(lock: SkillLockfile, options?: { store?: string }): Promise<AuditFinding[]> {
@@ -9,8 +9,7 @@ export async function checkIntegrityDrift(lock: SkillLockfile, options?: { store
     const path = await resolveEntryCanonicalPath(entry, options);
     try {
       await stat(path);
-      const integrity = await computeDirIntegrity(path);
-      if (integrity !== entry.integrity) {
+      if (!(await matchesDirIntegrity(path, entry.integrity))) {
         findings.push({
           rule: 'integrity-drift',
           severity: 'error',

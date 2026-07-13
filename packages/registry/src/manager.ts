@@ -7,6 +7,7 @@ import {
   loadConfig,
   ensureDir,
   computeDirIntegrity,
+  matchesDirIntegrity,
   getCachedSkill,
   putCachedSkill,
   ensureCacheDir,
@@ -91,7 +92,7 @@ export class RegistryManager {
     try {
       await assertTreeContained(tmpDest);
       treeIntegrity = await computeDirIntegrity(tmpDest);
-      if (options?.expectedIntegrity && treeIntegrity !== options.expectedIntegrity) {
+      if (options?.expectedIntegrity && !(await matchesDirIntegrity(tmpDest, options.expectedIntegrity))) {
         throw new Error(
           `Locked integrity mismatch for ${canonicalName}: expected ${options.expectedIntegrity}, got ${treeIntegrity}`
         );
