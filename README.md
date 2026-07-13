@@ -8,7 +8,7 @@ Universal, package-manager-style CLI for managing **Agent Skills** across AI cod
 
 `skillctl` installs project skills into `.skillctl/skills/` and personal skills into `~/.skillctl/skills/`, then syncs them (symlink, junction on Windows, or copy) into Claude Code, Cursor, OpenCode, Codex, Gemini CLI, Grok, Pi, and other [agentskills.io](https://agentskills.io)-compatible agents.
 
-> **Status**: v0.5.0 — immutable GitHub/npm resolutions, frozen store restoration, scoped sync/prune, transactional state, and uniform JSON output. See [CHANGELOG.md](./CHANGELOG.md).
+> **Status**: v0.6.0 — immutable GitHub/npm resolutions, frozen store restoration, scoped sync/prune, transactional state, and uniform JSON output. See [CHANGELOG.md](./CHANGELOG.md).
 
 **Documentation** (commands, configuration, migration, troubleshooting): **[xfurti.github.io/skillctl](https://xfurti.github.io/skillctl/)** · IT/EN
 
