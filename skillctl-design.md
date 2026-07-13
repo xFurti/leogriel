@@ -2,14 +2,19 @@
 
 **Author:** xFurti & Gabry848
 **Date:** 2026-07-10
-**Status:** Implemented through release 0.5.0
-**Version:** 0.5.0
+**Status:** Implemented through release 0.6.1
+**Version:** 0.6.1
 
 ---
 
-## 0.5 implementation baseline
+## 0.6 implementation baseline
 
-Version 0.5.0 is the implemented baseline for this document. The original proposal and historical PR plan remain below for architectural context; when they differ from this section, the implemented baseline wins.
+Version 0.6.1 is the implemented baseline for this document. The original proposal and historical PR plan remain below for architectural context; when they differ from this section, the implemented baseline wins.
+
+- Project dependencies are vendored under `.skillctl/skills/<name>` and use project-relative manifest and lock paths; explicit personal skills remain under `~/.skillctl/skills/<name>`.
+- Local add and plain import copy content into the project store. Import discovers enabled agent directories, deduplicates identical content, and requires explicit resolution for same-name conflicts.
+- Project commands discover the nearest parent `agent-skills.json`; global add/list/doctor/remove operations are explicit through `-g`.
+- Pi is a built-in adapter alongside Claude Code, Cursor, OpenCode, Codex, Gemini CLI, and Grok.
 
 - Remote GitHub branches, tags, and HEAD resolve to full 40-character commits; skills.sh inherits the same immutable GitHub resolution.
 - npm ranges and dist-tags resolve to an exact version with registry tarball URL and SRI integrity.
@@ -18,7 +23,7 @@ Version 0.5.0 is the implemented baseline for this document. The original propos
 - `@skillctl/project-state` serializes project then store operations and journals manifest/lock updates for rollback and recovery.
 - First-party `--json` output uses one versioned envelope and exit codes 0 (success), 1 (warning/partial), and 2 (fatal/validation).
 - The workspace contains eleven coordinated publishable packages and is tested on Windows, Linux, and macOS with Node 22.13 and Node 24.
-- Plugin stabilization and permission modelling remain deferred beyond 0.5.
+- Plugin stabilization and permission modelling remain deferred beyond 0.6.
 
 ---
 

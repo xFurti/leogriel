@@ -78,7 +78,7 @@ export function registerInit(program: Command, mgr?: RegistryManager): void {
 
       if (options.noPrompt) {
         if (!options.withSkill) {
-          console.log('Run `skillctl add <spec>` or `skillctl import from-project` to populate, then `install` or `sync`.');
+          console.log('Run `skillctl add <spec>` or `skillctl import` to populate, then `install` or `sync`.');
         }
         return;
       }
@@ -95,7 +95,7 @@ export function registerInit(program: Command, mgr?: RegistryManager): void {
       console.log(`Found ${unmanaged} existing skill(s) in agent directories (${sources.map((s) => s.projectPath).join(', ')}).`);
       const shouldImport = await confirm('Import them into skillctl now?', true);
       if (!shouldImport) {
-        console.log('Run `skillctl import from-project` when ready.');
+        console.log('Run `skillctl import` when ready.');
         return;
       }
 

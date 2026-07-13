@@ -24,11 +24,11 @@ jobs:
   check-and-pack:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v5
         with:
           version: 11.8.0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '24'
           cache: pnpm
@@ -58,13 +58,13 @@ jobs:
       contents: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Require the main branch
         if: ${{ github.ref != 'refs/heads/main' }}
         run: |
           echo "Publishing is only allowed from main (current ref: $GITHUB_REF)" >&2
           exit 1
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '24'
           registry-url: https://registry.npmjs.org

@@ -1,11 +1,11 @@
 lockfileVersion: '1.0'
 skills:
   skillctl:
-    specifier: file:./skills/skillctl
-    resolved: file:./skills/skillctl
-    integrity: sha256:0ce5621355ae774ffdf4b50c08d587a0aeb3649ad1cd7adfe8ffee451c3229a1
+    specifier: file:./.skillctl/skills/skillctl
+    resolved: file:./.skillctl/skills/skillctl
+    integrity: sha256:53d9eb98dbe5e15cb04102c475cb3b1438c19c4c4ca210c6b26a6dae67755cf4
     name: skillctl
-    canonicalPath: ~/.skillctl/skills/skillctl
-    fetchedAt: '2026-07-09T22:06:22.315Z'
+    canonicalPath: .skillctl/skills/skillctl
+    fetchedAt: '2026-07-13T17:30:13.924Z'
     provenance:
       type: local

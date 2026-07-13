@@ -5,7 +5,7 @@
   const HERO_COMMANDS = [
     'skillctl init --with-skill',
     'skillctl add github:xFurti/skillctl@main#skills/skillctl',
-    'skillctl import from-project --dry-run',
+    'skillctl import --dry-run',
     'skillctl install',
     'skillctl sync',
     'skillctl skill validate skills/skillctl',

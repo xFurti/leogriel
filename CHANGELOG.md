@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-07-13
+
+### Fixed
+
+- Realigned the first-party `skillctl` skill and all bundled references with the 0.6 project-local store, plain import flow, explicit global operations, and Pi adapter.
+- Migrated the repository's own meta-skill lock and vendored store away from the legacy global canonical path so `doctor` and `audit` work on a fresh clone.
+- Corrected stale Italian and English documentation examples that still emitted `local:imported` entries or used removed import flags.
+- Upgraded GitHub Actions to their Node 24 runtimes and pinned the macOS matrix to macOS 15 to avoid runner migration warnings.
+
+### Documentation
+
+- Added migration guidance for pre-0.6 local locks and clarified which project files must be committed.
+- Updated the design baseline and documentation site to describe separate project and personal stores consistently.
+
 ## [0.6.0] - 2026-07-13
 
 ### Added
@@ -202,6 +216,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Canonical + cache dirs created on demand.
 - Recommend re-running `doctor` after upgrade.
 
+[0.6.1]: https://github.com/xFurti/skillctl/compare/v0.6.0...v0.6.1
+[0.6.0]: https://github.com/xFurti/skillctl/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/xFurti/skillctl/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/xFurti/skillctl/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/xFurti/skillctl/compare/v0.3.0...v0.3.1

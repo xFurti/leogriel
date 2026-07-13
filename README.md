@@ -8,7 +8,7 @@ Universal, package-manager-style CLI for managing **Agent Skills** across AI cod
 
 `skillctl` installs project skills into `.skillctl/skills/` and personal skills into `~/.skillctl/skills/`, then syncs them (symlink, junction on Windows, or copy) into Claude Code, Cursor, OpenCode, Codex, Gemini CLI, Grok, Pi, and other [agentskills.io](https://agentskills.io)-compatible agents.
 
-> **Status**: v0.6.0 — immutable GitHub/npm resolutions, frozen store restoration, scoped sync/prune, transactional state, and uniform JSON output. See [CHANGELOG.md](./CHANGELOG.md).
+> **Status**: v0.6.1 — project/global store separation, immutable GitHub/npm resolutions, frozen restore, deduplicating import, transactional state, and uniform JSON output. See [CHANGELOG.md](./CHANGELOG.md).
 
 **Documentation** (commands, configuration, migration, troubleshooting): **[xfurti.github.io/skillctl](https://xfurti.github.io/skillctl/)** · IT/EN
 
@@ -47,7 +47,7 @@ Project store: `.skillctl/skills/<name>/SKILL.md` (+ optional `scripts/`, `refer
 Global skills are explicit and remain outside the project:
 
 ```bash
-skillctl add -g file:../my-personal-skill
+skillctl add -g file:./my-personal-skill
 skillctl list -g
 skillctl doctor -g
 skillctl remove -g my-personal-skill
@@ -64,6 +64,10 @@ skillctl install --frozen
 ```
 
 `update` is the operation that intentionally refreshes a valid remote resolution. Imported and local skills use project-relative `file:./.skillctl/skills/<name>` entries, so committed skills remain available without a registry.
+
+### Migrating local skills from 0.5
+
+Project locks created before 0.6 may still reference `~/.skillctl/skills/<name>` or `local:imported/<name>`. Re-add source directories with `skillctl add file:./path/to/skill`, or run `skillctl import` for skills discovered in agent directories. Verify the generated `.skillctl/skills/` content, then commit it together with the refreshed manifest and lock. Global/personal skills remain explicit through `-g`.
 
 ## Selective sync and automation
 

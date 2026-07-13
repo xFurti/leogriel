@@ -89,14 +89,14 @@ export async function scanCoexistence(cwd = process.cwd()): Promise<CoexistenceR
   }
 
   if (projectSkillDirs > 0) {
-    recs.push('Run `skillctl import from-project --dry-run` to migrate agent skills into canonical store');
+    recs.push('Run `skillctl import --dry-run` to review agent skills before copying them into the project store');
   }
 
   const agentsSkills = join(cwd, '.agents', 'skills');
   if (await pathExists(agentsSkills) && !paths.includes(agentsSkills)) {
     details.push('Found .agents/skills (common universal layout used by npx skills and many agents)');
     paths.push(agentsSkills);
-    recs.push('Run `skillctl import from-npx --dry-run` to migrate into canonical store');
+    recs.push('Run `skillctl import from-npx --dry-run` to migrate into the project store');
   }
 
   const skillctlHome = join(homedir(), '.skillctl');
@@ -112,7 +112,7 @@ export async function scanCoexistence(cwd = process.cwd()): Promise<CoexistenceR
   if (await pathExists(npxLock)) {
     details.push('Found skills-lock.json (npx skills / vercel-labs format)');
     paths.push(npxLock);
-    recs.push('Run `skillctl import --from-npx` to adopt skills with provenance');
+    recs.push('Run `skillctl import from-npx --dry-run` to adopt skills with provenance');
   }
 
   const npxGlobalHint = join(homedir(), '.local', 'share', 'skills');

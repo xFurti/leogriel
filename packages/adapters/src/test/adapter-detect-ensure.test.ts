@@ -57,12 +57,14 @@ async function runTests() {
     process.cwd = origCwd;
 
     // --- Coexistence scan stub ---
-    await mkdir(join(projectDir, '.agents', 'skills'), { recursive: true });
+    await mkdir(join(projectDir, '.agents', 'skills', 'existing-skill'), { recursive: true });
+    await writeFile(join(projectDir, '.agents', 'skills', 'existing-skill', 'SKILL.md'), '---\nname: existing-skill\n---\n');
     await writeFile(join(projectDir, 'skills-lock.json'), '{}');
     const coexist = await scanCoexistence(projectDir);
     assert.ok(coexist.detected, 'coexistence should detect .agents + lock');
     assert.ok(coexist.details.some((d) => d.includes('.agents/skills')));
     assert.ok(coexist.details.some((d) => d.includes('skills-lock.json')));
+    assert.ok(coexist.recommendations.some((recommendation) => recommendation.includes('skillctl import --dry-run')));
     await rm(join(projectDir, '.agents'), { recursive: true, force: true });
     await rm(join(projectDir, 'skills-lock.json'), { force: true });
 

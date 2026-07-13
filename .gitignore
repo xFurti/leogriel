@@ -41,8 +41,12 @@ coverage/
 # pnpm
 .pnpm-store/
 
-# skillctl specific (future)
-.skillctl/
+# Project skill store. Ignore local state by default, but dogfood the first-party skill.
+.skillctl/*
+!.skillctl/skills/
+.skillctl/skills/*
+!.skillctl/skills/skillctl/
+!.skillctl/skills/skillctl/**
 
 # Agent skill links (created by skillctl sync in local dev)
 .agents/

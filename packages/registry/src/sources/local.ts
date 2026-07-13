@@ -73,7 +73,7 @@ export class LocalSource implements RegistrySource {
       await stat(resolved.localPath);
     } catch {
       const hint = parseImportedSpecifier(resolved.originalSpec)
-        ? ' Skill was imported locally; re-run `skillctl import from-project` or add from a remote source.'
+        ? ' Skill was imported locally; re-run `skillctl import` or add it from a remote source.'
         : '';
       throw new Error(`Local skill path not found: ${resolved.localPath}.${hint}`);
     }
