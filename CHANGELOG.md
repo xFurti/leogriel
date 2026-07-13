@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgraded GitHub Actions to their Node 24 runtimes and pinned the macOS matrix to macOS 15 to avoid runner migration warnings.
 - Made directory integrity hashes independent of Windows/POSIX path separators while accepting legacy hashes from either platform.
 - Serialized workspace test execution to avoid intermittent Node test-runner IPC deserialization failures under CI load.
+- Fixed the release publish job by installing pnpm before Node's automatic package-manager cache setup, and moved artifact actions to their Node 24 releases.
 
 ### Documentation
 
