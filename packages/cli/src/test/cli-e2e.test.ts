@@ -83,7 +83,7 @@ test('global add works outside a project and records global state', async () => 
 
   await execFileAsync(process.execPath, [cli, 'add', '-g', 'file:./demo-skill'], {
     cwd,
-    env: { ...process.env, HOME: home },
+    env: { ...process.env, HOME: home, USERPROFILE: home },
   });
   assert.equal((await stat(join(home, '.skillctl', 'skills', 'demo-skill'))).isDirectory(), true);
   assert.match(await readFile(join(home, '.skillctl', 'agent-skills.lock'), 'utf8'), /canonicalPath: ~\/\.skillctl/);
