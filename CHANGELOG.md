@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Corrected stale Italian and English documentation examples that still emitted `local:imported` entries or used removed import flags.
 - Upgraded GitHub Actions to their Node 24 runtimes and pinned the macOS matrix to macOS 15 to avoid runner migration warnings.
 - Made directory integrity hashes independent of Windows/POSIX path separators while accepting legacy hashes from either platform.
-- Disabled subprocess isolation for the manifest test runner to avoid a Node 22 serialization failure observed in CI.
+- Serialized workspace test execution to avoid intermittent Node test-runner IPC deserialization failures under CI load.
 
 ### Documentation
 
