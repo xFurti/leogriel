@@ -179,9 +179,14 @@ async function replaceWithBackup(
   await rename(target, content);
   try {
     await adapter.ensureTarget(skill.name, target, skill.canonicalPath, mode, { relative: scope === 'project' });
+    const logicalId = `${scope}:${timestamp}:${adapter.id}:${skill.name}`;
     await writeFile(join(backup, 'metadata.json'), `${JSON.stringify({
+      version: 1,
+      id: logicalId,
+      filesystemId: timestamp,
       originalPath: target,
       adapter: adapter.id,
+      skill: skill.name,
       scope,
       integrity,
       timestamp: new Date().toISOString(),

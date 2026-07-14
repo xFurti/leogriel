@@ -139,3 +139,4 @@ export async function scanCoexistence(cwd = process.cwd()): Promise<CoexistenceR
 export const ADAPTER_IDS = BUILTIN_ADAPTERS.map((a) => a.id);
 
 export * from './sync.js';
+export * from './backups.js';
