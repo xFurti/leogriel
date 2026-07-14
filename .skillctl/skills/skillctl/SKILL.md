@@ -2,7 +2,7 @@
 name: skillctl
 description: >
   Manage Agent Skills with the skillctl CLI: search, info, add, install,
-  outdated, update, sync, import, audit, plugins, completion, and portable manifest/lock workflows across Claude, Cursor, Codex,
+  outdated, update, sync, import, audit, plugins, behavioral tests, completion, and portable manifest/lock workflows across Claude, Cursor, Codex,
   Grok, Gemini, Pi, and OpenCode. Use when the user mentions skillctl,
   agent-skills.json, agent-skills.lock, syncing skills, importing from npx
   skills, or skill portability across machines.
@@ -22,6 +22,7 @@ Operational playbook for managing Agent Skills with the **skillctl** CLI. Run re
 6. **Import rather than copy by hand** — plain `skillctl import` discovers agent directories, deduplicates identical skills, and vendors selected content into the project store.
 7. **Plan maintenance before writing** — use `outdated` or `update --dry-run`; use `--latest --save --yes` only when intentionally changing an npm constraint.
 8. **Never replace unmanaged targets implicitly** — replacement requires exact skill, agent, scope, confirmation, and a backup.
+9. **Treat behavioral tests as untrusted code** — pin a model when comparing over time, keep network denied unless required, and review every command assertion before using `--trust-tests`.
 
 ## Decision tree
 
@@ -39,6 +40,7 @@ Operational playbook for managing Agent Skills with the **skillctl** CLI. Run re
 | Review pending updates | `skillctl outdated` / `skillctl update --dry-run` |
 | CI reproducible install | `skillctl install --frozen` then `skillctl audit --strict` |
 | Diagnose personal installation | `skillctl doctor -g` |
+| Compare behavior with and without a skill | `skillctl test <name> --runs 3 --model <model>` |
 
 ## Quick recipes
 

@@ -848,6 +848,14 @@ Version 0.8 centralizes `SKILL.md` parsing across inspection, validation, import
 
 Plugin installation supports a read-only preflight that exposes code-execution risk before any persistent state changes. Audit remains offline and reports category, remediation, confidence, and non-secret evidence. Versioned artifacts are created only when explicitly requested under the Git-ignored `.skillctl/artifacts/` tree, and output redaction is field-aware and streaming-safe.
 
+## 0.9 experimental behavioral testing baseline
+
+The testing subsystem introduces a separate `AgentRunner` contract and one fail-closed Codex runner. Each sequential baseline/skill variant gets a distinct workspace and isolation root for HOME, USERPROFILE, XDG configuration/data/cache, and CODEX_HOME. Runner detection validates version, flags, strict configuration, environment filtering, network policy, web-search control, and model reporting before execution.
+
+Test YAML defaults to denied network and disabled web search. Fixtures cannot carry undeclared agent configuration or skills. Authentication is normalized from CODEX_API_KEY or OPENAI_API_KEY without persisting credentials, and shell tools inherit no environment. Case verdicts use complete required assertions and budgets across paired runs; aggregate verdicts follow case pass rates, while duration, token usage, and individual assertions remain secondary diagnostics.
+
+`@skillctl/testing` is published only as an explicitly experimental twelfth package so the CLI can consume it. It participates in Trusted Publishing, provenance, SRI/pack verification, release ordering, and cross-platform smoke tests, but its public API is not stable before 1.0.
+
 ---
 
 *End of design document.*

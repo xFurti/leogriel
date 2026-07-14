@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-07-14
+
+### Added
+
+- Added experimental `test init`, `test validate`, `test list`, and `test <skill>` commands with version-1 YAML cases, fixtures, assertions, budgets, timeout, multiple paired runs, JSON, output artifacts, and optional retained workspaces.
+- Added deterministic assertions for file presence/absence/content, regex, command exit status, JSON schema shape, snapshots, forbidden paths, and maximum changed files. No LLM-as-judge behavior is included.
+- Added an experimental `@skillctl/testing` package with an explicitly unstable pre-1.0 API and a structured `AgentRunner` detection contract.
+
+### Runner isolation
+
+- Added one Codex runner that verifies CLI version, required flags, strict configuration, environment filtering, network controls, web-search controls, and resolved-model reporting before a test starts.
+- Isolated HOME, USERPROFILE, XDG_CONFIG_HOME, XDG_DATA_HOME, XDG_CACHE_HOME, and CODEX_HOME separately for every baseline/skill variant and run; fixtures containing undeclared agent rules, configuration, skills, or symlinks are rejected.
+- Added `CODEX_API_KEY` and `OPENAI_API_KEY` normalization with conflict rejection. Credentials are never copied to workspaces, reports, or artifacts, and agent subprocesses inherit no environment.
+- Added a default-deny network policy with independently controlled disabled/cached/live web search. Unsupported isolation or network configuration fails closed.
+
+### Testing semantics
+
+- Runs are sequential and deterministically alternate baseline/skill order from a recorded seed. Whole test cases pass only when every required assertion and budget passes.
+- Added per-case paired verdicts and aggregate `improved`, `regressed`, `unchanged`, or `inconclusive` verdicts based on pass rates. Assertion counts are diagnostic only; mixed outcomes, runner errors, timeouts, missing data, and insufficient samples are inconclusive.
+- Added structured warnings when no model is pinned and records requested/resolved models, runner detection, exact skill integrity and lock entry, fixtures, assertions, durations, tokens when available, network policy, and skillctl version.
+
+### Security and release
+
+- Command assertions require one detailed TTY confirmation or `--trust-tests` in non-interactive environments. The flag neither creates a security sandbox nor enables network access.
+- Retained workspaces are opt-in under Git-ignored artifacts and always warn about potentially sensitive generated files; temporary HOME/XDG/CODEX_HOME trees are never retained.
+- Added `@skillctl/testing` as the twelfth release package with pack verification, SRI/provenance publication order, and tarball/registry smoke coverage. Its npm Trusted Publisher must be configured before release.
+
 ## [0.8.0] - 2026-07-14
 
 ### Added

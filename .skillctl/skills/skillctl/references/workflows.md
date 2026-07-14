@@ -46,7 +46,17 @@ Global state is machine-specific and is not a replacement for committed project 
 ## CI pipeline
 
 ```bash
-npm install -g @skillctl/cli@0.8.0
+npm install -g @skillctl/cli@0.9.0
+
+## Behavioral test workflow (experimental)
+
+```bash
+skillctl test init my-skill
+skillctl test validate
+skillctl test my-skill --runs 3 --model <model> --json
+```
+
+Tests are sequential and pair a clean baseline with the skill variant. Network and web search are denied by default. Command assertions require an interactive confirmation or `--trust-tests` in non-interactive use; that flag does not sandbox commands or enable network access. Keep-workspace output may contain sensitive generated files.
 skillctl install --frozen
 skillctl audit --strict --json
 ```

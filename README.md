@@ -8,7 +8,7 @@ Universal, package-manager-style CLI for managing **Agent Skills** across AI cod
 
 `skillctl` installs project skills into `.skillctl/skills/` and personal skills into `~/.skillctl/skills/`, then syncs them (symlink, junction on Windows, or copy) into Claude Code, Cursor, OpenCode, Codex, Gemini CLI, Grok, Pi, and other [agentskills.io](https://agentskills.io)-compatible agents.
 
-> **Status**: v0.8.0 — shared `SKILL.md` parsing, provider-aware discovery, managed backups, plugin inspection, artifact contracts, secret redaction, and advanced offline audit. See [CHANGELOG.md](./CHANGELOG.md).
+> **Status**: v0.9.0 — experimental paired behavioral testing on top of the 0.8 parser, audit, backup, plugin-inspection, artifact, and redaction foundations. See [CHANGELOG.md](./CHANGELOG.md).
 
 Machine-readable commands emit one stable JSON envelope with `schemaVersion: 1`; warnings and errors stay on stderr. Official releases smoke-test both packed tarballs and the package fetched back from npm before the tag is created.
 
@@ -209,6 +209,24 @@ The dry-run resolves and verifies the package without installing it, then report
 
 Persistent artifacts are opt-in and use the versioned `.skillctl/artifacts/{audit,test,reports}/` contract. This directory is ignored by Git. Structured output passes through field-aware secret redaction; hashes, integrity values, versions, and ordinary identifiers are preserved.
 
+## Experimental behavioral testing
+
+Versioned YAML tests compare the same task without and with a skill using separate workspaces and separate HOME, USERPROFILE, XDG, and CODEX_HOME directories. The initial 0.9 runner supports Codex only and validates its version, flags, strict configuration, network control, and environment filtering before execution.
+
+```bash
+skillctl test init my-skill
+skillctl test validate
+skillctl test list --json
+skillctl test my-skill --runs 3 --model <model> --json
+skillctl test my-skill --output my-skill-result.json
+```
+
+Tests are sequential. Network and web search are denied by default and must be enabled independently in YAML. Command assertions execute arbitrary programs: interactive runs show executable, argv, and cwd once; non-interactive runs require `--trust-tests`. The flag does not change the runner policy or create an OS sandbox. `--keep-workspace` is explicit and warns that agent output may be sensitive. Isolated HOME/XDG/CODEX_HOME trees and credentials are never copied to retained workspaces.
+
+This reduces configuration leakage but is not an absolute security sandbox. Authentication accepts `CODEX_API_KEY` or `OPENAI_API_KEY`; conflicting values fail before execution, and the selected key is exposed only to the Codex process. Agent subprocesses receive an explicit safe allowlist derived from the isolated environment—enough to find executables and use isolated HOME and temporary directories—while API keys and every non-allowlisted variable remain excluded. If no model is pinned, paired results are useful within that execution but are not declared stable across dates or environments.
+
+Case verdicts use whole-case pass/fail outcomes and paired runs, not assertion counts. The aggregate verdict is `improved`, `regressed`, `unchanged`, or `inconclusive`; mixed outcomes, errors, timeouts, and fewer than three samples are inconclusive. See [behavioral testing](./docs/behavioral-testing.md) and the [1.0 roadmap](./ROADMAP.md).
+
 See the [docs site](https://xfurti.github.io/skillctl/) for the full command reference, config schema, Windows notes, and coexistence with other tools.
 
 ## Development
@@ -229,7 +247,7 @@ Architecture and design: [skillctl-design.md](./skillctl-design.md) · Contribut
 
 ### Maintainer release setup
 
-Each of the eleven `@skillctl/*` npm packages must configure the repository `xFurti/skillctl`, workflow `release.yml`, environment `npm-production`, and `npm publish` as its Trusted Publisher. The workflow needs no `NPM_TOKEN`: it verifies or publishes every tarball by SRI, waits until all packages are visible, and only then creates the annotated tag and GitHub Release.
+Each of the twelve `@skillctl/*` npm packages, including the explicitly unstable `@skillctl/testing`, must configure the repository `xFurti/skillctl`, workflow `release.yml`, environment `npm-production`, and `npm publish` as its Trusted Publisher. The workflow needs no `NPM_TOKEN`: it verifies or publishes every tarball by SRI, preserves provenance, smoke-tests packed and registry content, waits until all packages are visible, and only then creates the annotated tag and GitHub Release.
 
 ## Authors
 
