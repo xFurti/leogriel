@@ -168,9 +168,11 @@ test('Codex redacts secrets from stdout, stderr, split chunks, JSONL, and nonzer
     try {
       const result = await fixture.runner.run(request(isolation, 'prompt', 2_000));
       assert.doesNotMatch(result.output, new RegExp(secret), `${mode} output`);
+      assert.doesNotMatch(result.stderr || '', new RegExp(secret), `${mode} stderr`);
       assert.doesNotMatch(result.error || '', new RegExp(secret), `${mode} error`);
       if (mode !== 'leak-stderr') assert.match(`${result.output}\n${result.error || ''}`, /REDACTED/, mode);
       else {
+        assert.match(result.stderr || '', /REDACTED/);
         const direct = await runProcess(process.execPath, [fixture.script, 'exec', '--strict-config', '-'], {
           timeoutMs: 2_000,
           env: { ...process.env, CODEX_API_KEY: secret, OPENAI_API_KEY: undefined },

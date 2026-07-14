@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Isolated HOME, USERPROFILE, XDG_CONFIG_HOME, XDG_DATA_HOME, XDG_CACHE_HOME, and CODEX_HOME separately for every baseline/skill variant and run; fixtures containing undeclared agent rules, configuration, skills, or symlinks are rejected.
 - Added `CODEX_API_KEY` and `OPENAI_API_KEY` normalization with conflict rejection. Credentials are never copied to workspaces, reports, or artifacts, and agent subprocesses receive only the explicit safe environment allowlist.
 - Added opt-in ChatGPT subscription authentication for the live Codex runner through an explicit dedicated `SKILLCTL_CODEX_AUTH_HOME`, including a fail-closed `codex login status` preflight. The normal `~/.codex` is never selected automatically, API-key mixing is rejected, and authentication-profile files are not copied, logged, modified, redacted, or deleted.
+- Hardened the opt-in live smoke with an explicit terminal task, exact output and Node-version assertions, redacted JSONL/stderr/workspace diagnostics, and failure-only workspace retention. The live smoke never retries automatically and never retains authentication or isolated home data.
 - Added a default-deny network policy with independently controlled disabled/cached/live web search. Unsupported isolation or network configuration fails closed.
 
 ### Testing semantics

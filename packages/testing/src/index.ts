@@ -7,3 +7,4 @@ export * from './assertions.js';
 export * from './verdicts.js';
 export * from './run-tests.js';
 export * from './process.js';
+export * from './live-diagnostics.js';

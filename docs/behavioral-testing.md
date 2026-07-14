@@ -48,3 +48,5 @@ $env:SKILLCTL_CODEX_AUTH_HOME = "$env:USERPROFILE\.codex-skillctl-live"
 
 pnpm --filter @skillctl/testing test:live
 ```
+
+Set `SKILLCTL_LIVE_DEBUG=1` to print redacted runner diagnostics even when the smoke succeeds. A failure always prints the exit state, truncation/timeout state, requested and resolved models, JSONL event types, final agent message, stderr, and the workspace file list. Set `SKILLCTL_LIVE_KEEP_WORKSPACE=1` to retain only a failed workspace under `.skillctl/artifacts/test/live/`; successful workspaces are still deleted. The dedicated ChatGPT CODEX_HOME and the temporary HOME/XDG trees are never copied or retained. The live smoke performs one attempt only and never retries automatically.

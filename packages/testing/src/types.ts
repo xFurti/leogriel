@@ -66,6 +66,7 @@ export interface AgentRunResult {
   requestedModel: string | null;
   resolvedModel?: string;
   output: string;
+  stderr?: string;
   error?: string;
   timedOut?: boolean;
   incomplete?: boolean;

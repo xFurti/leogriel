@@ -103,6 +103,7 @@ export class CodexRunner implements AgentRunner {
       requestedModel: request.requestedModel || null,
       resolvedModel: parsed.resolvedModel,
       output: processResult.stdout,
+      stderr: processResult.stderr,
       error,
       timedOut: processResult.timedOut,
       incomplete: !parsed.completed || Boolean(error),
@@ -141,6 +142,7 @@ function incompleteAuthResult(request: AgentRunRequest, started: number, error: 
     durationMs: Date.now() - started,
     requestedModel: request.requestedModel || null,
     output: '',
+    stderr: '',
     error,
     incomplete: true,
   };
