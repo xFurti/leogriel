@@ -35,11 +35,11 @@ export async function runSkillTests(testFile: SkillTestFile, options: RunSkillTe
   const modelSeed = options.model || testFile.cases.map((testCase) => testCase.runner?.model || 'runner-default').join(',');
   const seed = options.seed ?? stableSeed(`${testIntegrity}\0${parsedSkill.integrity}\0${options.runner.id}\0${modelSeed}\0${runs}`);
   const runId = `${new Date().toISOString().replace(/[:.]/g, '-')}-${randomUUID()}`;
+  const auth = resolveCodexAuth();
   const detection = await options.runner.detect();
   if (!detection.available) throw new Error(detection.reason || `Runner ${options.runner.id} is unavailable`);
   const policies = testFile.cases.map((testCase) => testCase.network || { mode: 'deny' as const, webSearch: 'disabled' as const });
   await options.runner.preflight?.([...new Map(policies.map((policy) => [`${policy.mode}:${policy.webSearch}`, policy])).values()]);
-  const auth = resolveCodexAuth();
   const caseResults: CaseResult[] = [];
   const allBaseline: VariantResult[] = [];
   const allSkill: VariantResult[] = [];

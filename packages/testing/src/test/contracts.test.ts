@@ -107,10 +107,31 @@ test('each isolation uses separate HOME, XDG, USERPROFILE, and CODEX_HOME trees'
 });
 
 test('Codex authentication applies precedence and rejects conflicting keys', () => {
-  assert.deepEqual(resolveCodexAuth({ CODEX_API_KEY: 'abcdefghijklmnop' }), { apiKey: 'abcdefghijklmnop', source: 'CODEX_API_KEY' });
-  assert.deepEqual(resolveCodexAuth({ OPENAI_API_KEY: 'abcdefghijklmnop' }), { apiKey: 'abcdefghijklmnop', source: 'OPENAI_API_KEY' });
-  assert.equal(resolveCodexAuth({ CODEX_API_KEY: 'abcdefghijklmnop', OPENAI_API_KEY: 'abcdefghijklmnop' }).source, 'CODEX_API_KEY');
+  assert.deepEqual(resolveCodexAuth({ CODEX_API_KEY: 'abcdefghijklmnop' }), { mode: 'api-key', apiKey: 'abcdefghijklmnop', source: 'CODEX_API_KEY' });
+  assert.deepEqual(resolveCodexAuth({ OPENAI_API_KEY: 'abcdefghijklmnop' }), { mode: 'api-key', apiKey: 'abcdefghijklmnop', source: 'OPENAI_API_KEY' });
+  assert.deepEqual(resolveCodexAuth({ CODEX_API_KEY: 'abcdefghijklmnop', OPENAI_API_KEY: 'abcdefghijklmnop' }), { mode: 'api-key', apiKey: 'abcdefghijklmnop', source: 'CODEX_API_KEY' });
   assert.throws(() => resolveCodexAuth({ CODEX_API_KEY: 'abcdefghijklmnop', OPENAI_API_KEY: 'different-secret-value' }), /different values/);
+});
+
+test('ChatGPT authentication requires an explicit dedicated home and rejects API keys', () => {
+  const resolved = resolveCodexAuth({
+    SKILLCTL_CODEX_AUTH_MODE: 'chatgpt',
+    SKILLCTL_CODEX_AUTH_HOME: './dedicated-chatgpt-profile',
+  });
+  assert.equal(resolved.mode, 'chatgpt');
+  if (resolved.mode === 'chatgpt') assert.equal(resolved.codexHome.endsWith('dedicated-chatgpt-profile'), true);
+  assert.throws(() => resolveCodexAuth({ SKILLCTL_CODEX_AUTH_MODE: 'chatgpt' }), /explicit SKILLCTL_CODEX_AUTH_HOME/);
+  assert.throws(() => resolveCodexAuth({
+    SKILLCTL_CODEX_AUTH_MODE: 'chatgpt',
+    SKILLCTL_CODEX_AUTH_HOME: './profile',
+    CODEX_API_KEY: 'abcdefghijklmnop',
+  }), /cannot be combined/);
+  assert.throws(() => resolveCodexAuth({
+    SKILLCTL_CODEX_AUTH_MODE: 'chatgpt',
+    SKILLCTL_CODEX_AUTH_HOME: './profile',
+    OPENAI_API_KEY: 'abcdefghijklmnop',
+  }), /cannot be combined/);
+  assert.throws(() => resolveCodexAuth({ SKILLCTL_CODEX_AUTH_MODE: 'unknown' }), /api-key or chatgpt/);
 });
 
 test('aggregate verdict follows case verdicts instead of assertion counts', () => {

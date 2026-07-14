@@ -26,7 +26,9 @@ Network access is denied and web search is disabled unless enabled explicitly. `
 
 Fixtures must not contain undeclared agent configuration (`.codex`, `.claude`, `.agents`, `.cursor`, `.gemini`, `.grok`, `.opencode`, `.pi`, agent-specific skills, `AGENTS.md`, `AGENTS.override.md`, or `CLAUDE.md`). Symlinks are rejected. The runner installs only the skill under test after validation.
 
-Authentication accepts `CODEX_API_KEY` or `OPENAI_API_KEY`. Equal values are accepted with Codex precedence; conflicting values stop with exit code 2. Keys are not copied to a workspace, CODEX_HOME, report, or artifact. Agent tool subprocesses receive only the safe operating-system environment required to find executables and use the isolated HOME and temporary directories; API keys remain excluded.
+API-key authentication accepts `CODEX_API_KEY` or `OPENAI_API_KEY`. Equal values are accepted with Codex precedence; conflicting values stop with exit code 2. Keys are not copied to a workspace, CODEX_HOME, report, or artifact. Agent tool subprocesses receive only the safe operating-system environment required to find executables and use the isolated HOME and temporary directories; API keys remain excluded.
+
+Live runs may instead set `SKILLCTL_CODEX_AUTH_MODE=chatgpt` and an explicit `SKILLCTL_CODEX_AUTH_HOME` pointing to a dedicated profile previously authenticated with `codex login`. skillctl never falls back to the normal `~/.codex`, runs `codex login status` before execution, and rejects ChatGPT mode when either API-key variable is present. The dedicated profile is used only by the Codex process for authentication: user configuration and rules remain disabled, its files are never copied, logged, redacted, changed, or deleted by skillctl, and HOME/USERPROFILE/XDG/workspace isolation remains temporary and distinct.
 
 Command assertions execute arbitrary code even without a shell. TTY runs display executable, argv, and working directory for one confirmation. CI requires `--trust-tests`; this flag does not change the runner network policy or provide a security sandbox, and the executable may still use capabilities available to the host process.
 
@@ -36,8 +38,13 @@ The `0.9` runner is always paired; there is no unpaired baseline option. An impr
 
 ## Opt-in live Codex smoke
 
-The live smoke is excluded from the standard suite. It requires an exact pinned model and either `CODEX_API_KEY` or `OPENAI_API_KEY`, runs with outbound network denied and web search disabled, verifies the requested file, checks that a later command can find Node.js, and removes its complete isolation root.
+The live smoke is excluded from the standard suite. It requires an exact pinned model and either API-key authentication or the explicit dedicated ChatGPT profile below. It runs with outbound network denied and web search disabled, verifies the requested file, checks that Codex itself can run Node.js, and removes its complete temporary isolation root without modifying the authentication profile.
 
 ```powershell
-$env:SKILLCTL_LIVE_CODEX='1'; $env:SKILLCTL_LIVE_MODEL='<exact-codex-model-id>'; pnpm --filter @skillctl/testing test:live
+$env:SKILLCTL_LIVE_CODEX = "1"
+$env:SKILLCTL_LIVE_MODEL = "<exact-model-id>"
+$env:SKILLCTL_CODEX_AUTH_MODE = "chatgpt"
+$env:SKILLCTL_CODEX_AUTH_HOME = "$env:USERPROFILE\.codex-skillctl-live"
+
+pnpm --filter @skillctl/testing test:live
 ```

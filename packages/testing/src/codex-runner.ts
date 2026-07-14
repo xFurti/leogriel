@@ -1,3 +1,4 @@
+import { isAbsolute, join, relative } from 'node:path';
 import type { AgentRunRequest, AgentRunResult, AgentRunner, RunnerDetection } from './types.js';
 import { isolatedEnvironment, type IsolationLayout } from './isolation.js';
 import { runProcess } from './process.js';
@@ -47,6 +48,10 @@ export class CodexRunner implements AgentRunner {
   }
 
   async run(request: AgentRunRequest): Promise<AgentRunResult> {
+    const started = Date.now();
+    if (request.auth.mode === 'chatgpt' && (process.env.CODEX_API_KEY || process.env.OPENAI_API_KEY)) {
+      return incompleteAuthResult(request, started, 'ChatGPT authentication cannot be combined with CODEX_API_KEY or OPENAI_API_KEY');
+    }
     const detection = await this.detect();
     if (!detection.available) throw new Error(detection.reason || 'Codex runner unavailable');
     const layout = layoutFromRequest(request);
@@ -57,15 +62,34 @@ export class CodexRunner implements AgentRunner {
     ];
     if (request.requestedModel) args.push('--model', request.requestedModel);
     args.push('-');
-    const started = Date.now();
+    const baseEnvironment = isolatedEnvironment(layout);
+    if (request.auth.mode === 'chatgpt') {
+      if (isInside(request.isolationRoot, request.auth.codexHome)) {
+        return incompleteAuthResult(request, started, 'SKILLCTL_CODEX_AUTH_HOME must be outside the temporary isolation root');
+      }
+      const status = await this.invoke(['login', 'status'], 10_000, {
+        env: { ...baseEnvironment, CODEX_HOME: request.auth.codexHome },
+        maxOutputBytes: 64 * 1024,
+      });
+      if (status.code !== 0 || status.timedOut || status.truncated) {
+        return incompleteAuthResult(
+          request,
+          started,
+          'The dedicated ChatGPT profile is not authenticated. Set CODEX_HOME to SKILLCTL_CODEX_AUTH_HOME, run `codex login`, then retry.',
+        );
+      }
+    }
+    const environment = request.auth.mode === 'chatgpt'
+      ? { ...baseEnvironment, CODEX_HOME: request.auth.codexHome }
+      : { ...baseEnvironment, CODEX_API_KEY: request.auth.apiKey };
+    const knownSecrets = request.auth.mode === 'api-key'
+      ? { CODEX_API_KEY: request.auth.apiKey, OPENAI_API_KEY: request.auth.apiKey }
+      : {};
     const processResult = await this.invoke(args, request.timeoutMs, {
-      env: { ...isolatedEnvironment(layout), CODEX_API_KEY: request.auth.apiKey },
+      env: environment,
       input: request.prompt,
       maxOutputBytes: this.options.maxOutputBytes,
-      knownSecrets: {
-        CODEX_API_KEY: request.auth.apiKey,
-        OPENAI_API_KEY: request.auth.apiKey,
-      },
+      knownSecrets,
     });
     const parsed = parseCodexJsonl(processResult.stdout, processResult.truncated);
     const exitError = processResult.code === 0 ? undefined : processResult.stderr.trim() || `Codex exited with code ${processResult.code}`;
@@ -110,6 +134,23 @@ export class CodexRunner implements AgentRunner {
   }
 }
 
+function incompleteAuthResult(request: AgentRunRequest, started: number, error: string): AgentRunResult {
+  return {
+    ok: false,
+    exitCode: null,
+    durationMs: Date.now() - started,
+    requestedModel: request.requestedModel || null,
+    output: '',
+    error,
+    incomplete: true,
+  };
+}
+
+function isInside(root: string, candidate: string): boolean {
+  const path = relative(root, candidate);
+  return path === '' || (!path.startsWith('..') && !isAbsolute(path));
+}
+
 function configArgs(policy: AgentRunRequest['network']): string[] {
   return [
     '-c', 'shell_environment_policy.inherit="all"',
@@ -121,13 +162,13 @@ function configArgs(policy: AgentRunRequest['network']): string[] {
 }
 
 function layoutFromRequest(request: AgentRunRequest): IsolationLayout {
-  const join = (name: string) => `${request.isolationRoot}/${name}`;
+  const child = (name: string) => join(request.isolationRoot, name);
   return {
     root: request.isolationRoot,
     workspace: request.workspace,
-    home: join('home'), userprofile: join('userprofile'), xdgConfig: join('xdg-config'),
-    xdgData: join('xdg-data'), xdgCache: join('xdg-cache'), codexHome: join('codex-home'),
-    temp: join('temp'), tmp: join('tmp'),
+    home: child('home'), userprofile: child('userprofile'), xdgConfig: child('xdg-config'),
+    xdgData: child('xdg-data'), xdgCache: child('xdg-cache'), codexHome: child('codex-home'),
+    temp: child('temp'), tmp: child('tmp'),
   };
 }
 

@@ -1,3 +1,5 @@
+import type { ResolvedCodexAuth } from './auth.js';
+
 export type AssertionType = 'file-exists' | 'file-not-exists' | 'file-contains' | 'file-not-contains' | 'regex' | 'command' | 'json-schema' | 'snapshot' | 'forbidden-path' | 'max-changed-files';
 export type CaseVerdict = 'improved' | 'unchanged' | 'regressed' | 'inconclusive';
 export type SkillVerdict = CaseVerdict;
@@ -52,7 +54,7 @@ export interface AgentRunRequest {
   timeoutMs: number;
   network: NetworkPolicy;
   requestedModel?: string;
-  auth: { apiKey: string };
+  auth: ResolvedCodexAuth;
 }
 
 export interface AgentRunResult {

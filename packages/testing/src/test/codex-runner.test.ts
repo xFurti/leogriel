@@ -78,6 +78,7 @@ test('Codex receives prompt on stdin and exposes safe tool environment without A
     assert.equal(recorded.nodeFound, true);
     assert.equal(recorded.childCodexKey, false);
     assert.equal(recorded.childOpenAiKey, false);
+    assert.equal(recorded.childCodexHome, false);
     assert.equal(recorded.parentCodexKey, true);
     assert.equal(recorded.parentOpenAiKey, false);
     assert.match(String(recorded.arguments), /shell_environment_policy\.inherit="all"/);
@@ -87,6 +88,76 @@ test('Codex receives prompt on stdin and exposes safe tool environment without A
     assert.deepEqual(result.tokenUsage, { input: 10, cachedInput: 3, output: 4, reasoning: 2, total: 16 });
     assert.equal(result.resolvedModel, 'fake-model');
   } finally { await destroyIsolation(isolation); await fixture.cleanup(); }
+});
+
+test('ChatGPT auth preflights the explicit profile without exposing or modifying it', async () => {
+  const fixture = await fakeCodex('valid');
+  const isolation = await createIsolation();
+  const authHome = await mkdtemp(join(tmpdir(), 'skillctl-chatgpt-auth-'));
+  const sentinel = join(authHome, 'auth.json');
+  await writeFile(sentinel, '{"authenticated":true}');
+  try {
+    const input = request(isolation, 'chatgpt prompt', 2_000);
+    input.auth = { mode: 'chatgpt', codexHome: authHome };
+    const result = await fixture.runner.run(input);
+    assert.equal(result.ok, true, result.error);
+    const status = JSON.parse(await readFile(join(fixture.root, 'login-status.json'), 'utf8')) as Record<string, unknown>;
+    assert.equal(status.codexHome, authHome);
+    assert.equal(status.home, isolation.home);
+    assert.equal(status.userprofile, isolation.userprofile);
+    assert.equal(status.codexKey, false);
+    assert.equal(status.openAiKey, false);
+    const execution = JSON.parse(await readFile(join(fixture.root, 'record.json'), 'utf8')) as Record<string, unknown>;
+    assert.equal(execution.parentCodexKey, false);
+    assert.equal(execution.parentOpenAiKey, false);
+    assert.equal(execution.childCodexHome, false);
+    assert.match(String(execution.arguments), /--ignore-user-config/);
+    assert.match(String(execution.arguments), /--ignore-rules/);
+    assert.match(String(execution.arguments), /--ephemeral/);
+    assert.equal(await readFile(sentinel, 'utf8'), '{"authenticated":true}');
+  } finally {
+    await destroyIsolation(isolation);
+    assert.equal(await readFile(sentinel, 'utf8'), '{"authenticated":true}');
+    await Promise.all([fixture.cleanup(), rm(authHome, { recursive: true, force: true })]);
+  }
+});
+
+test('ChatGPT auth stops with remediation when login status fails', async () => {
+  const fixture = await fakeCodex('login-unauthenticated');
+  const isolation = await createIsolation();
+  const authHome = await mkdtemp(join(tmpdir(), 'skillctl-chatgpt-auth-'));
+  try {
+    const input = request(isolation, 'must not execute', 2_000);
+    input.auth = { mode: 'chatgpt', codexHome: authHome };
+    const result = await fixture.runner.run(input);
+    assert.equal(result.ok, false);
+    assert.equal(result.incomplete, true);
+    assert.match(result.error || '', /codex login/);
+    await assert.rejects(readFile(join(fixture.root, 'prompt.txt')));
+  } finally {
+    await destroyIsolation(isolation);
+    await Promise.all([fixture.cleanup(), rm(authHome, { recursive: true, force: true })]);
+  }
+});
+
+test('ChatGPT auth fails closed before detection when an API key is also present', async () => {
+  const fixture = await fakeCodex('valid');
+  const isolation = await createIsolation();
+  const authHome = await mkdtemp(join(tmpdir(), 'skillctl-chatgpt-auth-'));
+  const previous = process.env.CODEX_API_KEY;
+  process.env.CODEX_API_KEY = 'unexpected-api-key-abcdefghijklmnop';
+  try {
+    const input = request(isolation, 'must not execute', 2_000);
+    input.auth = { mode: 'chatgpt', codexHome: authHome };
+    const result = await fixture.runner.run(input);
+    assert.equal(result.incomplete, true);
+    assert.match(result.error || '', /cannot be combined/);
+    await assert.rejects(readFile(join(fixture.root, 'login-status.json')));
+  } finally {
+    if (previous === undefined) delete process.env.CODEX_API_KEY; else process.env.CODEX_API_KEY = previous;
+    await destroyIsolation(isolation);
+    await Promise.all([fixture.cleanup(), rm(authHome, { recursive: true, force: true })]);
+  }
 });
 
 test('Codex redacts secrets from stdout, stderr, split chunks, JSONL, and nonzero errors', async () => {
@@ -170,7 +241,7 @@ function request(layout: Awaited<ReturnType<typeof createIsolation>>, prompt: st
     isolationRoot: layout.root,
     timeoutMs,
     network: { mode: 'deny', webSearch: 'disabled' },
-    auth: { apiKey: 'codex-secret-abcdefghijklmnop' },
+    auth: { mode: 'api-key', apiKey: 'codex-secret-abcdefghijklmnop', source: 'CODEX_API_KEY' },
   };
 }
 
@@ -187,6 +258,18 @@ const args = process.argv.slice(2);
 if (args.includes('--version')) { console.log('codex-cli 1.2.3'); process.exit(0); }
 if (args.includes('--help')) {
   console.log(mode === 'missing-flags' ? '--json --ephemeral' : ${JSON.stringify(REQUIRED_HELP)});
+  process.exit(0);
+}
+if (args[0] === 'login' && args[1] === 'status') {
+  writeFileSync(join(root, 'login-status.json'), JSON.stringify({
+    codexHome: process.env.CODEX_HOME,
+    home: process.env.HOME,
+    userprofile: process.env.USERPROFILE,
+    codexKey: Boolean(process.env.CODEX_API_KEY),
+    openAiKey: Boolean(process.env.OPENAI_API_KEY),
+  }));
+  if (mode === 'login-unauthenticated') { console.error('not logged in'); process.exit(1); }
+  console.log('Logged in using ChatGPT');
   process.exit(0);
 }
 if (mode === 'strict-rejected' && args.includes('--strict-config')) { console.error('strict config rejected'); process.exit(2); }
@@ -215,11 +298,12 @@ if (!ignoreDefaultExcludes) {
 }
 const include = parseConfig('shell_environment_policy.include_only', []);
 if (Array.isArray(include)) childEnv = Object.fromEntries(Object.entries(childEnv).filter(([key]) => include.includes(key)));
-const child = spawnSync('node', ['-e', 'process.stdout.write(JSON.stringify({node:true,codex:Boolean(process.env.CODEX_API_KEY),openai:Boolean(process.env.OPENAI_API_KEY)}))'], { env: childEnv, encoding: 'utf8' });
+const child = spawnSync('node', ['-e', 'process.stdout.write(JSON.stringify({node:true,codex:Boolean(process.env.CODEX_API_KEY),openai:Boolean(process.env.OPENAI_API_KEY),codexHome:Boolean(process.env.CODEX_HOME)}))'], { env: childEnv, encoding: 'utf8' });
 const childRecord = JSON.parse(child.stdout || '{}');
 writeFileSync(join(root, 'record.json'), JSON.stringify({
   lastArgument: args.at(-1), nodeFound: child.status === 0 && childRecord.node === true,
   childCodexKey: childRecord.codex === true, childOpenAiKey: childRecord.openai === true,
+  childCodexHome: childRecord.codexHome === true,
   parentCodexKey: Boolean(process.env.CODEX_API_KEY), parentOpenAiKey: Boolean(process.env.OPENAI_API_KEY),
   arguments: args.join(' '), toolEnvironmentKeys: Object.keys(childEnv).sort(),
 }));
