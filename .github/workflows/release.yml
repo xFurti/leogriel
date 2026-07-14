@@ -12,6 +12,11 @@ on:
         required: true
         default: false
         type: boolean
+      dist_tag:
+        description: Optional npm dist-tag override (defaults to latest, or next for prereleases)
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -95,7 +100,12 @@ jobs:
           name: skillctl-${{ inputs.version }}-packages
           path: artifacts/${{ inputs.version }}
       - name: Publish or verify packages in dependency order
-        run: node scripts/publish-release.mjs "${{ inputs.version }}"
+        env:
+          DIST_TAG: ${{ inputs.dist_tag }}
+        run: |
+          args=("${{ inputs.version }}")
+          if [ -n "$DIST_TAG" ]; then args+=(--tag "$DIST_TAG"); fi
+          node scripts/publish-release.mjs "${args[@]}"
 
   post-publish-smoke:
     needs: publish

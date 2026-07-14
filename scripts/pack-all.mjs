@@ -3,21 +3,9 @@ import { tmpdir } from 'node:os';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { releasePackages } from './release-packages.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const packageOrder = [
-  'core',
-  'manifest',
-  'lockfile',
-  'link-manager',
-  'plugin-system',
-  'project-state',
-  'adapters',
-  'security',
-  'registry',
-  'import',
-  'cli'
-];
 const corepack = process.platform === 'win32'
   ? join(dirname(process.execPath), 'node_modules', 'corepack', 'dist', 'corepack.js')
   : null;
@@ -77,7 +65,7 @@ await mkdir(output, { recursive: true });
 
 const archives = [];
 runPnpm(['-r', 'build']);
-for (const directoryName of packageOrder) {
+for (const directoryName of releasePackages) {
   const directory = join(root, 'packages', directoryName);
   const packageJson = JSON.parse(await readFile(join(directory, 'package.json'), 'utf8'));
   if (packageJson.version !== version) {

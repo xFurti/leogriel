@@ -13,7 +13,7 @@ export async function smokePublishedPackage(version, source = 'registry') {
   const temporary = await mkdtemp(join(tmpdir(), 'skillctl-npm-smoke-'));
   try {
     const installTargets = source === 'registry'
-      ? [`@skillctl/cli@${version}`]
+      ? [`@skillctl/testing@${version}`, `@skillctl/cli@${version}`]
       : releasePackages.map((name) => join(root, 'artifacts', version, archiveName(name, version)));
     runNpm(['install', '--prefix', temporary, '--ignore-scripts=false', ...installTargets]);
     const cli = join(temporary, 'node_modules', '@skillctl', 'cli', 'bin', 'skillctl.js');

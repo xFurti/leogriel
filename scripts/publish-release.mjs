@@ -17,6 +17,13 @@ export function publicationDecision(localIntegrity, remoteIntegrity) {
   return 'conflict';
 }
 
+export function resolveDistTag(version, override) {
+  const tag = override?.trim() || (version.includes('-') ? 'next' : 'latest');
+  if (!/^[a-z0-9][a-z0-9._-]*$/i.test(tag)) throw new Error(`Invalid npm dist-tag: ${tag}`);
+  if (/^v?\d+(?:\.\d+){1,2}(?:[-+].*)?$/i.test(tag)) throw new Error(`npm dist-tag cannot be a version: ${tag}`);
+  return tag;
+}
+
 function npm(args, options = {}) {
   const result = spawnSync('npm', args, { cwd: root, encoding: 'utf8', ...options });
   return result;
@@ -44,6 +51,7 @@ async function waitForRemoteIntegrity(name, version, expected, attempts = 12) {
 
 export async function publishRelease(version, options = {}) {
   const dryRun = options.dryRun === true;
+  const distTag = resolveDistTag(version, options.tag);
   const results = [];
   for (const shortName of releasePackages) {
     const name = `@skillctl/${shortName}`;
@@ -55,10 +63,10 @@ export async function publishRelease(version, options = {}) {
       throw new Error(`${name}@${version} exists with different integrity`);
     }
     if (decision === 'publish' && !dryRun) {
-      const result = npm(['publish', archive, '--access', 'public'], { stdio: 'inherit' });
+      const result = npm(['publish', archive, '--access', 'public', '--tag', distTag], { stdio: 'inherit' });
       if (result.status !== 0) throw new Error(`npm publish failed for ${name}@${version}`);
     }
-    results.push({ name, version, integrity, decision });
+    results.push({ name, version, integrity, decision, distTag });
   }
   if (!dryRun) {
     for (const result of results) {
@@ -70,9 +78,14 @@ export async function publishRelease(version, options = {}) {
 
 async function main() {
   const version = process.argv[2];
-  if (!version) throw new Error('Usage: node scripts/publish-release.mjs <version> [--dry-run]');
-  const results = await publishRelease(version, { dryRun: process.argv.includes('--dry-run') });
-  for (const result of results) console.log(`${result.decision}: ${result.name}@${version}`);
+  if (!version) throw new Error('Usage: node scripts/publish-release.mjs <version> [--dry-run] [--tag <dist-tag>]');
+  const tagIndex = process.argv.indexOf('--tag');
+  if (tagIndex >= 0 && !process.argv[tagIndex + 1]) throw new Error('--tag requires a dist-tag');
+  const results = await publishRelease(version, {
+    dryRun: process.argv.includes('--dry-run'),
+    tag: tagIndex >= 0 ? process.argv[tagIndex + 1] : undefined,
+  });
+  for (const result of results) console.log(`${result.decision}: ${result.name}@${version} (tag: ${result.distTag})`);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
