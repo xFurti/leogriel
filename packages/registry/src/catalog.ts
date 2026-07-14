@@ -15,6 +15,9 @@ export class CatalogManager {
   }
 
   register(provider: CatalogProvider): void {
+    if (this.providers.some((registered) => registered.id === provider.id)) {
+      throw new Error(`Catalog provider already registered: ${provider.id}`);
+    }
     this.providers.push(provider);
   }
 
@@ -23,8 +26,16 @@ export class CatalogManager {
   }
 
   async search(query: string, options?: CatalogSearchOptions): Promise<CatalogSearchResult[]> {
-    const results = await Promise.all(this.providers.map((provider) => provider.search(query, options)));
-    return results.flat().sort((a, b) => (b.installs || 0) - (a.installs || 0));
+    const selected = options?.provider
+      ? this.providers.filter((provider) => provider.id === options.provider)
+      : this.providers;
+    if (!selected.length) throw new Error(`Unknown catalog provider: ${options?.provider}`);
+    const results = await Promise.all(selected.map(async (provider) =>
+      (await provider.search(query, options)).map((result) => normalizeResult(result, provider.id, Boolean(result.stale)))));
+    return results.flat().sort((a, b) =>
+      ((b.popularity?.value ?? b.installs ?? 0) - (a.popularity?.value ?? a.installs ?? 0))
+      || a.name.localeCompare(b.name)
+      || a.id.localeCompare(b.id));
   }
 }
 
@@ -45,7 +56,9 @@ export class SkillsShCatalogProvider implements CatalogProvider {
 
     const cachePath = await this.cachePath(normalized, options);
     const cached = await this.readCache(cachePath);
-    if (cached && this.now() - cached.savedAt < CACHE_TTL_MS) return cached.results;
+    if (cached && this.now() - cached.savedAt < CACHE_TTL_MS) {
+      return cached.results.map((result) => normalizeResult(result, this.id, Boolean(result.stale)));
+    }
 
     try {
       const params = new URLSearchParams({ q: normalized, limit: String(limit) });
@@ -57,7 +70,7 @@ export class SkillsShCatalogProvider implements CatalogProvider {
       await writeFileAtomic(cachePath, `${JSON.stringify({ savedAt: this.now(), results })}\n`);
       return results;
     } catch (err) {
-      if (cached) return cached.results.map((result) => ({ ...result, stale: true }));
+      if (cached) return cached.results.map((result) => normalizeResult(result, this.id, true));
       throw err;
     }
   }
@@ -104,17 +117,38 @@ function parseSearchResponse(body: Buffer, limit: number): CatalogSearchResult[]
     if (typeof entry.id !== 'string' || typeof entry.name !== 'string' || typeof entry.source !== 'string') {
       throw new Error('skills.sh search entry is missing id, name, or source');
     }
-    const id = entry.id.replace(/^\/+|\/+$/g, '');
+    const sourceId = entry.id.replace(/^\/+|\/+$/g, '');
+    const installs = typeof entry.installs === 'number' ? entry.installs : undefined;
+    const updatedAt = typeof entry.updatedAt === 'string' && !Number.isNaN(Date.parse(entry.updatedAt))
+      ? new Date(entry.updatedAt).toISOString()
+      : undefined;
     return {
-      id,
+      id: `skills.sh:${sourceId}`,
+      provider: 'skills.sh',
       name: entry.name,
+      description: typeof entry.description === 'string' ? entry.description : undefined,
+      owner: typeof entry.owner === 'string' ? entry.owner : sourceId.split('/')[0],
       source: entry.source,
-      installs: typeof entry.installs === 'number' ? entry.installs : undefined,
+      installs,
+      popularity: installs === undefined ? undefined : { metric: 'installs', value: installs },
       sourceType: 'skills.sh',
-      installSpecifier: `skills.sh/${id}`,
-      url: `https://skills.sh/${id}`,
+      installSpecifier: `skills.sh/${sourceId}`,
+      updatedAt,
+      stale: false,
+      url: `https://skills.sh/${sourceId}`,
     };
   });
+}
+
+function normalizeResult(result: CatalogSearchResult, provider: string, stale: boolean): CatalogSearchResult {
+  const rawId = result.id.startsWith(`${provider}:`) ? result.id : `${provider}:${result.id}`;
+  return {
+    ...result,
+    id: rawId,
+    provider,
+    stale,
+    popularity: result.popularity || (result.installs === undefined ? undefined : { metric: 'installs', value: result.installs }),
+  };
 }
 
 function defaultSleep(ms: number): Promise<void> {

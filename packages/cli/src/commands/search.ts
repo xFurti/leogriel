@@ -13,6 +13,7 @@ export function registerSearch(
     .command('search [query]')
     .description('Search the Agent Skills catalog')
     .option('--owner <github-owner>', 'limit results to a GitHub owner')
+    .option('--provider <provider>', 'search one catalog provider')
     .option('--limit <number>', 'maximum results (1-50)', parseLimit, 10)
     .option('--add <catalog-id>', 'add one exact result')
     .option('-g, --global', 'add to the personal/global store')
@@ -30,7 +31,7 @@ export function registerSearch(
         }
         if (searchQuery.length < 2) throw new SkillctlError('A search query of at least 2 characters is required', 'SEARCH_QUERY_REQUIRED', 2);
 
-        const results = await catalog.search(searchQuery, { owner: options.owner, limit: options.limit });
+        const results = await catalog.search(searchQuery, { owner: options.owner, limit: options.limit, provider: options.provider });
         if (options.json && !options.add) {
           cliLog(JSON.stringify({ query: searchQuery, results }, null, 2));
           if (results.some((result) => result.stale)) process.exitCode = 1;
