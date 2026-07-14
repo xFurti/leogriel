@@ -24,11 +24,11 @@ jobs:
   check-and-pack:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v5
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.8.0
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: '24'
           cache: pnpm
@@ -43,7 +43,7 @@ jobs:
           fi
       - run: pnpm install --frozen-lockfile
       - run: node scripts/release-check.mjs
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: skillctl-${{ inputs.version }}-packages
           path: artifacts/${{ inputs.version }}/*.tgz
@@ -58,43 +58,28 @@ jobs:
       contents: write
       id-token: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Require the main branch
         if: ${{ github.ref != 'refs/heads/main' }}
         run: |
           echo "Publishing is only allowed from main (current ref: $GITHUB_REF)" >&2
           exit 1
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.8.0
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: '24'
           registry-url: https://registry.npmjs.org
-      - uses: actions/download-artifact@v5
+          package-manager-cache: false
+      - uses: actions/download-artifact@v8
         with:
           name: skillctl-${{ inputs.version }}-packages
           path: artifacts/${{ inputs.version }}
-      - name: Verify release is unpublished
+      - name: Publish or verify packages in dependency order
         env:
           VERSION: ${{ inputs.version }}
-        run: |
-          set -euo pipefail
-          for package in core manifest lockfile link-manager plugin-system project-state adapters security registry import cli; do
-            if npm view "@skillctl/$package@$VERSION" version >/dev/null 2>&1; then
-              echo "@skillctl/$package@$VERSION is already published" >&2
-              exit 1
-            fi
-          done
-      - name: Publish in dependency order
-        env:
-          VERSION: ${{ inputs.version }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          set -euo pipefail
-          for package in core manifest lockfile link-manager plugin-system project-state adapters security registry import cli; do
-            npm publish "artifacts/$VERSION/skillctl-$package-$VERSION.tgz" --access public --provenance
-          done
+        run: node scripts/publish-release.mjs "$VERSION"
       - name: Tag and create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -105,4 +90,5 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git tag -a "v$VERSION" -m "skillctl v$VERSION"
           git push origin "v$VERSION"
-          gh release create "v$VERSION" "artifacts/$VERSION"/*.tgz --generate-notes --verify-tag
+          node scripts/extract-release-notes.mjs "$VERSION" > release-notes.md
+          gh release create "v$VERSION" "artifacts/$VERSION"/*.tgz --title "skillctl v$VERSION" --notes-file release-notes.md --verify-tag
