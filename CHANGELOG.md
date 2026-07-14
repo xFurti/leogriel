@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.4] - 2026-07-14
+
+### Fixed
+
+- Removed stale active `0.5` documentation metadata and added canonical, Open Graph, Twitter Card, and social-preview metadata.
+- Centralized first-party CLI output so JSON mode emits one schema-1 envelope on stdout while warnings and errors use stderr with consistent exit codes.
+- Made every plugin lifecycle command support the same structured JSON contract.
+
+### Testing
+
+- Added JSON contract coverage that rejects direct `console.*` output from command handlers.
+- Added cross-platform pre-publish smoke tests for packed tarballs and post-publish smoke tests for the exact npm package before tag and GitHub Release creation.
+- Kept release publishing idempotent when a post-publish smoke check fails.
+
 ## [0.7.3] - 2026-07-14
 
 ### Added

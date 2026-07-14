@@ -1,6 +1,6 @@
 {
   "name": "skillctl",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "agentSkills": {
     "dependencies": {
       "skillctl": "file:./.skillctl/skills/skillctl"
