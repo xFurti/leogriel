@@ -1,6 +1,6 @@
 import { link, mkdir, rm, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { redactSecrets, type RedactionSummary } from './redaction.js';
 
 export type ArtifactKind = 'audit' | 'test' | 'reports';
@@ -24,9 +24,10 @@ export async function writeArtifact<T>(
   options: { cwd?: string; scope?: 'project' | 'global'; knownSecrets?: Record<string, string | undefined> } = {},
 ): Promise<{ path: string; envelope: ArtifactEnvelope<T> }> {
   const root = artifactRoot(options.cwd, options.scope);
-  const target = resolve(root, kind, output);
-  const relative = target.slice(resolve(root, kind).length);
-  if (!relative || relative.startsWith('..') || /^[\\/]*\.\.[\\/]/.test(relative)) throw new Error('Artifact output escapes its managed directory');
+  const kindRoot = resolve(root, kind);
+  const target = resolve(kindRoot, output);
+  const rel = relative(kindRoot, target);
+  if (!rel || rel.startsWith('..') || isAbsolute(rel)) throw new Error('Artifact output escapes its managed directory');
   const redacted = redactSecrets(data, options.knownSecrets);
   const envelope: ArtifactEnvelope<T> = {
     schemaVersion: 1,
