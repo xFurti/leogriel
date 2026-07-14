@@ -23,6 +23,7 @@ import { registerInfo } from './commands/info.js';
 import { registerOutdated } from './commands/outdated.js';
 import { registerCompletion } from './commands/completion.js';
 import { registerBackup } from './commands/backup.js';
+import { registerTest } from './commands/test.js';
 import { CatalogManager } from '@skillctl/registry';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -64,6 +65,7 @@ registerInfo(program, registryManager);
 registerOutdated(program);
 registerCompletion(program);
 registerBackup(program);
+registerTest(program, version);
 
 export async function prepareProgram(): Promise<Command> {
   await loadPlugins(program as import('@skillctl/plugin-system').PluginProgram, registryManager, catalogManager);

@@ -27,11 +27,14 @@ test('first-party JSON commands emit one stable envelope', async () => {
   try {
     await mkdir(project, { recursive: true });
     await runJson(['init', '--no-prompt', '--json'], project, env);
+    await runJson(['test', 'init', 'fixture-skill', '--json'], project, env);
     for (const args of [
       ['list', '--json'],
       ['doctor', '--json'],
       ['plugin', 'list', '--json'],
       ['plugin', 'doctor', '--json'],
+      ['test', 'list', '--json'],
+      ['test', 'validate', '--json'],
     ]) {
       const result = await runJson(args, project, env, true);
       assert.equal(result.value.schemaVersion, 1);

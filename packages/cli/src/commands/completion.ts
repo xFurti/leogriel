@@ -5,7 +5,7 @@ import { loadPluginManifest } from '@skillctl/plugin-system';
 import { SkillctlError, handleCommandError } from '../lib/errors.js';
 import { cliLog, writeCliRaw } from '../lib/output.js';
 
-const commands = ['init', 'add', 'install', 'list', 'search', 'info', 'outdated', 'update', 'sync', 'remove', 'doctor', 'import', 'audit', 'plugin', 'skill', 'completion'];
+const commands = ['init', 'add', 'install', 'list', 'search', 'info', 'outdated', 'update', 'sync', 'remove', 'doctor', 'import', 'audit', 'plugin', 'backup', 'skill', 'test', 'completion'];
 const agents = ['claude-code', 'cursor', 'opencode', 'codex', 'gemini-cli', 'grok', 'pi'];
 
 export function registerCompletion(program: Command): void {
@@ -51,7 +51,7 @@ export function bashCompletion(): string {
   if [[ "$prev" == "--agent" ]]; then
     COMPREPLY=( $(compgen -W "${agents.join(' ')}" -- "$cur") ); return
   fi
-  if [[ "\${COMP_WORDS[1]}" =~ ^(info|update|remove)$ ]]; then
+  if [[ "\${COMP_WORDS[1]}" =~ ^(info|update|remove|test)$ ]]; then
     COMPREPLY=( $(compgen -W "$(skillctl completion-candidates skills 2>/dev/null)" -- "$cur") ); return
   fi
   if [[ "\${COMP_WORDS[1]}" == "plugin" && "\${COMP_WORDS[2]}" =~ ^(info|update|remove|enable|disable)$ ]]; then
@@ -74,7 +74,7 @@ _skillctl() {
   agents=(${agents.map((agent) => `'${agent}'`).join(' ')})
   if (( CURRENT == 2 )); then _describe 'command' commands; return; fi
   if [[ $words[CURRENT-1] == '--agent' ]]; then _describe 'agent' agents; return; fi
-  if [[ $words[2] == (info|update|remove) ]]; then
+  if [[ $words[2] == (info|update|remove|test) ]]; then
     local -a skills; skills=(\${(f)"$(skillctl completion-candidates skills 2>/dev/null)"}); _describe 'skill' skills; return
   fi
   if [[ $words[2] == plugin && $words[3] == (info|update|remove|enable|disable) ]]; then
@@ -92,7 +92,7 @@ export function powerShellCompletion(): string {
   $commands = '${commands.join("','")}'
   $agents = '${agents.join("','")}'
   $tokens = @($commandAst.CommandElements | ForEach-Object { $_.Extent.Text })
-  $candidates = if ($tokens.Count -gt 1 -and $tokens[-2] -eq '--agent') { $agents } elseif ($tokens.Count -le 2) { $commands } elseif ($tokens[1] -in 'info','update','remove') { @(skillctl completion-candidates skills 2>$null) } elseif ($tokens.Count -gt 2 -and $tokens[1] -eq 'plugin' -and $tokens[2] -in 'info','update','remove','enable','disable') { @(skillctl completion-candidates plugins 2>$null) } else { '--help','--json','--global','--project','--dry-run','--yes' }
+  $candidates = if ($tokens.Count -gt 1 -and $tokens[-2] -eq '--agent') { $agents } elseif ($tokens.Count -le 2) { $commands } elseif ($tokens[1] -in 'info','update','remove','test') { @(skillctl completion-candidates skills 2>$null) } elseif ($tokens.Count -gt 2 -and $tokens[1] -eq 'plugin' -and $tokens[2] -in 'info','update','remove','enable','disable') { @(skillctl completion-candidates plugins 2>$null) } else { '--help','--json','--global','--project','--dry-run','--yes' }
   $candidates | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
 }
 `;
