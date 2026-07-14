@@ -1,0 +1,35 @@
+name: Published npm smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Exact @skillctl/cli version or latest
+        required: true
+        default: latest
+        type: string
+  schedule:
+    - cron: '23 5 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-15, windows-latest]
+        node-version: ['22.13', '24']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          package-manager-cache: false
+      - name: Smoke package from npm
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version || 'latest' }}
+        run: node scripts/smoke-package.mjs "$VERSION" --source registry
