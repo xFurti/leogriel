@@ -102,6 +102,15 @@ leogriel sync --project --agent codex --prune
 
 Prune never removes unverified user-managed directories.
 
+## Run a behavioral regression
+
+```bash
+leogriel test selected-skill --compare main --agent codex --runs 3 --model <exact-model-id> --json
+leogriel test selected-skill --compare main --agent claude --runs 3 --model <exact-model-id> --json
+```
+
+Codex is the primary runner. Claude Code is experimental and requires version 2.1.187 or newer on macOS, Linux, or WSL2. Tests remain sequential and network-denied by default. Do not enable `--trust-tests` unless the test YAML and command assertions have been reviewed.
+
 ## Add the leogriel meta-skill
 
 ```bash

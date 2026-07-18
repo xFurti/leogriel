@@ -243,6 +243,8 @@ This reduces configuration leakage but is not an absolute security sandbox. Code
 
 Case verdicts use whole-case pass/fail outcomes and paired runs, not assertion counts. The aggregate verdict is `improved`, `regressed`, `unchanged`, or `inconclusive`; mixed outcomes, errors, timeouts, and fewer than three samples are inconclusive. See [behavioral testing](./docs/behavioral-testing.md) and the [1.0 roadmap](./ROADMAP.md).
 
+Before the RC, review the [public contract candidates](./docs/public-contracts.md), [1.0 migration guide](./docs/migration-1.0.md), and [external validation matrix](./docs/validation-matrix.md). These documents do not declare the current beta stable.
+
 `--compare <git-ref>` turns the paired baseline into the same skill materialized from the exact commit behind that ref. The candidate remains the current working-tree skill; the report records the requested ref, immutable commit, and both canonical integrity hashes. Current test YAML and fixtures are used for both variants.
 
 See the [docs site](https://xfurti.github.io/leogriel/) for the full command reference, config schema, Windows notes, and coexistence with other tools.

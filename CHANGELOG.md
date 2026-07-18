@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `leogriel test <skill> --compare <git-ref>` to run paired regressions between the skill at an immutable Git commit and the current working-tree candidate, recording both integrity hashes.
 - Added an official composite GitHub Action with frozen restore, Job Summary, redacted JSON/Markdown/HTML reports, downloadable artifacts, Shields badge data, optional pull-request comments, and fail-after-report regression enforcement.
 - Added an experimental Claude Code `AgentRunner` alongside Codex, with version/capability detection, isolated configuration, fail-closed native sandboxing, subprocess credential filtering, default-deny networking, explicit staged-skill injection, and an opt-in live smoke.
+- Added bilingual public-contract and 1.0 migration candidates, an evidence-based external validation matrix, and a manual cross-platform live-runner workflow.
 
 ### Changed
 
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made the release gate execute the root test command so release-script contract tests cannot be skipped.
 - Updated the architecture document to reflect the completed Leogriel rebrand and current beta baseline.
 - Removed active `0.5.0` fallbacks from HTTP and import runtime metadata; both now derive their version from the owning package and use `unknown` only when package metadata is unavailable.
+- Included `ANTHROPIC_API_KEY` in centralized CLI output redaction and kept authentication variables out of runner installation steps.
 
 ## [1.0.0-beta.2] - 2026-07-18
 

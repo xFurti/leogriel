@@ -104,11 +104,24 @@ test('official composite action preserves reports before enforcing the CLI exit 
   assert.match(source, /@openai\/codex/);
   assert.match(source, /@anthropic-ai\/claude-code/);
   assert.match(source, /ANTHROPIC_API_KEY: ''/);
+  assert.match(source, /ANTHROPIC_AUTH_TOKEN: ''/);
   assert.match(source, /actions\/upload-artifact@v7/);
   assert.match(source, /render-test-report\.mjs/);
   assert.match(source, /comment-test-report\.mjs/);
   assert.ok(source.indexOf('Upload regression reports') < source.indexOf('Enforce regression verdict'));
   assert.doesNotMatch(source, /CODEX_API_KEY:\s*\$\{\{/);
+});
+
+test('manual live-runner workflow pins versions and keeps credentials out of installers', async () => {
+  const source = await readFile(new URL('../../.github/workflows/runner-live.yml', import.meta.url), 'utf8');
+  assert.match(source, /codex-version:/);
+  assert.match(source, /claude-version:/);
+  assert.match(source, /ubuntu-22\.04, macos-15/);
+  assert.match(source, /windows-latest/);
+  assert.match(source, /CODEX_API_KEY: ''/);
+  assert.match(source, /ANTHROPIC_API_KEY: ''/);
+  assert.match(source, /LEOGRIEL_LIVE_CODEX_API_KEY/);
+  assert.match(source, /LEOGRIEL_LIVE_ANTHROPIC_API_KEY/);
 });
 
 function response(value, status = 200) {

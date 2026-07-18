@@ -6,9 +6,9 @@ There will be no `0.10.0`. After `0.9.0`, the project may ship focused `0.9.1` a
 
 - [x] `leogriel test --compare <git-ref>` and repeatable paired regression testing. Implemented after beta.2; external validation remains required before RC.
 - [x] An official GitHub Action with GitHub Job Summary, Markdown/HTML reports, downloadable artifacts, badge data, and opt-in pull-request comments. Implemented after beta.2; external workflow validation remains required before RC.
-- Stable manifest, lock, artifact, test YAML, JSON envelope, plugin, catalog, audit, and AgentRunner contracts with migration guides.
+- [ ] Stable manifest, lock, artifact, test YAML, JSON envelope, plugin, catalog, audit, and AgentRunner contracts with migration guides. Bilingual contract and migration candidates are documented; RC validation is pending.
 - [x] Two AgentRunner implementations with capability detection and fail-closed isolation: Codex plus experimental Claude Code on macOS/Linux/WSL2. Real cross-platform Claude validation remains required before RC.
-- Real test programs across external repositories, operating systems, and runner versions.
-- Complete English and Italian documentation, security guidance, compatibility guarantees, and migration instructions.
+- [ ] Real test programs across external repositories, operating systems, and runner versions. A manual live-runner workflow and evidence matrix are prepared; external runs are pending.
+- [ ] Complete English and Italian documentation, security guidance, compatibility guarantees, and migration instructions. Candidate contract/migration docs are bilingual; final RC review is pending.
 
 `1.0.0` is released only after those contracts are verified in external repositories with at least two runners. Pre-releases do not imply API stability for `@leogriel/testing`.

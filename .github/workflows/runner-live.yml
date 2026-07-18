@@ -1,0 +1,110 @@
+name: Runner live validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: Runner matrix to execute
+        required: true
+        type: choice
+        options: [codex, claude, both]
+        default: both
+      codex-version:
+        description: Exact @openai/codex version
+        required: false
+        type: string
+      codex-model:
+        description: Exact Codex model ID
+        required: false
+        type: string
+      claude-version:
+        description: Exact @anthropic-ai/claude-code version (>=2.1.187)
+        required: false
+        type: string
+      claude-model:
+        description: Exact Claude model ID
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  codex-live:
+    if: inputs.runner == 'codex' || inputs.runner == 'both'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-15, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.8.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @leogriel/testing build
+      - name: Validate Codex inputs
+        shell: bash
+        env:
+          VERSION: ${{ inputs.codex-version }}
+          MODEL: ${{ inputs.codex-model }}
+        run: test -n "$VERSION" && test -n "$MODEL"
+      - name: Install pinned Codex CLI without credentials
+        shell: bash
+        env:
+          CODEX_API_KEY: ''
+          OPENAI_API_KEY: ''
+          VERSION: ${{ inputs.codex-version }}
+        run: npm install --global "@openai/codex@$VERSION"
+      - name: Run one opt-in live smoke
+        env:
+          LEOGRIEL_LIVE_CODEX: '1'
+          LEOGRIEL_LIVE_MODEL: ${{ inputs.codex-model }}
+          CODEX_API_KEY: ${{ secrets.LEOGRIEL_LIVE_CODEX_API_KEY }}
+        run: node packages/testing/dist/live/codex-live-smoke.test.js
+
+  claude-live:
+    if: inputs.runner == 'claude' || inputs.runner == 'both'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.8.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Install Linux sandbox prerequisites
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install --yes bubblewrap socat
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @leogriel/testing build
+      - name: Validate Claude inputs
+        shell: bash
+        env:
+          VERSION: ${{ inputs.claude-version }}
+          MODEL: ${{ inputs.claude-model }}
+        run: test -n "$VERSION" && test -n "$MODEL"
+      - name: Install pinned Claude Code without credentials
+        shell: bash
+        env:
+          ANTHROPIC_API_KEY: ''
+          ANTHROPIC_AUTH_TOKEN: ''
+          VERSION: ${{ inputs.claude-version }}
+        run: npm install --global "@anthropic-ai/claude-code@$VERSION"
+      - name: Run one opt-in live smoke
+        env:
+          LEOGRIEL_LIVE_CLAUDE: '1'
+          LEOGRIEL_LIVE_CLAUDE_MODEL: ${{ inputs.claude-model }}
+          ANTHROPIC_API_KEY: ${{ secrets.LEOGRIEL_LIVE_ANTHROPIC_API_KEY }}
+        run: node packages/testing/dist/live/claude-live-smoke.test.js

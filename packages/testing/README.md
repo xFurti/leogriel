@@ -13,3 +13,5 @@ Claude Code is the second experimental runner. It requires Claude Code 2.1.187 o
 `LEOGRIEL_LIVE_DEBUG=1` enables redacted live diagnostics. `LEOGRIEL_LIVE_KEEP_WORKSPACE=1` retains only the failed workspace in the Git-ignored artifact directory; authentication and isolated HOME/XDG data are never retained. The live smoke does not retry.
 
 Run the second opt-in smoke with `LEOGRIEL_LIVE_CLAUDE=1`, `LEOGRIEL_LIVE_CLAUDE_MODEL=<exact-model-id>`, and `ANTHROPIC_API_KEY=[SEGRETO RIMOSSO]`. It is excluded from the standard suite.
+
+See the repository’s `docs/public-contracts.md` and `docs/validation-matrix.md` before treating the runner API as an RC candidate.
