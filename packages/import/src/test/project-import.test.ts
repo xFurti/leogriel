@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, symlink, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, symlink, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { planImportFromProject } from '../migrate.js';
+import { IMPORT_TOOL_VERSION, planImportFromProject } from '../migrate.js';
 import { classifySkillPath } from '../parsers/link-classifier.js';
 import { discoverProjectSkills } from '../discover-project-skills.js';
 import '@leogriel/adapters';
@@ -14,6 +14,12 @@ async function writeSkill(dir: string, name: string): Promise<string> {
   await writeFile(join(skillDir, 'SKILL.md'), `---\nname: ${name}\n---\n`, 'utf8');
   return skillDir;
 }
+
+test('import metadata follows the package version instead of a historical release', async () => {
+  const pkg = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8')) as { version: string };
+  assert.equal(IMPORT_TOOL_VERSION, pkg.version);
+  assert.notEqual(IMPORT_TOOL_VERSION, '0.5.0');
+});
 
 test('discoverProjectSkills finds skills in .codex/skills', async () => {
   const root = await mkdtemp(join(tmpdir(), 'leogriel-import-'));

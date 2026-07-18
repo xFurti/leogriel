@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Made the release gate execute the root test command so release-script contract tests cannot be skipped.
 - Updated the architecture document to reflect the completed Leogriel rebrand and current beta baseline.
+- Removed active `0.5.0` fallbacks from HTTP and import runtime metadata; both now derive their version from the owning package and use `unknown` only when package metadata is unavailable.
 
 ## [1.0.0-beta.2] - 2026-07-18
 

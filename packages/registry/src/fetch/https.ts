@@ -25,14 +25,14 @@ export interface HttpClient {
   get(url: string, options?: HttpRequestOptions): Promise<HttpResponse>;
 }
 
-function leogrielUserAgent(): string {
+export function leogrielUserAgent(): string {
   try {
     const pkg = JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf8')) as { version?: string };
     if (pkg.version) return `leogriel/${pkg.version}`;
   } catch {
     // fallback if package.json unavailable at runtime
   }
-  return 'leogriel/0.5.0';
+  return 'leogriel/unknown';
 }
 
 export class NodeHttpsClient implements HttpClient {

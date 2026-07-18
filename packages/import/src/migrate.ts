@@ -1,4 +1,5 @@
 import { cp, stat } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   canonicalizeName,
@@ -19,6 +20,8 @@ import { scanSkillsDir } from './parsers/scan-skills-dir.js';
 import { scanPythonSkillctlRepos } from './parsers/python-skillctl.js';
 import { discoverProjectSkills } from './discover-project-skills.js';
 import { updateProjectState, withOperationLocks } from '@leogriel/project-state';
+
+export const IMPORT_TOOL_VERSION = packageVersion();
 
 export interface ImportOptions {
   cwd?: string;
@@ -329,7 +332,7 @@ export async function executeImport(opts: ImportOptions): Promise<ImportResult> 
     }
   }
 
-  lock.metadata = { ...lock.metadata, migratedAt: new Date().toISOString(), toolVersion: '0.5.0' };
+  lock.metadata = { ...lock.metadata, migratedAt: new Date().toISOString(), toolVersion: IMPORT_TOOL_VERSION };
   const store = getProjectSkillsStore(cwd);
   await withOperationLocks({ cwd, store }, async () => {
     await updateProjectState(cwd, async (state) => {
@@ -362,4 +365,13 @@ export async function executeImport(opts: ImportOptions): Promise<ImportResult> 
   }
 
   return result;
+}
+
+function packageVersion(): string {
+  try {
+    const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version?: string };
+    return pkg.version || 'unknown';
+  } catch {
+    return 'unknown';
+  }
 }
