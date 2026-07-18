@@ -145,4 +145,8 @@ jobs:
           git tag -a "v$VERSION" -m "leogriel v$VERSION"
           git push origin "v$VERSION"
           node scripts/extract-release-notes.mjs "$VERSION" > release-notes.md
-          gh release create "v$VERSION" "artifacts/$VERSION"/*.tgz --title "leogriel v$VERSION" --notes-file release-notes.md --verify-tag
+          release_flags=()
+          if [[ "$VERSION" == *-* ]]; then
+            release_flags+=(--prerelease)
+          fi
+          gh release create "v$VERSION" "artifacts/$VERSION"/*.tgz --title "leogriel v$VERSION" --notes-file release-notes.md --verify-tag "${release_flags[@]}"
