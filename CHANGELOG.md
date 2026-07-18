@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Exclude directory-only scaffolding from `max-changed-files` while continuing to count created, removed, and modified files and symlinks.
 - Update current Vercel skill examples to the repository's `skills/web-design-guidelines` path.
 - Include the root architecture document in coordinated version preparation so release candidates cannot retain a stale version label.
+- Keep idempotent release verification strict for runtime files while tolerating only cross-platform line endings in package documentation and non-runtime TypeScript incremental metadata.
 
 ### Validation
 

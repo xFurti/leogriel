@@ -37,6 +37,15 @@ export function canonicalPackageJson(value) {
   return `${JSON.stringify(sortJson(parsed))}\n`;
 }
 
+export function canonicalArchiveEntry(portablePath, buffer) {
+  if (portablePath === 'dist/.tsbuildinfo') return null;
+  if (portablePath === 'package.json') return Buffer.from(canonicalPackageJson(buffer.toString('utf8')));
+  if (portablePath === 'README.md' || portablePath === 'LICENSE') {
+    return Buffer.from(buffer.toString('utf8').replace(/\r\n/g, '\n'));
+  }
+  return buffer;
+}
+
 export function publicationDecision(localIntegrity, remoteIntegrity, contentEquivalent = false) {
   if (!remoteIntegrity) return 'publish';
   if (remoteIntegrity === localIntegrity) return 'skip';
@@ -88,7 +97,7 @@ async function collectArchiveFiles(root, current = root) {
   return files;
 }
 
-async function archiveContentDigest(archive) {
+export async function archiveContentDigest(archive) {
   const staging = await mkdtemp(join(tmpdir(), 'leogriel-release-compare-'));
   try {
     const listing = spawnSync('tar', ['-tzf', archive], { encoding: 'utf8' });
@@ -102,8 +111,10 @@ async function archiveContentDigest(archive) {
     for (const path of files.sort((left, right) => left.localeCompare(right))) {
       const portablePath = relative(packageRoot, path).replaceAll('\\', '/');
       const buffer = await readFile(path);
+      const canonical = canonicalArchiveEntry(portablePath, buffer);
+      if (canonical === null) continue;
       hash.update(portablePath).update('\0');
-      hash.update(portablePath === 'package.json' ? canonicalPackageJson(buffer.toString('utf8')) : buffer);
+      hash.update(canonical);
       hash.update('\0');
     }
     return `sha256-${hash.digest('hex')}`;

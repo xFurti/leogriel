@@ -4,7 +4,14 @@ import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { extractReleaseNotes, releaseComparison } from '../extract-release-notes.mjs';
-import { canonicalPackageJson, npmInvocation, publicationDecision, resolveDistTag, tarballIntegrity } from '../publish-release.mjs';
+import {
+  canonicalArchiveEntry,
+  canonicalPackageJson,
+  npmInvocation,
+  publicationDecision,
+  resolveDistTag,
+  tarballIntegrity,
+} from '../publish-release.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -36,6 +43,22 @@ test('canonical package JSON ignores object-key order but preserves arrays', () 
   const changedArray = canonicalPackageJson({ dependencies: { a: '2', b: '1' }, files: ['README.md', 'dist'] });
   assert.equal(left, right);
   assert.notEqual(left, changedArray);
+});
+
+test('canonical archive comparison ignores only cross-platform release metadata', () => {
+  assert.equal(canonicalArchiveEntry('dist/.tsbuildinfo', Buffer.from('platform-specific')), null);
+  assert.deepEqual(
+    canonicalArchiveEntry('README.md', Buffer.from('line one\r\nline two\r\n')),
+    Buffer.from('line one\nline two\n'),
+  );
+  assert.deepEqual(
+    canonicalArchiveEntry('LICENSE', Buffer.from('license\r\n')),
+    Buffer.from('license\n'),
+  );
+  assert.notDeepEqual(
+    canonicalArchiveEntry('dist/index.js', Buffer.from('export const value = 1;\r\n')),
+    canonicalArchiveEntry('dist/index.js', Buffer.from('export const value = 1;\n')),
+  );
 });
 
 test('release publishing invokes the npm CLI through Node on Windows', () => {
