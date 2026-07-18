@@ -83,6 +83,8 @@ test('Codex receives prompt on stdin and exposes safe tool environment without A
     assert.equal(recorded.parentOpenAiKey, false);
     assert.match(String(recorded.arguments), /shell_environment_policy\.inherit="all"/);
     assert.match(String(recorded.arguments), /shell_environment_policy\.ignore_default_excludes=false/);
+    assert.match(String(recorded.arguments), /approval_policy="never"/);
+    if (process.platform === 'win32') assert.match(String(recorded.arguments), /windows\.sandbox="elevated"/);
     assert.match(String(recorded.arguments), /PATH/);
     assert.doesNotMatch(String(recorded.arguments), /CODEX_API_KEY|OPENAI_API_KEY/);
     assert.deepEqual(result.tokenUsage, { input: 10, cachedInput: 3, output: 4, reasoning: 2, total: 16 });

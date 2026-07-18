@@ -4,7 +4,10 @@ import { isolatedEnvironment, type IsolationLayout } from './isolation.js';
 import { runProcess } from './process.js';
 import { resolveCodexRunnerAuth, type ResolvedCodexAuth } from './auth.js';
 
-const REQUIRED_FLAGS = ['--json', '--ephemeral', '--ignore-user-config', '--ignore-rules', '--sandbox', '--strict-config', '--skip-git-repo-check'];
+const REQUIRED_FLAGS = [
+  '--json', '--ephemeral', '--ignore-user-config', '--ignore-rules', '--sandbox',
+  '--strict-config', '--skip-git-repo-check',
+];
 const SAFE_TOOL_ENV = ['PATH', 'Path', 'PATHEXT', 'HOME', 'USERPROFILE', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_CACHE_HOME', 'SYSTEMROOT', 'COMSPEC', 'TEMP', 'TMP'];
 
 export interface CodexRunnerOptions {
@@ -160,6 +163,8 @@ function isInside(root: string, candidate: string): boolean {
 
 function configArgs(policy: AgentRunRequest['network']): string[] {
   return [
+    ...(process.platform === 'win32' ? ['-c', 'windows.sandbox="elevated"'] : []),
+    '-c', 'approval_policy="never"',
     '-c', 'shell_environment_policy.inherit="all"',
     '-c', 'shell_environment_policy.ignore_default_excludes=false',
     '-c', `shell_environment_policy.include_only=${JSON.stringify(SAFE_TOOL_ENV)}`,
