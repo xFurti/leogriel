@@ -1,7 +1,7 @@
-import { cliLog, cliError } from '../lib/output.js';
+import { cliLog, cliError, cliWarn } from '../lib/output.js';
 import type { Command } from 'commander';
 import { executeImport, planImportFromProject, type ImportPlanItem } from '@leogriel/import';
-import { handleCommandError } from '../lib/errors.js';
+import { handleCommandError, LeogrielError } from '../lib/errors.js';
 import { choose, confirm, isInteractive } from '../lib/prompt.js';
 
 function printPlan(plan: ImportPlanItem[]): void {
@@ -38,6 +38,7 @@ export function registerImport(program: Command): void {
     .option('--interactive', 'interactively resolve conflicting skills')
     .option('--sources <list>', 'comma-separated adapter ids')
     .option('--sync', 'sync agent links after import')
+    .option('--json', 'machine-readable output')
     .action(async (options) => {
       try {
         await importProject(options);
@@ -189,10 +190,18 @@ async function importProject(options: {
   interactive?: boolean;
   sources?: string;
   sync?: boolean;
+  json?: boolean;
   yes?: boolean;
   lockOnly?: boolean;
   noManifest?: boolean;
 }): Promise<void> {
+  if (options.json && (options.select || options.interactive)) {
+    throw new LeogrielError(
+      '`leogriel import --json` cannot be combined with interactive selection',
+      'INVALID_OPTIONS',
+      2,
+    );
+  }
   const cwd = process.cwd();
   const sources = options.sources
     ? String(options.sources).split(',').map((value) => value.trim()).filter(Boolean)
@@ -213,13 +222,23 @@ async function importProject(options: {
     ({ plan, discovered } = await planImportFromProject(cwd, { sources, conflictChoices }));
   }
 
-  printDiscoverySummary(discovered);
   if (options.dryRun) {
+    if (options.json) {
+      cliLog(JSON.stringify({ status: 'planned', plan, discovered }));
+      return;
+    }
+    printDiscoverySummary(discovered);
     cliLog('Import plan:');
     printPlan(plan);
     return;
   }
-  if (!discovered.sources.length) return;
+  if (!discovered.sources.length) {
+    if (options.json) cliLog(JSON.stringify({ status: 'empty', plan, discovered }));
+    else printDiscoverySummary(discovered);
+    return;
+  }
+
+  if (!options.json) printDiscoverySummary(discovered);
 
   let selectedNames: string[] | undefined;
   if (options.select) {
@@ -239,6 +258,17 @@ async function importProject(options: {
     selectedNames,
     conflictChoices,
   });
+  if (options.json) {
+    cliLog(JSON.stringify({
+      status: result.errors.length ? 'warnings' : 'ok',
+      ...result,
+    }));
+    if (result.errors.length) {
+      cliWarn(`Import completed with ${result.errors.length} error(s).`);
+      process.exitCode = 1;
+    }
+    return;
+  }
   cliLog(`Imported: ${result.imported.join(', ') || '(none)'}`);
   if (result.skipped.length) cliLog(`Skipped: ${result.skipped.join(', ')}`);
   if (result.imported.length && !options.sync) cliLog('Run `leogriel sync` to refresh agent links.');

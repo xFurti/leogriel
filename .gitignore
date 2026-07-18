@@ -60,6 +60,7 @@ coverage/
 .opencode/
 .gemini/
 .grok/
+.pi/
 
 # Consumer projects: ignore generated manifest/lock by default
 agent-skills.json

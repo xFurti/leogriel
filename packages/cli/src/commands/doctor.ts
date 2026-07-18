@@ -52,15 +52,12 @@ export function registerDoctor(program: Command): void {
       }
       warnings.push(...await findStateWarnings(cwd, store));
 
-      const targetInspection = lock
+      let targetInspection = lock
         ? await inspectSkillTargets(await lockToSkillTargets(lock, { store }), {
             scope: options.global ? 'global' : 'project',
             cwd,
           })
         : null;
-      if (targetInspection?.counts.failed) {
-        warnings.push(`${targetInspection.counts.failed} unmanaged or failed agent target(s); run leogriel sync --dry-run for details`);
-      }
 
       for (const f of audit.findings.filter((x) => x.severity === 'error')) {
         issues.push(`[audit] ${f.skill}: ${f.message}`);
@@ -75,6 +72,22 @@ export function registerDoctor(program: Command): void {
           })
         );
         info.push(`--fix: re-synced ${res.synced} targets`);
+        targetInspection = await inspectSkillTargets(await lockToSkillTargets(lock, { store }), {
+          scope: options.global ? 'global' : 'project',
+          cwd,
+        });
+      }
+
+      const targetStates = countTargetStates(targetInspection?.actions || []);
+      if (targetStates.missing || targetStates['managed-stale']) {
+        warnings.push(
+          `agent-targets: ${targetStates.missing} missing and ${targetStates['managed-stale']} managed-stale target(s); run leogriel doctor --fix`,
+        );
+      }
+      if (targetStates.unmanaged || targetStates.failed) {
+        warnings.push(
+          `agent-targets: ${targetStates.unmanaged} unmanaged and ${targetStates.failed} failed target(s); run leogriel sync --dry-run for details`,
+        );
       }
 
       const report = {
@@ -95,12 +108,16 @@ export function registerDoctor(program: Command): void {
         },
         coexistence: coexist,
         auditSummary: { scanned: audit.scanned, findings: audit.findings.length },
-        targets: targetInspection ? { counts: targetInspection.counts, actions: targetInspection.actions } : null,
+        targets: targetInspection ? {
+          stateCounts: targetStates,
+          counts: targetInspection.counts,
+          actions: targetInspection.actions,
+        } : null,
       };
 
       if (options.json) {
         cliLog(JSON.stringify(report, null, 2));
-        process.exitCode = issues.length ? 2 : auditExitCode(audit);
+        process.exitCode = issues.length ? 2 : warnings.length ? 1 : auditExitCode(audit);
         return;
       }
 
@@ -119,6 +136,12 @@ export function registerDoctor(program: Command): void {
       if (issues.length) cliLog('Issues:', issues.join('; '));
       if (warnings.length) cliLog('Warnings:', warnings.join('; '));
       if (info.length) cliLog('Info:', info.join('; '));
+      if (targetInspection) {
+        cliLog(
+          'Targets:',
+          `current=${targetStates.current}, missing=${targetStates.missing}, managed-stale=${targetStates['managed-stale']}, unmanaged=${targetStates.unmanaged}, failed=${targetStates.failed}`,
+        );
+      }
 
       process.exitCode = issues.length ? 2 : warnings.length ? 1 : auditExitCode(audit);
     });
@@ -138,4 +161,14 @@ async function findStateWarnings(cwd: string, store: string): Promise<string[]> 
 
 async function exists(path: string): Promise<boolean> {
   return !!await stat(path).catch(() => null);
+}
+
+function countTargetStates(
+  actions: Array<{ state?: 'missing' | 'current' | 'managed-stale' | 'unmanaged' | 'failed' }>,
+): Record<'missing' | 'current' | 'managed-stale' | 'unmanaged' | 'failed', number> {
+  const counts = { missing: 0, current: 0, 'managed-stale': 0, unmanaged: 0, failed: 0 };
+  for (const action of actions) {
+    if (action.state) counts[action.state]++;
+  }
+  return counts;
 }

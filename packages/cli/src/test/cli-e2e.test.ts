@@ -102,3 +102,68 @@ test('plain import copies discovered skills into the project store', async () =>
   assert.equal((await stat(source)).isDirectory(), true);
   assert.match(await readFile(join(cwd, 'agent-skills.json'), 'utf8'), /file:\.\/\.leogriel\/skills\/review/);
 });
+
+test('plain import emits structured JSON without human output', async () => {
+  const cwd = await mkdtemp(join(tmpdir(), 'leogriel-import-json-'));
+  const source = join(cwd, '.codex', 'skills', 'review');
+  await mkdir(source, { recursive: true });
+  await writeFile(join(source, 'SKILL.md'), '---\nname: review\ndescription: review code\n---\nReview\n');
+  await execFileAsync(process.execPath, [cli, 'init', '--no-prompt'], { cwd });
+
+  const result = await execFileAsync(process.execPath, [cli, 'import', '--json'], { cwd });
+  const envelope = JSON.parse(result.stdout);
+  assert.equal(envelope.command, 'import');
+  assert.equal(envelope.data.status, 'ok');
+  assert.deepEqual(envelope.data.imported, ['review']);
+  assert.equal(result.stderr, '');
+});
+
+test('doctor warns for missing targets and reports current state after fix', async () => {
+  const cwd = await mkdtemp(join(tmpdir(), 'leogriel-doctor-targets-'));
+  const source = join(cwd, 'demo-skill');
+  const config = join(cwd, 'config.json');
+  const env = {
+    ...process.env,
+    LEOGRIEL_CONFIG: config,
+    LEOGRIEL_STORE: join(cwd, '.store'),
+  };
+  await mkdir(source, { recursive: true });
+  await mkdir(join(cwd, '.codex', 'skills'), { recursive: true });
+  await writeFile(join(source, 'SKILL.md'), '---\nname: demo-skill\ndescription: e2e\n---\nDemo\n');
+  await writeFile(config, `${JSON.stringify({
+    version: 1,
+    defaultMode: 'copy',
+    agents: {
+      'claude-code': false,
+      cursor: false,
+      opencode: false,
+      codex: true,
+      'gemini-cli': false,
+      grok: false,
+      pi: false,
+    },
+  }, null, 2)}\n`);
+
+  await execFileAsync(process.execPath, [cli, 'init', '--no-prompt'], { cwd, env });
+  await execFileAsync(process.execPath, [cli, 'add', 'file:./demo-skill'], { cwd, env });
+
+  let missingStdout = '';
+  try {
+    await execFileAsync(process.execPath, [cli, 'doctor', '--json'], { cwd, env });
+    assert.fail('doctor should report a missing managed target');
+  } catch (error) {
+    const failure = error as { code?: number; stdout?: string };
+    assert.equal(failure.code, 1);
+    missingStdout = failure.stdout || '';
+  }
+  const missing = JSON.parse(missingStdout);
+  assert.equal(missing.data.status, 'warnings');
+  assert.equal(missing.data.targets.stateCounts.missing, 1);
+  assert.match(missing.data.warnings.join(' '), /doctor --fix/);
+
+  const fixedResult = await execFileAsync(process.execPath, [cli, 'doctor', '--fix', '--json'], { cwd, env });
+  const fixed = JSON.parse(fixedResult.stdout);
+  assert.equal(fixed.data.status, 'ok');
+  assert.equal(fixed.data.targets.stateCounts.current, 1);
+  assert.equal(fixed.data.targets.stateCounts.missing, 0);
+});

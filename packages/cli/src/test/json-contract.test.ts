@@ -33,13 +33,14 @@ test('first-party JSON commands emit one stable envelope', async () => {
       ['doctor', '--json'],
       ['plugin', 'list', '--json'],
       ['plugin', 'doctor', '--json'],
+      ['import', '--dry-run', '--json'],
       ['test', 'list', '--json'],
       ['test', 'validate', '--json'],
     ]) {
       const result = await runJson(args, project, env, true);
       assert.equal(result.value.schemaVersion, 1);
       assert.equal(typeof result.value.ok, 'boolean');
-      assert.equal(result.value.command, args.slice(0, 2).join(' ').replace(/^list .*/, 'list').replace(/^doctor .*/, 'doctor'));
+      assert.equal(result.value.command, args.filter((arg) => !arg.startsWith('-')).slice(0, 2).join(' '));
       assert.ok(Array.isArray(result.value.warnings));
       assert.ok(Array.isArray(result.value.errors));
       assert.doesNotMatch(result.stdout, /\u001b\[/);
