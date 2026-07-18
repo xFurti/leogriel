@@ -1,5 +1,5 @@
-import { loadConfig, resolveEntryCanonicalPath } from '@skillctl/core';
-import { loadLockfile } from '@skillctl/lockfile';
+import { loadConfig, resolveEntryCanonicalPath } from '@leogriel/core';
+import { loadLockfile } from '@leogriel/lockfile';
 import type { AuditReport, AuditFinding } from './types.js';
 import { checkIntegrityDrift } from './rules/integrity-drift.js';
 import { checkScriptHeuristics } from './rules/script-heuristics.js';
@@ -28,17 +28,17 @@ export async function runAudit(cwd = process.cwd(), options?: { store?: string }
         skill: name,
         message: `Source is not covered by trustedSources: ${entry.specifier}`,
         description: 'Restrict project dependencies to reviewed source patterns.',
-        helpUri: 'https://xfurti.github.io/skillctl/#security',
+        helpUri: 'https://xfurti.github.io/leogriel/#security',
       });
     }
     if (!entry.integrity || !entry.provenance?.type) {
       findings.push({ rule: 'provenance-completeness', severity: 'error', skill: name, message: 'Lock entry is missing integrity or provenance metadata.' });
     }
     if ((entry.provenance.type === 'github' || entry.provenance.type === 'skills.sh') && !entry.provenance.commit) {
-      findings.push({ rule: 'mutable-resolution', severity: 'warning', skill: name, message: 'Remote Git source is not pinned to a commit; run skillctl update.' });
+      findings.push({ rule: 'mutable-resolution', severity: 'warning', skill: name, message: 'Remote Git source is not pinned to a commit; run leogriel update.' });
     }
     if (entry.provenance.type === 'npm' && (!entry.provenance.version || !entry.provenance.tarballHash)) {
-      findings.push({ rule: 'mutable-resolution', severity: 'warning', skill: name, message: 'npm source lacks an exact version or tarball integrity; run skillctl update.' });
+      findings.push({ rule: 'mutable-resolution', severity: 'warning', skill: name, message: 'npm source lacks an exact version or tarball integrity; run leogriel update.' });
     }
     const canonicalPath = await resolveEntryCanonicalPath(entry, options);
     findings.push(...(await checkNameDirMatch(name, canonicalPath)));

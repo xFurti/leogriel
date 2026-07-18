@@ -2,7 +2,7 @@ import { rm, cp, stat, readdir, realpath } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
-import type { Provenance, LockfileEntry, ResolvedSource } from '@skillctl/core';
+import type { Provenance, LockfileEntry, ResolvedSource } from '@leogriel/core';
 import {
   loadConfig,
   ensureDir,
@@ -14,20 +14,20 @@ import {
   canonicalizeName,
   formatCanonicalPathForLock,
   portableSpecifierForResolved,
-  getGlobalSkillctlRoot,
+  getGlobalLeogrielRoot,
   getGlobalSkillsStore,
   getProjectSkillsStore,
-  requireSkillctlProject,
-} from '@skillctl/core';
-import { createEmptyLockfile, addOrUpdateEntry, makeLockEntry } from '@skillctl/lockfile';
-import { updateProjectState, withOperationLocks } from '@skillctl/project-state';
+  requireLeogrielProject,
+} from '@leogriel/core';
+import { createEmptyLockfile, addOrUpdateEntry, makeLockEntry } from '@leogriel/lockfile';
+import { updateProjectState, withOperationLocks } from '@leogriel/project-state';
 
 import { limitedFetch } from './fetch/concurrency.js';
 import { LocalSource } from './sources/local.js';
 import { GitHubSource } from './sources/github.js';
 import { NpmSource } from './sources/npm.js';
 import { SkillsShSource } from './sources/skills-sh.js';
-import type { RegistrySource } from '@skillctl/core';
+import type { RegistrySource } from '@leogriel/core';
 import { defaultHttpClient, type HttpClient } from './fetch/https.js';
 import { parseSkillFrontmatterAsync } from './frontmatter.js';
 
@@ -58,7 +58,7 @@ export class RegistryManager {
     const resolved = await this.resolve(spec, { cwd: options?.cwd || process.cwd() });
     const source = this.sources.find((candidate) => candidate.id === resolved.sourceId);
     if (!source) throw new Error(`No source registered for ${resolved.sourceId}`);
-    const temporary = join(tmpdir(), `skillctl-inspect-${randomUUID()}`);
+    const temporary = join(tmpdir(), `leogriel-inspect-${randomUUID()}`);
     await ensureDir(temporary);
     try {
       const fetched = await source.fetch(resolved, temporary);
@@ -96,7 +96,7 @@ export class RegistryManager {
 
     const canonicalName = canonicalizeName(options?.name || resolved.name);
     const target = join(store, canonicalName);
-    const tmpDest = join(tmpdir(), `skillctl-mat-${canonicalName}-${randomUUID()}`);
+    const tmpDest = join(tmpdir(), `leogriel-mat-${canonicalName}-${randomUUID()}`);
     await ensureDir(tmpDest);
 
     try {
@@ -170,7 +170,7 @@ export class RegistryManager {
     opts: { cwd?: string; updateManifest?: boolean; name?: string; global?: boolean } = {}
   ): Promise<LockfileEntry> {
     const requestedCwd = opts.cwd || process.cwd();
-    const cwd = opts.global ? getGlobalSkillctlRoot() : await requireSkillctlProject(requestedCwd);
+    const cwd = opts.global ? getGlobalLeogrielRoot() : await requireLeogrielProject(requestedCwd);
     const store = opts.global ? getGlobalSkillsStore() : getProjectSkillsStore(cwd);
     return withOperationLocks({ cwd, store }, () =>
       this.addUnlocked(spec, { ...opts, cwd, store, sourceCwd: requestedCwd })
@@ -210,7 +210,7 @@ export class RegistryManager {
     const skillName = canonicalizeName(opts.name || resolved.name);
     const portableSpec =
       resolved.sourceType === 'local' && !opts.global
-        ? `file:./.skillctl/skills/${skillName}`
+        ? `file:./.leogriel/skills/${skillName}`
         : portableSpecifierForResolved(spec, resolved, opts.sourceCwd);
     const lockResolved = resolved.sourceType === 'local' ? portableSpec : resolved.resolved;
 

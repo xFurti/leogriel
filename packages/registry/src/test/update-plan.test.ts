@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import type { ResolvedSource, SkillLockfile } from '@skillctl/core';
+import type { ResolvedSource, SkillLockfile } from '@leogriel/core';
 import { planUpdates } from '../update-plan.js';
 
 const lock: SkillLockfile = {
@@ -8,7 +8,7 @@ const lock: SkillLockfile = {
   skills: {
     demo: {
       name: 'demo', specifier: 'npm:demo@^1.0.0', resolved: 'npm:demo@1.0.0', integrity: `sha256:${'a'.repeat(64)}`,
-      canonicalPath: '.skillctl/skills/demo', fetchedAt: new Date(0).toISOString(),
+      canonicalPath: '.leogriel/skills/demo', fetchedAt: new Date(0).toISOString(),
       provenance: { type: 'npm', version: '1.0.0', tarballHash: 'sha512-old', requestedRef: '^1.0.0' },
     },
   },

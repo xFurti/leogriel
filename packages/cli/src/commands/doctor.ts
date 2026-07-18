@@ -5,19 +5,19 @@ import { join } from 'node:path';
 import {
   findLockReproducibilityWarnings,
   findPortablePathWarnings,
-  getGlobalSkillctlRoot,
+  getGlobalLeogrielRoot,
   getGlobalSkillsStore,
   getProjectSkillsStore,
   getRegisteredAdapters,
   loadConfig,
   lockToSkillTargets,
-  requireSkillctlProject,
-} from '@skillctl/core';
-import { loadManifest } from '@skillctl/manifest';
-import { loadLockfile } from '@skillctl/lockfile';
-import { scanCoexistence, getEnabledAdapters, inspectSkillTargets, syncSkillsToAgents } from '@skillctl/adapters';
-import { runAudit, auditExitCode } from '@skillctl/security';
-import { withOperationLocks } from '@skillctl/project-state';
+  requireLeogrielProject,
+} from '@leogriel/core';
+import { loadManifest } from '@leogriel/manifest';
+import { loadLockfile } from '@leogriel/lockfile';
+import { scanCoexistence, getEnabledAdapters, inspectSkillTargets, syncSkillsToAgents } from '@leogriel/adapters';
+import { runAudit, auditExitCode } from '@leogriel/security';
+import { withOperationLocks } from '@leogriel/project-state';
 
 export function registerDoctor(program: Command): void {
   program
@@ -27,7 +27,7 @@ export function registerDoctor(program: Command): void {
     .option('--fix', 're-sync agent links from lock')
     .option('-g, --global', 'diagnose the global skill installation')
     .action(async (options) => {
-      const cwd = options.global ? getGlobalSkillctlRoot() : await requireSkillctlProject();
+      const cwd = options.global ? getGlobalLeogrielRoot() : await requireLeogrielProject();
       const store = options.global ? getGlobalSkillsStore() : getProjectSkillsStore(cwd);
       const [config, manifest, lock, coexist, enabledAdapters, audit] = await Promise.all([
         loadConfig(),
@@ -59,7 +59,7 @@ export function registerDoctor(program: Command): void {
           })
         : null;
       if (targetInspection?.counts.failed) {
-        warnings.push(`${targetInspection.counts.failed} unmanaged or failed agent target(s); run skillctl sync --dry-run for details`);
+        warnings.push(`${targetInspection.counts.failed} unmanaged or failed agent target(s); run leogriel sync --dry-run for details`);
       }
 
       for (const f of audit.findings.filter((x) => x.severity === 'error')) {
@@ -104,7 +104,7 @@ export function registerDoctor(program: Command): void {
         return;
       }
 
-      cliLog('skillctl doctor');
+      cliLog('leogriel doctor');
       cliLog('Config store:', report.config.store);
       cliLog('Manifest:', report.manifestPresent ? 'present' : 'missing');
       cliLog('Lockfile:', report.lockPresent ? 'present' : 'missing');
@@ -126,10 +126,10 @@ export function registerDoctor(program: Command): void {
 
 async function findStateWarnings(cwd: string, store: string): Promise<string[]> {
   const warnings: string[] = [];
-  if (await exists(join(cwd, '.skillctl-transaction.json'))) {
+  if (await exists(join(cwd, '.leogriel-transaction.json'))) {
     warnings.push('transaction-journal: interrupted project update detected; the next mutating command will recover it');
   }
-  for (const path of [join(cwd, '.skillctl-operation.lock'), join(store, '.skillctl-store.lock')]) {
+  for (const path of [join(cwd, '.leogriel-operation.lock'), join(store, '.leogriel-store.lock')]) {
     const value = await stat(path).catch(() => null);
     if (value && Date.now() - value.mtimeMs > 30_000) warnings.push(`stale-lock: ${path}`);
   }

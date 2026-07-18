@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { computeDirIntegrity } from '@skillctl/core';
+import { computeDirIntegrity } from '@leogriel/core';
 import { getBackup, listBackups, removeBackup, restoreBackup } from '../index.js';
 
 test('backup IDs remain logical while directories are Windows-safe', async () => {
-  const cwd = await mkdtemp(join(tmpdir(), 'skillctl-backup-'));
+  const cwd = await mkdtemp(join(tmpdir(), 'leogriel-backup-'));
   const filesystemId = '2026-07-14T10-20-30-000Z';
-  const directory = join(cwd, '.skillctl', 'backups', 'sync', filesystemId, 'codex', 'demo');
+  const directory = join(cwd, '.leogriel', 'backups', 'sync', filesystemId, 'codex', 'demo');
   const content = join(directory, 'content');
   const original = join(cwd, '.codex', 'skills', 'demo');
   const nested = join(cwd, 'nested', 'directory');
@@ -21,7 +21,7 @@ test('backup IDs remain logical while directories are Windows-safe', async () =>
     await writeFile(join(content, 'SKILL.md'), 'backup');
     await writeFile(join(directory, 'metadata.json'), JSON.stringify({
       version: 1, id, filesystemId, scope: 'project', adapter: 'codex', skill: 'demo',
-      originalPath: original, integrity: await computeDirIntegrity(content), timestamp: '2026-07-14T10:20:30.000Z', command: 'skillctl sync',
+      originalPath: original, integrity: await computeDirIntegrity(content), timestamp: '2026-07-14T10:20:30.000Z', command: 'leogriel sync',
     }));
     assert.equal((await listBackups({ cwd: nested }))[0].id, id);
     assert.equal((await getBackup(id, { cwd: nested }))?.filesystemId, filesystemId);
@@ -34,9 +34,9 @@ test('backup IDs remain logical while directories are Windows-safe', async () =>
 });
 
 test('corrupted backup metadata cannot target an arbitrary path', async () => {
-  const cwd = await mkdtemp(join(tmpdir(), 'skillctl-backup-corrupt-'));
+  const cwd = await mkdtemp(join(tmpdir(), 'leogriel-backup-corrupt-'));
   const filesystemId = 'safe-id';
-  const directory = join(cwd, '.skillctl', 'backups', 'sync', filesystemId, 'codex', 'demo');
+  const directory = join(cwd, '.leogriel', 'backups', 'sync', filesystemId, 'codex', 'demo');
   const outside = join(cwd, 'outside', 'valuable');
   const id = `project:${filesystemId}:codex:demo`;
   try {

@@ -1,7 +1,7 @@
 import { join, relative } from 'node:path';
-import { canonicalizeName, computeDirIntegrity, getProjectSkillsStore, getRegisteredAdapters } from '@skillctl/core';
-import { pathExists } from '@skillctl/adapters';
-import '@skillctl/adapters';
+import { canonicalizeName, computeDirIntegrity, getProjectSkillsStore, getRegisteredAdapters } from '@leogriel/core';
+import { pathExists } from '@leogriel/adapters';
+import '@leogriel/adapters';
 import { scanSkillsDir } from './parsers/scan-skills-dir.js';
 import { classifySkillPath, type SkillLinkKind } from './parsers/link-classifier.js';
 
@@ -45,13 +45,13 @@ export interface DiscoverProjectSkillsOptions {
 }
 
 function actionForKind(kind: SkillLinkKind): ProjectImportAction {
-  if (kind === 'skillctl-link') return 'register-existing';
+  if (kind === 'leogriel-link') return 'register-existing';
   if (kind === 'broken') return 'skip-broken';
   return 'copy-local';
 }
 
 function pickPrimaryOccurrence(occurrences: DiscoveredSkillOccurrence[]): DiscoveredSkillOccurrence {
-  const linked = occurrences.find((o) => o.kind === 'skillctl-link');
+  const linked = occurrences.find((o) => o.kind === 'leogriel-link');
   if (linked) return linked;
   return occurrences[0];
 }

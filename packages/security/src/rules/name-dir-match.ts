@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { canonicalizeName } from '@skillctl/core';
+import { canonicalizeName } from '@leogriel/core';
 import type { AuditFinding } from '../types.js';
 
 export async function checkNameDirMatch(skillName: string, canonicalPath: string): Promise<AuditFinding[]> {

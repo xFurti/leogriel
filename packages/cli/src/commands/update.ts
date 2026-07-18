@@ -1,13 +1,13 @@
 import { cliLog } from '../lib/output.js';
 import type { Command } from 'commander';
 import * as prompts from '@clack/prompts';
-import { loadManifest } from '@skillctl/manifest';
-import { loadLockfile } from '@skillctl/lockfile';
-import { canonicalizeName, getProjectSkillsStore, lockToSkillTargets, requireSkillctlProject } from '@skillctl/core';
-import { planUpdates, RegistryManager } from '@skillctl/registry';
-import { syncSkillsToAgents } from '@skillctl/adapters';
-import { withOperationLocks } from '@skillctl/project-state';
-import { SkillctlError, handleCommandError } from '../lib/errors.js';
+import { loadManifest } from '@leogriel/manifest';
+import { loadLockfile } from '@leogriel/lockfile';
+import { canonicalizeName, getProjectSkillsStore, lockToSkillTargets, requireLeogrielProject } from '@leogriel/core';
+import { planUpdates, RegistryManager } from '@leogriel/registry';
+import { syncSkillsToAgents } from '@leogriel/adapters';
+import { withOperationLocks } from '@leogriel/project-state';
+import { LeogrielError, handleCommandError } from '../lib/errors.js';
 import { printCandidates } from './outdated.js';
 import { createUpdateSnapshot, disposeUpdateSnapshot, restoreUpdateSnapshot } from '../lib/update-snapshot.js';
 
@@ -23,12 +23,12 @@ export function registerUpdate(program: Command, manager = new RegistryManager()
     .option('--no-sync', 'skip agent sync after update')
     .action(async (names, options) => {
       try {
-        if (options.save && !options.latest) throw new SkillctlError('--save requires --latest', 'INVALID_OPTIONS', 2);
+        if (options.save && !options.latest) throw new LeogrielError('--save requires --latest', 'INVALID_OPTIONS', 2);
         const interactive = Boolean(process.stdin.isTTY && process.stdout.isTTY && !options.json);
         if (options.latest && !interactive && (!options.save || !options.yes) && !options.dryRun) {
-          throw new SkillctlError('Non-interactive --latest requires --save --yes', 'CONFIRMATION_REQUIRED', 2);
+          throw new LeogrielError('Non-interactive --latest requires --save --yes', 'CONFIRMATION_REQUIRED', 2);
         }
-        const cwd = await requireSkillctlProject();
+        const cwd = await requireLeogrielProject();
         const store = getProjectSkillsStore(cwd);
         const [manifest, lock] = await Promise.all([loadManifest(cwd), loadLockfile(cwd)]);
         if (!lock) throw new Error('No lockfile. Run install first.');

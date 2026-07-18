@@ -1,17 +1,17 @@
 import { cliLog } from '../lib/output.js';
 import type { Command } from 'commander';
 import { stat } from 'node:fs/promises';
-import { loadLockfile } from '@skillctl/lockfile';
+import { loadLockfile } from '@leogriel/lockfile';
 import {
   canonicalizeName,
-  findSkillctlProject,
-  getGlobalSkillctlRoot,
+  findLeogrielProject,
+  getGlobalLeogrielRoot,
   getGlobalSkillsStore,
   getProjectSkillsStore,
   resolveEntryCanonicalPath,
-} from '@skillctl/core';
-import { parseSkillFrontmatterAsync, RegistryManager } from '@skillctl/registry';
-import { inspectSkillTargets } from '@skillctl/adapters';
+} from '@leogriel/core';
+import { parseSkillFrontmatterAsync, RegistryManager } from '@leogriel/registry';
+import { inspectSkillTargets } from '@leogriel/adapters';
 import { handleCommandError } from '../lib/errors.js';
 
 export function registerInfo(program: Command, registry = new RegistryManager()): void {
@@ -22,7 +22,7 @@ export function registerInfo(program: Command, registry = new RegistryManager())
     .option('--json', 'machine-readable output')
     .action(async (input, options) => {
       try {
-        const root = options.global ? getGlobalSkillctlRoot() : await findSkillctlProject();
+        const root = options.global ? getGlobalLeogrielRoot() : await findLeogrielProject();
         const store = options.global
           ? getGlobalSkillsStore()
           : root ? getProjectSkillsStore(root) : undefined;

@@ -10,13 +10,13 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export async function smokePublishedPackage(version, source = 'registry') {
   if (!version) throw new Error('A package version is required');
   if (!['registry', 'tarballs'].includes(source)) throw new Error(`Unknown smoke source: ${source}`);
-  const temporary = await mkdtemp(join(tmpdir(), 'skillctl-npm-smoke-'));
+  const temporary = await mkdtemp(join(tmpdir(), 'leogriel-npm-smoke-'));
   try {
     const installTargets = source === 'registry'
-      ? [`@skillctl/testing@${version}`, `@skillctl/cli@${version}`]
+      ? [`@leogriel/testing@${version}`, `@leogriel/cli@${version}`]
       : releasePackages.map((name) => join(root, 'artifacts', version, archiveName(name, version)));
     runNpm(['install', '--prefix', temporary, '--ignore-scripts=false', ...installTargets]);
-    const cli = join(temporary, 'node_modules', '@skillctl', 'cli', 'bin', 'skillctl.js');
+    const cli = join(temporary, 'node_modules', '@leogriel', 'cli', 'bin', 'leogriel.js');
     const reported = run(process.execPath, [cli, '--version']).stdout.trim();
     if (version !== 'latest' && reported !== version) throw new Error(`Expected ${version}, received ${reported}`);
 
@@ -24,13 +24,13 @@ export async function smokePublishedPackage(version, source = 'registry') {
     const skill = join(project, 'smoke-skill');
     await mkdir(skill, { recursive: true });
     await writeFile(join(skill, 'SKILL.md'), '---\nname: smoke-skill\ndescription: registry smoke\n---\nSmoke instructions.\n');
-    const env = { ...process.env, SKILLCTL_CONFIG: join(temporary, 'config.json'), SKILLCTL_STORE: join(temporary, 'store') };
+    const env = { ...process.env, LEOGRIEL_CONFIG: join(temporary, 'config.json'), LEOGRIEL_STORE: join(temporary, 'store') };
     run(process.execPath, [cli, 'init', '--no-prompt', '--json'], { cwd: project, env });
     validateEnvelope(run(process.execPath, [cli, 'list', '--json'], { cwd: project, env }).stdout, 'list');
     validateEnvelope(runAllowingOne(process.execPath, [cli, 'doctor', '--json'], { cwd: project, env }).stdout, 'doctor');
     validateEnvelope(run(process.execPath, [cli, 'skill', 'validate', skill, '--json'], { cwd: project, env }).stdout, 'skill validate');
 
-    const installed = JSON.parse(await readFile(join(temporary, 'node_modules', '@skillctl', 'cli', 'package.json'), 'utf8'));
+    const installed = JSON.parse(await readFile(join(temporary, 'node_modules', '@leogriel', 'cli', 'package.json'), 'utf8'));
     return { source, requestedVersion: version, installedVersion: installed.version };
   } finally {
     await rm(temporary, { recursive: true, force: true });

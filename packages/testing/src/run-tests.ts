@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { cp, mkdir, readFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
-import { canonicalizeName, computeFileHash, parseSkillDirectory } from '@skillctl/core';
+import { canonicalizeName, computeFileHash, parseSkillDirectory } from '@leogriel/core';
 import { countSnapshotChanges, evaluateAssertions, snapshotWorkspace } from './assertions.js';
 import { createIsolation, destroyIsolation, installTestSkill, isolatedEnvironment, resolveFixturePath } from './isolation.js';
 import { resolveCodexAuth } from './auth.js';
@@ -18,7 +18,7 @@ export interface RunSkillTestsOptions {
   timeoutMs?: number;
   keepWorkspace?: boolean;
   artifactRoot?: string;
-  skillctlVersion: string;
+  leogrielVersion: string;
   lockfileEntry?: unknown;
   projectRoot?: string;
 }
@@ -82,7 +82,7 @@ export async function runSkillTests(testFile: SkillTestFile, options: RunSkillTe
             && (testCase.budget?.maxChangedFiles === undefined || changedFiles <= testCase.budget.maxChangedFiles);
           let kept: string | undefined;
           if (options.keepWorkspace) {
-            const root = options.artifactRoot || resolve(process.cwd(), '.skillctl', 'artifacts', 'test', 'workspaces');
+            const root = options.artifactRoot || resolve(process.cwd(), '.leogriel', 'artifacts', 'test', 'workspaces');
             kept = join(root, runId, safe(`${testCase.name}-${run}-${variant}`));
             await mkdir(dirname(kept), { recursive: true });
             await cp(isolation.workspace, kept, { recursive: true, force: false, errorOnExist: true });
@@ -130,7 +130,7 @@ export async function runSkillTests(testFile: SkillTestFile, options: RunSkillTe
     schemaVersion: 1,
     skill: testFile.skill,
     skillMetadata: { path: options.skillPath, integrity: parsedSkill.integrity, lockfileEntry: options.lockfileEntry },
-    skillctlVersion: options.skillctlVersion,
+    leogrielVersion: options.leogrielVersion,
     runner: options.runner.id,
     runnerDetection: detection,
     seed,

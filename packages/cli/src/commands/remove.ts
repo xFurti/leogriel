@@ -2,17 +2,17 @@ import { cliLog, cliWarn } from '../lib/output.js';
 import type { Command } from 'commander';
 import {
   canonicalizeName,
-  getGlobalSkillctlRoot,
+  getGlobalLeogrielRoot,
   getGlobalSkillsStore,
   getProjectSkillsStore,
   purgeCanonical,
   resolveAdapterTarget,
   resolveEntryCanonicalPath,
   type LockfileEntry,
-  requireSkillctlProject,
-} from '@skillctl/core';
-import { getEnabledAdapters } from '@skillctl/adapters';
-import { updateProjectState, withOperationLocks } from '@skillctl/project-state';
+  requireLeogrielProject,
+} from '@leogriel/core';
+import { getEnabledAdapters } from '@leogriel/adapters';
+import { updateProjectState, withOperationLocks } from '@leogriel/project-state';
 import { handleCommandError } from '../lib/errors.js';
 
 export function registerRemove(program: Command): void {
@@ -25,7 +25,7 @@ export function registerRemove(program: Command): void {
     .option('--purge', 'also remove installed skill contents')
     .action(async (name, options) => {
       try {
-        const cwd = options.global ? getGlobalSkillctlRoot() : await requireSkillctlProject();
+        const cwd = options.global ? getGlobalLeogrielRoot() : await requireLeogrielProject();
         const store = options.global ? getGlobalSkillsStore() : getProjectSkillsStore(cwd);
         const canonicalName = canonicalizeName(name);
         await withOperationLocks({ cwd, store }, async () => {

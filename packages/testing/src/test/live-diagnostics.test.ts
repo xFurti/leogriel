@@ -41,7 +41,7 @@ test('live diagnostics redact known secrets from messages, stderr, and workspace
 });
 
 test('live diagnostics list workspace files without following symlinks', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'skillctl-live-diagnostics-'));
+  const root = await mkdtemp(join(tmpdir(), 'leogriel-live-diagnostics-'));
   try {
     await mkdir(join(root, 'nested'));
     await writeFile(join(root, 'output.txt'), 'ready');

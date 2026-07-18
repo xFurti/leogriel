@@ -25,14 +25,14 @@ export interface HttpClient {
   get(url: string, options?: HttpRequestOptions): Promise<HttpResponse>;
 }
 
-function skillctlUserAgent(): string {
+function leogrielUserAgent(): string {
   try {
     const pkg = JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf8')) as { version?: string };
-    if (pkg.version) return `skillctl/${pkg.version}`;
+    if (pkg.version) return `leogriel/${pkg.version}`;
   } catch {
     // fallback if package.json unavailable at runtime
   }
-  return 'skillctl/0.5.0';
+  return 'leogriel/0.5.0';
 }
 
 export class NodeHttpsClient implements HttpClient {
@@ -63,7 +63,7 @@ async function request(
 
     const req = https.get(
       parsed,
-      { headers: { 'User-Agent': skillctlUserAgent(), ...(options.headers || {}) } },
+      { headers: { 'User-Agent': leogrielUserAgent(), ...(options.headers || {}) } },
       (res) => {
         const status = res.statusCode || 0;
         if (status >= 300 && status < 400 && res.headers.location) {

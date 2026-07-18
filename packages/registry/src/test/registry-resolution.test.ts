@@ -9,14 +9,14 @@ import { mkdtemp, rm, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { RegistryManager, LocalSource, GitHubSource, NpmSource, SkillsShSource, canonicalizeName, parseSkillFrontmatterAsync, type HttpClient } from '../index.js';
-import { loadLockfile } from '@skillctl/lockfile';
-import { loadConfig } from '@skillctl/core';
+import { loadLockfile } from '@leogriel/lockfile';
+import { loadConfig } from '@leogriel/core';
 
 async function runTests() {
   console.log('Running registry resolution tests...');
-  const originalStore = process.env.SKILLCTL_STORE;
-  const isolatedRoot = await mkdtemp(join(tmpdir(), 'skillctl-registry-store-'));
-  process.env.SKILLCTL_STORE = join(isolatedRoot, 'store');
+  const originalStore = process.env.LEOGRIEL_STORE;
+  const isolatedRoot = await mkdtemp(join(tmpdir(), 'leogriel-registry-store-'));
+  process.env.LEOGRIEL_STORE = join(isolatedRoot, 'store');
 
   try {
 
@@ -114,10 +114,10 @@ async function runTests() {
 
   assert.equal(entry.name, 'my-test-skill');
   assert.ok(entry.integrity.startsWith('sha256:'));
-  assert.equal(entry.specifier, 'file:./.skillctl/skills/my-test-skill');
-  assert.equal(entry.resolved, 'file:./.skillctl/skills/my-test-skill');
+  assert.equal(entry.specifier, 'file:./.leogriel/skills/my-test-skill');
+  assert.equal(entry.resolved, 'file:./.leogriel/skills/my-test-skill');
   assert.ok(entry.provenance.type === 'local');
-  assert.equal(entry.canonicalPath, '.skillctl/skills/my-test-skill');
+  assert.equal(entry.canonicalPath, '.leogriel/skills/my-test-skill');
   assert.ok(!entry.specifier.includes(skillDir), 'specifier must not contain absolute source path');
 
   // lock was written
@@ -125,7 +125,7 @@ async function runTests() {
   assert.ok(lock);
   assert.ok(lock!.skills['my-test-skill']);
   assert.equal(lock!.skills['my-test-skill'].integrity, entry.integrity);
-  assert.equal(lock!.skills['my-test-skill'].canonicalPath, '.skillctl/skills/my-test-skill');
+  assert.equal(lock!.skills['my-test-skill'].canonicalPath, '.leogriel/skills/my-test-skill');
 
   // outside-project paths are vendored into the project store
   const outsideRoot = await mkdtemp(join(tmpdir(), 'outside-fixture-'));
@@ -133,9 +133,9 @@ async function runTests() {
   await mkdir(outsideSkill, { recursive: true });
   await writeFile(join(outsideSkill, 'SKILL.md'), '---\nname: external-skill\n---\nBody\n');
   const outsideEntry = await mgr.add(`file:${outsideSkill}`, { cwd: fixtureRoot, updateManifest: false });
-  assert.equal(outsideEntry.specifier, 'file:./.skillctl/skills/external-skill');
-  assert.equal(outsideEntry.resolved, 'file:./.skillctl/skills/external-skill');
-  assert.equal(outsideEntry.canonicalPath, '.skillctl/skills/external-skill');
+  assert.equal(outsideEntry.specifier, 'file:./.leogriel/skills/external-skill');
+  assert.equal(outsideEntry.resolved, 'file:./.leogriel/skills/external-skill');
+  assert.equal(outsideEntry.canonicalPath, '.leogriel/skills/external-skill');
   await rm(outsideRoot, { recursive: true, force: true });
   try {
     const cfg = await loadConfig();
@@ -164,7 +164,7 @@ async function runTests() {
 
   // cleanup
   await rm(fixtureRoot, { recursive: true, force: true });
-  // note: canonical may have been written to ~/.skillctl/skills/my-test-skill ; clean optional for test
+  // note: canonical may have been written to ~/.leogriel/skills/my-test-skill ; clean optional for test
   try {
     const cfg = await loadConfig();
     const can = join(cfg.store, 'my-test-skill');
@@ -173,8 +173,8 @@ async function runTests() {
 
   console.log('All registry resolution + materialize tests passed.');
   } finally {
-    if (originalStore === undefined) delete process.env.SKILLCTL_STORE;
-    else process.env.SKILLCTL_STORE = originalStore;
+    if (originalStore === undefined) delete process.env.LEOGRIEL_STORE;
+    else process.env.LEOGRIEL_STORE = originalStore;
     await rm(isolatedRoot, { recursive: true, force: true });
   }
 }

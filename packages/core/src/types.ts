@@ -1,5 +1,5 @@
 /**
- * Core types for skillctl.
+ * Core types for leogriel.
  * Defines shared interfaces used across manifest, lockfile, registry, etc.
  * Follows patterns from design doc (PR2).
  */
@@ -14,7 +14,7 @@ export interface SkillRef {
 // Resolved skill after fetching/materializing to canonical store
 export interface ResolvedSkill {
   name: string;
-  canonicalPath: string; // e.g. ~/.skillctl/skills/<name>
+  canonicalPath: string; // e.g. ~/.leogriel/skills/<name>
   integrity: string; // 'sha256:<hex>'
   resolvedSource: string;
   fetchedAt: string; // ISO timestamp
@@ -154,10 +154,10 @@ export interface SkillLockfile {
   };
 }
 
-// Config for ~/.skillctl/config.json
-export interface SkillctlConfig {
+// Config for ~/.leogriel/config.json
+export interface LeogrielConfig {
   version: 1;
-  store: string; // path to canonical, defaults to ~/.skillctl/skills
+  store: string; // path to canonical, defaults to ~/.leogriel/skills
   defaultMode: 'symlink' | 'copy' | 'junction';
   agents: Record<string, boolean>; // enabled agents e.g. { 'claude-code': true }
   registries?: string[];

@@ -2,9 +2,9 @@ import { Command } from 'commander';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { RegistryManager } from '@skillctl/registry';
-import { loadPlugins } from '@skillctl/plugin-system';
-import '@skillctl/adapters';
+import { RegistryManager } from '@leogriel/registry';
+import { loadPlugins } from '@leogriel/plugin-system';
+import '@leogriel/adapters';
 
 import { registerInit } from './commands/init.js';
 import { registerAdd } from './commands/add.js';
@@ -24,7 +24,7 @@ import { registerOutdated } from './commands/outdated.js';
 import { registerCompletion } from './commands/completion.js';
 import { registerBackup } from './commands/backup.js';
 import { registerTest } from './commands/test.js';
-import { CatalogManager } from '@skillctl/registry';
+import { CatalogManager } from '@leogriel/registry';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -43,8 +43,8 @@ const registryManager = new RegistryManager();
 const catalogManager = new CatalogManager();
 
 program
-  .name('skillctl')
-  .description('Universal package-manager-like CLI for Agent Skills')
+  .name('leogriel')
+  .description('Weave Agent Skills into every workflow')
   .version(version, '-v, --version', 'output the current version')
   .helpOption('-h, --help', 'display help for command');
 
@@ -68,7 +68,7 @@ registerBackup(program);
 registerTest(program, version);
 
 export async function prepareProgram(): Promise<Command> {
-  await loadPlugins(program as import('@skillctl/plugin-system').PluginProgram, registryManager, catalogManager);
+  await loadPlugins(program as import('@leogriel/plugin-system').PluginProgram, registryManager, catalogManager);
   return program;
 }
 

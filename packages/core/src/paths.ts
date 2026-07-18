@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { isAbsolute, join, normalize as pathNormalize, relative, resolve } from 'node:path';
@@ -18,22 +19,29 @@ export function expandTilde(path: string): string {
   return path;
 }
 
-const PORTABLE_STORE_PREFIX = '~/.skillctl/skills/';
-const PROJECT_STORE_PREFIX = '.skillctl/skills/';
+const PORTABLE_STORE_PREFIX = '~/.leogriel/skills/';
+const PROJECT_STORE_PREFIX = '.leogriel/skills/';
+const LEGACY_PORTABLE_STORE_PREFIX = '~/.skillctl/skills/';
+const LEGACY_PROJECT_STORE_PREFIX = '.skillctl/skills/';
 
-export function getGlobalSkillctlRoot(): string {
-  return join(homedir(), '.skillctl');
+export function getGlobalLeogrielRoot(): string {
+  const current = join(homedir(), '.leogriel');
+  const legacy = join(homedir(), '.skillctl');
+  return existsSync(current) || !existsSync(legacy) ? current : legacy;
 }
 
 export function getGlobalSkillsStore(): string {
-  return join(getGlobalSkillctlRoot(), 'skills');
+  return join(getGlobalLeogrielRoot(), 'skills');
 }
 
 export function getProjectSkillsStore(projectRoot: string): string {
-  return join(projectRoot, '.skillctl', 'skills');
+  const currentRoot = join(projectRoot, '.leogriel');
+  const current = join(currentRoot, 'skills');
+  const legacy = join(projectRoot, '.skillctl', 'skills');
+  return existsSync(currentRoot) || !existsSync(legacy) ? current : legacy;
 }
 
-export async function findSkillctlProject(start = process.cwd()): Promise<string | null> {
+export async function findLeogrielProject(start = process.cwd()): Promise<string | null> {
   let current = resolve(start);
   while (true) {
     if (await stat(join(current, 'agent-skills.json')).then(() => true, () => false)) return current;
@@ -43,12 +51,12 @@ export async function findSkillctlProject(start = process.cwd()): Promise<string
   }
 }
 
-export async function requireSkillctlProject(start = process.cwd()): Promise<string> {
-  const root = await findSkillctlProject(start);
+export async function requireLeogrielProject(start = process.cwd()): Promise<string> {
+  const root = await findLeogrielProject(start);
   if (root) return root;
   throw new Error(
-    'No skillctl project found. Install the skill globally with `skillctl add -g <source>`, ' +
-      'or initialize a project first with `skillctl init`.'
+    'No leogriel project found. Install the skill globally with `leogriel add -g <source>`, ' +
+      'or initialize a project first with `leogriel init`.'
   );
 }
 
@@ -69,6 +77,16 @@ export function resolveCanonicalPath(canonicalPath: string, store?: string): str
 
   if (canonicalPath.startsWith(PROJECT_STORE_PREFIX)) {
     const name = canonicalPath.slice(PROJECT_STORE_PREFIX.length);
+    return join(storeRoot, name);
+  }
+
+  if (canonicalPath.startsWith(LEGACY_PORTABLE_STORE_PREFIX)) {
+    const name = canonicalPath.slice(LEGACY_PORTABLE_STORE_PREFIX.length);
+    return join(storeRoot, name);
+  }
+
+  if (canonicalPath.startsWith(LEGACY_PROJECT_STORE_PREFIX)) {
+    const name = canonicalPath.slice(LEGACY_PROJECT_STORE_PREFIX.length);
     return join(storeRoot, name);
   }
 

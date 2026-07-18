@@ -1,4 +1,4 @@
-import type { RegistrySource, ResolvedSource } from '@skillctl/core';
+import type { RegistrySource, ResolvedSource } from '@leogriel/core';
 import { GitHubSource } from './github.js';
 import { defaultHttpClient, type HttpClient } from '../fetch/https.js';
 import { canonicalizeName } from '../names.js';

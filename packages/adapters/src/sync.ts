@@ -2,9 +2,9 @@ import { mkdir, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import type { AgentAdapter, LinkMode } from '@skillctl/core';
-import { computeDirIntegrity, getRegisteredAdapters, loadConfig, resolveAdapterTarget } from '@skillctl/core';
-import { linkManager } from '@skillctl/link-manager';
+import type { AgentAdapter, LinkMode } from '@leogriel/core';
+import { computeDirIntegrity, getRegisteredAdapters, loadConfig, resolveAdapterTarget } from '@leogriel/core';
+import { linkManager } from '@leogriel/link-manager';
 import { getEnabledAdapters } from './index.js';
 
 export interface SkillTarget {
@@ -171,7 +171,7 @@ async function replaceWithBackup(
   cwd: string,
 ): Promise<void> {
   const timestamp = `${new Date().toISOString().replace(/[:.]/g, '-')}-${randomUUID().slice(0, 8)}`;
-  const root = scope === 'global' ? join(homedir(), '.skillctl') : join(cwd, '.skillctl');
+  const root = scope === 'global' ? join(homedir(), '.leogriel') : join(cwd, '.leogriel');
   const backup = join(root, 'backups', 'sync', timestamp, adapter.id, skill.name);
   const content = join(backup, 'content');
   await mkdir(backup, { recursive: true });
@@ -190,7 +190,7 @@ async function replaceWithBackup(
       scope,
       integrity,
       timestamp: new Date().toISOString(),
-      command: 'skillctl sync --replace-unmanaged',
+      command: 'leogriel sync --replace-unmanaged',
     }, null, 2)}\n`);
   } catch (err) {
     await rm(target, { recursive: true, force: true }).catch(() => {});

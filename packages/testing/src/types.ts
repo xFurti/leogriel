@@ -120,7 +120,7 @@ export interface SkillTestResult {
   schemaVersion: 1;
   skill: string;
   skillMetadata: { path: string; integrity: string; lockfileEntry?: unknown };
-  skillctlVersion: string;
+  leogrielVersion: string;
   runner: string;
   runnerDetection: RunnerDetection;
   seed: number;

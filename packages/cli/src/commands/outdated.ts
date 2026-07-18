@@ -1,15 +1,15 @@
 import { cliLog } from '../lib/output.js';
 import type { Command } from 'commander';
-import { loadManifest } from '@skillctl/manifest';
-import { loadLockfile } from '@skillctl/lockfile';
+import { loadManifest } from '@leogriel/manifest';
+import { loadLockfile } from '@leogriel/lockfile';
 import {
   canonicalizeName,
-  getGlobalSkillctlRoot,
+  getGlobalLeogrielRoot,
   getGlobalSkillsStore,
   getProjectSkillsStore,
-  requireSkillctlProject,
-} from '@skillctl/core';
-import { planUpdates } from '@skillctl/registry';
+  requireLeogrielProject,
+} from '@leogriel/core';
+import { planUpdates } from '@leogriel/registry';
 import { handleCommandError } from '../lib/errors.js';
 
 export function registerOutdated(program: Command): void {
@@ -21,7 +21,7 @@ export function registerOutdated(program: Command): void {
     .option('--json', 'machine-readable output')
     .action(async (names, options) => {
       try {
-        const cwd = options.global ? getGlobalSkillctlRoot() : await requireSkillctlProject();
+        const cwd = options.global ? getGlobalLeogrielRoot() : await requireLeogrielProject();
         const store = options.global ? getGlobalSkillsStore() : getProjectSkillsStore(cwd);
         const [manifest, lock] = await Promise.all([loadManifest(cwd), loadLockfile(cwd)]);
         if (!lock) throw new Error('No lockfile. Run install first.');

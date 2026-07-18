@@ -11,7 +11,7 @@ export function auditReportToSarif(report: AuditReport): Record<string, unknown>
     $schema: 'https://json.schemastore.org/sarif-2.1.0.json',
     version: '2.1.0',
     runs: [{
-      tool: { driver: { name: 'skillctl', informationUri: 'https://xfurti.github.io/skillctl/', rules } },
+      tool: { driver: { name: 'leogriel', informationUri: 'https://xfurti.github.io/leogriel/', rules } },
       results: report.findings.map(sarifResult),
     }],
   };

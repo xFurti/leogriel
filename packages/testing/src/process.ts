@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 import { StringDecoder } from 'node:string_decoder';
-import { StreamingSecretRedactor } from '@skillctl/core';
+import { StreamingSecretRedactor } from '@leogriel/core';
 
 export interface ProcessResult {
   stdout: string;

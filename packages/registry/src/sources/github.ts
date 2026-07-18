@@ -2,8 +2,8 @@ import { rm, cp } from 'node:fs/promises';
 import { join, basename } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
-import type { RegistrySource, ResolvedSource } from '@skillctl/core';
-import { ensureDir, computeDirIntegrity, resolvePathInside } from '@skillctl/core';
+import type { RegistrySource, ResolvedSource } from '@leogriel/core';
+import { ensureDir, computeDirIntegrity, resolvePathInside } from '@leogriel/core';
 import { canonicalizeName } from '../names.js';
 import { locateSkillDir, locateSkillDirByName } from '../locate-skill.js';
 import { fetchCachedBuffer, extractTarball } from '../fetch/tarball.js';
@@ -81,7 +81,7 @@ export class GitHubSource implements RegistrySource {
       cache: true,
       httpClient: this.httpClient,
     });
-    const tmpExtract = join(tmpdir(), `skillctl-gh-${randomUUID()}`);
+    const tmpExtract = join(tmpdir(), `leogriel-gh-${randomUUID()}`);
     await ensureDir(tmpExtract);
     try {
       await extractTarball(buf, tmpExtract, 1);

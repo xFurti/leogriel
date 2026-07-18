@@ -17,7 +17,7 @@ test('redaction is field-aware and preserves innocuous identifiers', () => {
 });
 
 test('artifact persistence is versioned, redacted, and path-contained', async () => {
-  const cwd = await mkdtemp(join(tmpdir(), 'skillctl-artifact-'));
+  const cwd = await mkdtemp(join(tmpdir(), 'leogriel-artifact-'));
   try {
     const result = await writeArtifact('test', 'result.json', { token: 'sk-abcdefghijklmnopqrstuvwxyz' }, { cwd });
     assert.equal(result.envelope.schemaVersion, 1);
@@ -27,14 +27,14 @@ test('artifact persistence is versioned, redacted, and path-contained', async ()
 });
 
 test('artifact persistence is atomic and never replaces an existing report', async () => {
-  const cwd = await mkdtemp(join(tmpdir(), 'skillctl-artifact-atomic-'));
-  const target = join(cwd, '.skillctl', 'artifacts', 'reports', 'result.json');
+  const cwd = await mkdtemp(join(tmpdir(), 'leogriel-artifact-atomic-'));
+  const target = join(cwd, '.leogriel', 'artifacts', 'reports', 'result.json');
   try {
     await writeArtifact('reports', 'result.json', { value: 'first' }, { cwd });
     const original = await readFile(target, 'utf8');
     await assert.rejects(writeArtifact('reports', 'result.json', { value: 'second' }, { cwd }));
     assert.equal(await readFile(target, 'utf8'), original);
-    assert.deepEqual((await readdir(join(cwd, '.skillctl', 'artifacts', 'reports'))).filter((name) => name.includes('.tmp-')), []);
+    assert.deepEqual((await readdir(join(cwd, '.leogriel', 'artifacts', 'reports'))).filter((name) => name.includes('.tmp-')), []);
   } finally { await rm(cwd, { recursive: true, force: true }); }
 });
 

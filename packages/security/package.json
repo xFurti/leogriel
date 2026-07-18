@@ -1,7 +1,7 @@
 {
-  "name": "@skillctl/security",
+  "name": "@leogriel/security",
   "version": "0.9.0",
-  "description": "Security scanner and audit for skillctl skills",
+  "description": "Offline security audit and SARIF reporting for Leogriel Agent Skills",
   "license": "MIT",
   "author": "xFurti & Gabry848",
   "type": "module",
@@ -19,8 +19,8 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@skillctl/core": "workspace:*",
-    "@skillctl/lockfile": "workspace:*"
+    "@leogriel/core": "workspace:*",
+    "@leogriel/lockfile": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
@@ -32,7 +32,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/xFurti/skillctl.git",
+    "url": "https://github.com/xFurti/leogriel.git",
     "directory": "packages/security"
   },
   "keywords": [

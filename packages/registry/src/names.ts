@@ -1,1 +1,1 @@
-export { canonicalizeName } from '@skillctl/core';
+export { canonicalizeName } from '@leogriel/core';

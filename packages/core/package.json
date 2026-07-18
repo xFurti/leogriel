@@ -1,7 +1,7 @@
 {
-  "name": "@skillctl/core",
+  "name": "@leogriel/core",
   "version": "0.9.0",
-  "description": "Core types, config, and FS utilities for skillctl",
+  "description": "Core types, configuration, parsing, artifacts, and filesystem utilities for Leogriel",
   "license": "MIT",
   "author": "xFurti & Gabry848",
   "type": "module",
@@ -33,7 +33,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/xFurti/skillctl.git",
+    "url": "https://github.com/xFurti/leogriel.git",
     "directory": "packages/core"
   },
   "keywords": [

@@ -3,12 +3,12 @@ import test from 'node:test';
 import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { createDefaultManifest, saveManifest } from '@skillctl/manifest';
-import { createEmptyLockfile, saveLockfile } from '@skillctl/lockfile';
+import { createDefaultManifest, saveManifest } from '@leogriel/manifest';
+import { createEmptyLockfile, saveLockfile } from '@leogriel/lockfile';
 import { recoverProjectState, updateProjectState, withOperationLocks } from '../index.js';
 
 test('commits manifest and lock as one project state update', async () => {
-  const cwd = await mkdtemp(join(tmpdir(), 'skillctl-state-'));
+  const cwd = await mkdtemp(join(tmpdir(), 'leogriel-state-'));
   await saveManifest(createDefaultManifest('before'), cwd);
   await saveLockfile(createEmptyLockfile(), cwd);
   const result = await updateProjectState(cwd, async (state) => {
@@ -22,7 +22,7 @@ test('commits manifest and lock as one project state update', async () => {
 });
 
 test('rolls back manifest when lock validation fails', async () => {
-  const cwd = await mkdtemp(join(tmpdir(), 'skillctl-state-rollback-'));
+  const cwd = await mkdtemp(join(tmpdir(), 'leogriel-state-rollback-'));
   await saveManifest(createDefaultManifest('original'), cwd);
   await saveLockfile(createEmptyLockfile(), cwd);
   const manifestBefore = await readFile(join(cwd, 'agent-skills.json'), 'utf8');
@@ -39,8 +39,25 @@ test('rolls back manifest when lock validation fails', async () => {
 });
 
 test('recovers original files from an interrupted transaction journal', async () => {
-  const cwd = await mkdtemp(join(tmpdir(), 'skillctl-state-recover-'));
+  const cwd = await mkdtemp(join(tmpdir(), 'leogriel-state-recover-'));
   const originalManifest = '{"name":"original"}\n';
+  const originalLock = "lockfileVersion: '1.0'\nskills: {}\n";
+  await writeFile(join(cwd, 'agent-skills.json'), 'changed');
+  await writeFile(join(cwd, 'agent-skills.lock'), 'changed');
+  await writeFile(join(cwd, '.leogriel-transaction.json'), JSON.stringify({
+    version: 1,
+    phase: 'manifest-written',
+    manifest: { exists: true, content: originalManifest },
+    lockfile: { exists: true, content: originalLock },
+  }));
+  assert.equal(await recoverProjectState(cwd), true);
+  assert.equal(await readFile(join(cwd, 'agent-skills.json'), 'utf8'), originalManifest);
+  assert.equal(await readFile(join(cwd, 'agent-skills.lock'), 'utf8'), originalLock);
+});
+
+test('recovers legacy skillctl transaction journals after the rebrand', async () => {
+  const cwd = await mkdtemp(join(tmpdir(), 'leogriel-state-legacy-recover-'));
+  const originalManifest = '{"name":"legacy-original"}\n';
   const originalLock = "lockfileVersion: '1.0'\nskills: {}\n";
   await writeFile(join(cwd, 'agent-skills.json'), 'changed');
   await writeFile(join(cwd, 'agent-skills.lock'), 'changed');
@@ -56,7 +73,7 @@ test('recovers original files from an interrupted transaction journal', async ()
 });
 
 test('serializes concurrent operations using project then store locks', async () => {
-  const cwd = await mkdtemp(join(tmpdir(), 'skillctl-locks-'));
+  const cwd = await mkdtemp(join(tmpdir(), 'leogriel-locks-'));
   const store = join(cwd, 'store');
   await mkdir(store);
   const order: string[] = [];

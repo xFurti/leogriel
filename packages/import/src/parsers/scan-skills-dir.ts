@@ -1,6 +1,6 @@
 import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { parseSkillDirectory } from '@skillctl/core';
+import { parseSkillDirectory } from '@leogriel/core';
 
 export interface DirSkillEntry {
   name: string;

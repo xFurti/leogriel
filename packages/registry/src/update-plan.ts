@@ -1,6 +1,6 @@
 import semver from 'semver';
-import type { SkillLockfile, SkillManifest, UpdateCandidate } from '@skillctl/core';
-import { computeDirIntegrity, resolveEntryCanonicalPath } from '@skillctl/core';
+import type { SkillLockfile, SkillManifest, UpdateCandidate } from '@leogriel/core';
+import { computeDirIntegrity, resolveEntryCanonicalPath } from '@leogriel/core';
 import { RegistryManager } from './manager.js';
 
 export async function planUpdates(
@@ -27,7 +27,7 @@ export async function planUpdates(
       kind: 'none',
     };
     if (specifier.startsWith('local:imported/') || (sourceType !== 'local' && !entry.provenance.commit && !entry.provenance.version)) {
-      return { ...base, status: 'legacy', warning: `Run skillctl update ${name} to create an immutable resolution` };
+      return { ...base, status: 'legacy', warning: `Run leogriel update ${name} to create an immutable resolution` };
     }
     if (sourceType === 'local') {
       try {

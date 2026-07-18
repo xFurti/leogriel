@@ -7,18 +7,18 @@ import {
   formatCanonicalPathForLock,
   getProjectSkillsStore,
   lockToSkillTargets,
-  requireSkillctlProject,
+  requireLeogrielProject,
   type LockfileEntry,
   type Provenance,
-} from '@skillctl/core';
-import { loadLockfile, createEmptyLockfile, addOrUpdateEntry, makeLockEntry } from '@skillctl/lockfile';
-import { RegistryManager } from '@skillctl/registry';
-import { syncSkillsToAgents } from '@skillctl/adapters';
+} from '@leogriel/core';
+import { loadLockfile, createEmptyLockfile, addOrUpdateEntry, makeLockEntry } from '@leogriel/lockfile';
+import { RegistryManager } from '@leogriel/registry';
+import { syncSkillsToAgents } from '@leogriel/adapters';
 import { parseNpxSkillsLock, findNpxLock } from './parsers/npx-skills-lock.js';
 import { scanSkillsDir } from './parsers/scan-skills-dir.js';
 import { scanPythonSkillctlRepos } from './parsers/python-skillctl.js';
 import { discoverProjectSkills } from './discover-project-skills.js';
-import { updateProjectState, withOperationLocks } from '@skillctl/project-state';
+import { updateProjectState, withOperationLocks } from '@leogriel/project-state';
 
 export interface ImportOptions {
   cwd?: string;
@@ -71,7 +71,7 @@ async function materializeLocal(
   await ensureDir(target);
   await cp(localPath, target, { recursive: true, force: true });
   const integrity = await computeDirIntegrity(target);
-  const specifier = `file:./.skillctl/skills/${canonicalName}`;
+  const specifier = `file:./.leogriel/skills/${canonicalName}`;
   return makeLockEntry(
     canonicalName,
     specifier,
@@ -89,7 +89,7 @@ async function registerExistingCanonical(
 ): Promise<LockfileEntry> {
   const canonicalName = canonicalizeName(name);
   const integrity = await computeDirIntegrity(canonicalPath);
-  const specifier = `file:./.skillctl/skills/${canonicalName}`;
+  const specifier = `file:./.leogriel/skills/${canonicalName}`;
   return makeLockEntry(
     canonicalName,
     specifier,
@@ -173,7 +173,7 @@ export async function planImportFromProject(
         name: skill.name,
         action: 'copy-local',
         localPath: chosen.resolvedPath,
-        specifier: `file:./.skillctl/skills/${skill.name}`,
+        specifier: `file:./.leogriel/skills/${skill.name}`,
         adapter: chosen.adapterId,
         originalPath: chosen.relativePath,
         note: `selected ${chosen.relativePath}`,
@@ -191,7 +191,7 @@ export async function planImportFromProject(
         name: skill.name,
         action: 'register-existing',
         localPath: skill.resolvedPath,
-        specifier: `file:./.skillctl/skills/${skill.name}`,
+        specifier: `file:./.leogriel/skills/${skill.name}`,
         adapter: primary?.adapterId,
         originalPath: primary?.relativePath,
         note: skill.note,
@@ -203,7 +203,7 @@ export async function planImportFromProject(
       name: skill.name,
       action: 'copy-local',
       localPath: skill.resolvedPath,
-      specifier: `file:./.skillctl/skills/${skill.name}`,
+      specifier: `file:./.leogriel/skills/${skill.name}`,
       adapter: primary?.adapterId,
       originalPath: primary?.relativePath,
       note: skill.note,
@@ -236,7 +236,7 @@ function shouldSync(opts: ImportOptions): boolean {
 }
 
 export async function executeImport(opts: ImportOptions): Promise<ImportResult> {
-  const cwd = await requireSkillctlProject(opts.cwd || process.cwd());
+  const cwd = await requireLeogrielProject(opts.cwd || process.cwd());
   const result: ImportResult = { plan: [], imported: [], skipped: [], errors: [] };
 
   if (opts.source === 'npx') {
@@ -342,7 +342,7 @@ export async function executeImport(opts: ImportOptions): Promise<ImportResult> 
       };
       let manifest = state.manifest;
       if (shouldWriteManifest(opts)) {
-        manifest = manifest || (await import('@skillctl/manifest')).createDefaultManifest();
+        manifest = manifest || (await import('@leogriel/manifest')).createDefaultManifest();
         if (!manifest.agentSkills) manifest.agentSkills = { dependencies: {}, devDependencies: {} };
         if (!manifest.agentSkills.dependencies) manifest.agentSkills.dependencies = {};
         for (const name of result.imported) {

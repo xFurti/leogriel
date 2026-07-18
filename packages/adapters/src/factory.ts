@@ -1,8 +1,8 @@
 import { isAbsolute, join, resolve } from 'node:path';
 import { homedir } from 'node:os';
-import type { AgentAdapter } from '@skillctl/core';
+import type { AgentAdapter } from '@leogriel/core';
 import { BaseAgentAdapter, basicDetect } from './base/index.js';
-import { pathExists } from '@skillctl/link-manager';
+import { pathExists } from '@leogriel/link-manager';
 
 export interface PathAdapterConfig {
   id: string;

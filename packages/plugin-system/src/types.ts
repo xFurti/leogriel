@@ -1,4 +1,4 @@
-import type { AgentAdapter, CatalogProvider, RegistrySource } from '@skillctl/core';
+import type { AgentAdapter, CatalogProvider, RegistrySource } from '@leogriel/core';
 
 export interface PluginCommand {
   name(): string;
@@ -32,7 +32,7 @@ export interface PluginAuditRule {
   }>>;
 }
 
-export interface SkillctlPlugin {
+export interface LeogrielPlugin {
   name: string;
   version?: string;
   register(api: PluginAPI): void | Promise<void>;

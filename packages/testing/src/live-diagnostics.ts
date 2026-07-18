@@ -1,6 +1,6 @@
 import { readdir } from 'node:fs/promises';
 import { join, relative } from 'node:path';
-import { redactSecrets } from '@skillctl/core';
+import { redactSecrets } from '@leogriel/core';
 
 export interface LiveSmokeDiagnostics {
   exitCode: number | null;

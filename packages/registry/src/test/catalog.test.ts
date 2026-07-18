@@ -20,7 +20,7 @@ function response(status: number, value: unknown, headers: HttpResponse['headers
 }
 
 test('skills.sh catalog validates and maps public search results', async () => {
-  const cacheDir = await mkdtemp(join(tmpdir(), 'skillctl-catalog-'));
+  const cacheDir = await mkdtemp(join(tmpdir(), 'leogriel-catalog-'));
   const client = new FakeHttpClient([response(200, {
     skills: [{ id: 'vercel-labs/skills/find-skills', name: 'find-skills', source: 'vercel-labs/skills', installs: 42 }],
   })]);
@@ -60,7 +60,7 @@ test('catalog manager always applies the producing provider namespace', async ()
 });
 
 test('skills.sh catalog retries and falls back to stale cache', async () => {
-  const cacheDir = await mkdtemp(join(tmpdir(), 'skillctl-catalog-cache-'));
+  const cacheDir = await mkdtemp(join(tmpdir(), 'leogriel-catalog-cache-'));
   let now = 1_000;
   const first = new SkillsShCatalogProvider(new FakeHttpClient([response(200, {
     skills: [{ id: 'owner/repo/demo', name: 'demo', source: 'owner/repo', installs: 1 }],
@@ -77,7 +77,7 @@ test('skills.sh catalog retries and falls back to stale cache', async () => {
 });
 
 test('locates a unique skill by frontmatter name', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'skillctl-selector-'));
+  const root = await mkdtemp(join(tmpdir(), 'leogriel-selector-'));
   const selected = join(root, 'skills', 'nested-name');
   await mkdir(selected, { recursive: true });
   await writeFile(join(selected, 'SKILL.md'), '---\nname: chosen-skill\ndescription: test\n---\n');

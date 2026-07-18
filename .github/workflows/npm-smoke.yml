@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Exact @skillctl/cli version or latest
+        description: Exact @leogriel/cli version or latest
         required: true
         default: latest
         type: string

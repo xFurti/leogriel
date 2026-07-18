@@ -1,6 +1,11 @@
 import type { LockfileEntry, SkillLockfile, SkillManifest } from './types.js';
 
-const PORTABLE_CANONICAL_PREFIXES = ['~/.skillctl/skills/', '.skillctl/skills/'];
+const PORTABLE_CANONICAL_PREFIXES = [
+  '~/.leogriel/skills/',
+  '.leogriel/skills/',
+  '~/.skillctl/skills/',
+  '.skillctl/skills/',
+];
 
 export function isPortableCanonicalPath(path: string): boolean {
   return PORTABLE_CANONICAL_PREFIXES.some((prefix) => path.startsWith(prefix));
@@ -16,12 +21,12 @@ export function isPortableSpecifier(spec: string): boolean {
 function checkEntry(name: string, field: string, value: string, warnings: string[]): void {
   if (field === 'canonicalPath') {
     if (!isPortableCanonicalPath(value)) {
-      warnings.push(`${name}: lock ${field} is not portable (${value}) — run skillctl install to rewrite`);
+      warnings.push(`${name}: lock ${field} is not portable (${value}) — run leogriel install to rewrite`);
     }
     return;
   }
   if (!isPortableSpecifier(value)) {
-    warnings.push(`${name}: lock ${field} is not portable (${value}) — run skillctl install to rewrite`);
+    warnings.push(`${name}: lock ${field} is not portable (${value}) — run leogriel install to rewrite`);
   }
 }
 
@@ -44,7 +49,7 @@ export function findPortablePathWarnings(
   };
   for (const [name, spec] of Object.entries(deps)) {
     if (!isPortableSpecifier(spec)) {
-      warnings.push(`${name}: manifest specifier is not portable (${spec}) — run skillctl add/install to rewrite`);
+      warnings.push(`${name}: manifest specifier is not portable (${spec}) — run leogriel add/install to rewrite`);
     }
   }
 
@@ -61,13 +66,13 @@ export function findLockReproducibilityWarnings(lock: SkillLockfile): string[] {
     if (entry.provenance.type === 'github' || entry.provenance.type === 'skills.sh') {
       const immutableResolved = /@[0-9a-f]{40}(?:#|\/|$)/i.test(entry.resolved);
       if (!FULL_COMMIT.test(entry.provenance.commit || '') || !immutableResolved) {
-        warnings.push(`mutable-resolution: ${name} is not pinned to a full Git commit — run skillctl update ${name}`);
+        warnings.push(`mutable-resolution: ${name} is not pinned to a full Git commit — run leogriel update ${name}`);
       }
     }
     if (entry.provenance.type === 'npm') {
       const version = entry.provenance.version || '';
       if (!EXACT_NPM_VERSION.test(version) || !entry.provenance.tarballHash) {
-        warnings.push(`mutable-resolution: ${name} is missing an exact npm version or tarball integrity — run skillctl update ${name}`);
+        warnings.push(`mutable-resolution: ${name} is missing an exact npm version or tarball integrity — run leogriel update ${name}`);
       }
     }
     if (entry.specifier.startsWith('local:imported/')) {

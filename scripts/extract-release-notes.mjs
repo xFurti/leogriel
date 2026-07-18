@@ -23,7 +23,7 @@ async function main() {
   const index = versions.indexOf(version);
   const previous = versions.slice(index + 1).find((candidate) => /^\d+\.\d+\.\d+/.test(candidate));
   const comparison = previous
-    ? `\n\n[Compare v${previous}...v${version}](https://github.com/xFurti/skillctl/compare/v${previous}...v${version})`
+    ? `\n\n[Compare v${previous}...v${version}](https://github.com/xFurti/leogriel/compare/v${previous}...v${version})`
     : '';
   process.stdout.write(`${extractReleaseNotes(changelog, version)}${comparison}\n`);
 }

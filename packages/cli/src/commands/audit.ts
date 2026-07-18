@@ -1,12 +1,12 @@
 import { cliLog, writeCliRaw } from '../lib/output.js';
 import type { Command } from 'commander';
 import { writeFile } from 'node:fs/promises';
-import { auditReportToSarif, runAudit, auditExitCode } from '@skillctl/security';
-import type { AuditFinding } from '@skillctl/security';
-import { getProjectSkillsStore, requireSkillctlProject, resolveEntryCanonicalPath } from '@skillctl/core';
-import { loadLockfile } from '@skillctl/lockfile';
-import { getPluginAuditRules } from '@skillctl/plugin-system';
-import { SkillctlError, handleCommandError } from '../lib/errors.js';
+import { auditReportToSarif, runAudit, auditExitCode } from '@leogriel/security';
+import type { AuditFinding } from '@leogriel/security';
+import { getProjectSkillsStore, requireLeogrielProject, resolveEntryCanonicalPath } from '@leogriel/core';
+import { loadLockfile } from '@leogriel/lockfile';
+import { getPluginAuditRules } from '@leogriel/plugin-system';
+import { LeogrielError, handleCommandError } from '../lib/errors.js';
 
 export function registerAudit(program: Command): void {
   program
@@ -18,10 +18,10 @@ export function registerAudit(program: Command): void {
     .option('--strict', 'treat warnings as errors (exit 2)')
     .action(async (options) => {
       try {
-        if (!['table', 'sarif'].includes(options.format)) throw new SkillctlError('--format must be table or sarif', 'INVALID_OPTIONS', 2);
-        if (options.json && options.format !== 'table') throw new SkillctlError('--json cannot be combined with --format sarif', 'INVALID_OPTIONS', 2);
-        if (options.output && options.format !== 'sarif') throw new SkillctlError('--output requires --format sarif', 'INVALID_OPTIONS', 2);
-        const cwd = await requireSkillctlProject();
+        if (!['table', 'sarif'].includes(options.format)) throw new LeogrielError('--format must be table or sarif', 'INVALID_OPTIONS', 2);
+        if (options.json && options.format !== 'table') throw new LeogrielError('--json cannot be combined with --format sarif', 'INVALID_OPTIONS', 2);
+        if (options.output && options.format !== 'sarif') throw new LeogrielError('--output requires --format sarif', 'INVALID_OPTIONS', 2);
+        const cwd = await requireLeogrielProject();
         const report = await runAudit(cwd, { store: getProjectSkillsStore(cwd) });
         await appendPluginFindings(report, cwd);
         if (options.json) cliLog(JSON.stringify(report, null, 2));
@@ -32,7 +32,7 @@ export function registerAudit(program: Command): void {
             cliLog(`Wrote SARIF report to ${options.output}.`);
           } else writeCliRaw('stdout', serialized);
         } else {
-          cliLog(`skillctl audit — scanned ${report.scanned} skill(s), status: ${report.status}`);
+          cliLog(`leogriel audit — scanned ${report.scanned} skill(s), status: ${report.status}`);
           for (const finding of report.findings) cliLog(`  [${finding.severity}] ${finding.skill} (${finding.rule}): ${finding.message}`);
           if (!report.findings.length) cliLog('  No issues found.');
         }

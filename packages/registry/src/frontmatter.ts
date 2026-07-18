@@ -1,5 +1,5 @@
 import { basename } from 'node:path';
-import { parseSkillDirectory } from '@skillctl/core';
+import { parseSkillDirectory } from '@leogriel/core';
 
 export async function parseSkillFrontmatterAsync(skillDir: string): Promise<{ name?: string; description?: string }> {
   try {

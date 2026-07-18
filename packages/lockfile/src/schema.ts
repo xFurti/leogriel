@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { canonicalizeName, type SkillLockfile, type LockfileEntry, type Provenance } from '@skillctl/core';
+import { canonicalizeName, type SkillLockfile, type LockfileEntry, type Provenance } from '@leogriel/core';
 
 export const ProvenanceSchema = z.object({
   type: z.enum(['github', 'npm', 'local', 'skills.sh', 'other']),

@@ -20,9 +20,9 @@ import {
 async function runTests() {
   console.log('Running PR6 adapter detect + ensure tests...');
 
-  const tmp = await mkdtemp(join(tmpdir(), 'skillctl-adapters-test-'));
-  const originalStore = process.env.SKILLCTL_STORE;
-  process.env.SKILLCTL_STORE = join(tmp, 'canonical');
+  const tmp = await mkdtemp(join(tmpdir(), 'leogriel-adapters-test-'));
+  const originalStore = process.env.LEOGRIEL_STORE;
+  process.env.LEOGRIEL_STORE = join(tmp, 'canonical');
   const projectDir = join(tmp, 'project');
   await mkdir(projectDir, { recursive: true });
 
@@ -64,7 +64,7 @@ async function runTests() {
     assert.ok(coexist.detected, 'coexistence should detect .agents + lock');
     assert.ok(coexist.details.some((d) => d.includes('.agents/skills')));
     assert.ok(coexist.details.some((d) => d.includes('skills-lock.json')));
-    assert.ok(coexist.recommendations.some((recommendation) => recommendation.includes('skillctl import --dry-run')));
+    assert.ok(coexist.recommendations.some((recommendation) => recommendation.includes('leogriel import --dry-run')));
     await rm(join(projectDir, '.agents'), { recursive: true, force: true });
     await rm(join(projectDir, 'skills-lock.json'), { force: true });
 
@@ -177,8 +177,8 @@ async function runTests() {
   } finally {
     // restore
     process.cwd = origCwd;
-    if (originalStore === undefined) delete process.env.SKILLCTL_STORE;
-    else process.env.SKILLCTL_STORE = originalStore;
+    if (originalStore === undefined) delete process.env.LEOGRIEL_STORE;
+    else process.env.LEOGRIEL_STORE = originalStore;
     await rm(tmp, { recursive: true, force: true });
   }
 }

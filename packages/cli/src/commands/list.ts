@@ -1,8 +1,8 @@
 import { cliLog } from '../lib/output.js';
 import type { Command } from 'commander';
-import { loadManifest } from '@skillctl/manifest';
-import { loadLockfile } from '@skillctl/lockfile';
-import { getGlobalSkillctlRoot, requireSkillctlProject } from '@skillctl/core';
+import { loadManifest } from '@leogriel/manifest';
+import { loadLockfile } from '@leogriel/lockfile';
+import { getGlobalLeogrielRoot, requireLeogrielProject } from '@leogriel/core';
 
 export function registerList(program: Command): void {
   program
@@ -11,7 +11,7 @@ export function registerList(program: Command): void {
     .option('--json', 'output JSON')
     .option('-g, --global', 'list globally installed skills')
     .action(async (options) => {
-      const cwd = options.global ? getGlobalSkillctlRoot() : await requireSkillctlProject();
+      const cwd = options.global ? getGlobalLeogrielRoot() : await requireLeogrielProject();
       const manifest = await loadManifest(cwd);
       const lock = await loadLockfile(cwd);
       const skills = lock ? Object.keys(lock.skills) : [];
@@ -21,11 +21,11 @@ export function registerList(program: Command): void {
         return;
       }
 
-      cliLog('skillctl list');
+      cliLog('leogriel list');
       if (manifest) {
         cliLog('Manifest deps:', Object.keys(manifest.agentSkills?.dependencies || {}).length);
       } else {
-        cliLog('No agent-skills.json (run `skillctl init`)');
+        cliLog('No agent-skills.json (run `leogriel init`)');
       }
       cliLog('Skills in lock:', skills.length ? skills.join(', ') : '(none)');
     });

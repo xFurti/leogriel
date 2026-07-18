@@ -1,11 +1,11 @@
 lockfileVersion: '1.0'
 skills:
-  skillctl:
-    specifier: file:./.skillctl/skills/skillctl
-    resolved: file:./.skillctl/skills/skillctl
-    integrity: sha256:eb9998a3506dd8e62b85988810e8ca62996c4f9d8d74460b4edc1d82795992a6
-    name: skillctl
-    canonicalPath: .skillctl/skills/skillctl
-    fetchedAt: '2026-07-14T14:59:13.785Z'
+  leogriel:
+    specifier: file:./.leogriel/skills/leogriel
+    resolved: file:./.leogriel/skills/leogriel
+    integrity: sha256:7492b1f0de1fe297c8845c8667db86a89560ed8bd6c18ae7fa85d80add67df94
+    name: leogriel
+    canonicalPath: .leogriel/skills/leogriel
+    fetchedAt: '2026-07-18T00:00:00.000Z'
     provenance:
       type: local

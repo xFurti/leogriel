@@ -1,11 +1,11 @@
-# skillctl commands
+# Leogriel commands
 
 | Command | Purpose |
 |---------|---------|
 | `init` | Create `agent-skills.json`; `--with-skill` adds the first-party meta-skill |
 | `add <spec>` | Resolve and vendor a project skill; update manifest and lock |
 | `add -g <spec>` | Install and sync an explicit personal/global skill |
-| `install` / `i` | Install project manifest dependencies into `.skillctl/skills`; sync by default |
+| `install` / `i` | Install project manifest dependencies into `.leogriel/skills`; sync by default |
 | `sync` | Refresh managed agent targets; filter scope/agent and optionally prune |
 | `list` / `list -g` | Show project or global entries |
 | `remove <name>` | Remove a project entry; `--purge` also deletes its vendored content |

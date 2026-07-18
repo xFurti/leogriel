@@ -14,7 +14,7 @@ export interface ArtifactEnvelope<T> {
 }
 
 export function artifactRoot(cwd = process.cwd(), scope: 'project' | 'global' = 'project'): string {
-  return scope === 'global' ? join(homedir(), '.skillctl', 'artifacts') : resolve(cwd, '.skillctl', 'artifacts');
+  return scope === 'global' ? join(homedir(), '.leogriel', 'artifacts') : resolve(cwd, '.leogriel', 'artifacts');
 }
 
 export async function writeArtifact<T>(

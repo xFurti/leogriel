@@ -1,7 +1,7 @@
 {
-  "name": "@skillctl/registry",
+  "name": "@leogriel/registry",
   "version": "0.9.0",
-  "description": "Registry manager, sources (github, local, skills.sh, basic npm) + resolution + materialize + integrity for skillctl",
+  "description": "Immutable GitHub, npm, local, and skills.sh source resolution for Leogriel",
   "license": "MIT",
   "author": "xFurti & Gabry848",
   "type": "module",
@@ -20,10 +20,10 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@skillctl/core": "workspace:*",
-    "@skillctl/lockfile": "workspace:*",
-    "@skillctl/manifest": "workspace:*",
-    "@skillctl/project-state": "workspace:*",
+    "@leogriel/core": "workspace:*",
+    "@leogriel/lockfile": "workspace:*",
+    "@leogriel/manifest": "workspace:*",
+    "@leogriel/project-state": "workspace:*",
     "js-yaml": "^4.1.0",
     "semver": "^7.6.3",
     "tar": "^7.5.16"
@@ -41,7 +41,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/xFurti/skillctl.git",
+    "url": "https://github.com/xFurti/leogriel.git",
     "directory": "packages/registry"
   },
   "keywords": [

@@ -1,13 +1,13 @@
 import { cp, stat } from 'node:fs/promises';
 import { isAbsolute, join, normalize as pathNormalize } from 'node:path';
-import type { RegistrySource, ResolvedSource } from '@skillctl/core';
+import type { RegistrySource, ResolvedSource } from '@leogriel/core';
 import {
   ensureDir,
   computeDirIntegrity,
   loadConfig,
   parseImportedSpecifier,
   normalizeLocalSpecifier,
-} from '@skillctl/core';
+} from '@leogriel/core';
 
 export class LocalSource implements RegistrySource {
   readonly id = 'local';
@@ -73,7 +73,7 @@ export class LocalSource implements RegistrySource {
       await stat(resolved.localPath);
     } catch {
       const hint = parseImportedSpecifier(resolved.originalSpec)
-        ? ' Skill was imported locally; re-run `skillctl import` or add it from a remote source.'
+        ? ' Skill was imported locally; re-run `leogriel import` or add it from a remote source.'
         : '';
       throw new Error(`Local skill path not found: ${resolved.localPath}.${hint}`);
     }

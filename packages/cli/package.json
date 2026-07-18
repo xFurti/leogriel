@@ -1,19 +1,19 @@
 {
-  "name": "@skillctl/cli",
+  "name": "@leogriel/cli",
   "version": "0.9.0",
-  "description": "skillctl CLI - universal manager for Agent Skills",
+  "description": "Leogriel CLI ? weave Agent Skills into every workflow",
   "license": "MIT",
   "author": "xFurti & Gabry848",
   "contributors": [
     "xFurti <https://github.com/xFurti>",
     "Gabry848 <https://github.com/gabry848>"
   ],
-  "bugs": "https://github.com/xFurti/skillctl/issues",
-  "homepage": "https://xfurti.github.io/skillctl/",
+  "bugs": "https://github.com/xFurti/leogriel/issues",
+  "homepage": "https://xfurti.github.io/leogriel/",
   "type": "module",
   "main": "./dist/index.js",
   "bin": {
-    "skillctl": "./bin/skillctl.js"
+    "leogriel": "./bin/leogriel.js"
   },
   "files": [
     "bin",
@@ -31,17 +31,17 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@skillctl/core": "workspace:*",
-    "@skillctl/manifest": "workspace:*",
-    "@skillctl/lockfile": "workspace:*",
-    "@skillctl/registry": "workspace:*",
-    "@skillctl/link-manager": "workspace:*",
-    "@skillctl/adapters": "workspace:*",
-    "@skillctl/import": "workspace:*",
-    "@skillctl/security": "workspace:*",
-    "@skillctl/plugin-system": "workspace:*",
-    "@skillctl/project-state": "workspace:*",
-    "@skillctl/testing": "workspace:*",
+    "@leogriel/core": "workspace:*",
+    "@leogriel/manifest": "workspace:*",
+    "@leogriel/lockfile": "workspace:*",
+    "@leogriel/registry": "workspace:*",
+    "@leogriel/link-manager": "workspace:*",
+    "@leogriel/adapters": "workspace:*",
+    "@leogriel/import": "workspace:*",
+    "@leogriel/security": "workspace:*",
+    "@leogriel/plugin-system": "workspace:*",
+    "@leogriel/project-state": "workspace:*",
+    "@leogriel/testing": "workspace:*",
     "@clack/prompts": "^0.11.0",
     "commander": "^12.1.0"
   },
@@ -55,7 +55,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/xFurti/skillctl.git",
+    "url": "https://github.com/xFurti/leogriel.git",
     "directory": "packages/cli"
   },
   "keywords": [

@@ -14,5 +14,5 @@ export const releasePackages = [
 ];
 
 export function archiveName(packageName, version) {
-  return `skillctl-${packageName}-${version}.tgz`;
+  return `leogriel-${packageName}-${version}.tgz`;
 }

@@ -1,10 +1,11 @@
 import { readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { writeFileAtomic, type SkillLockfile } from '@skillctl/core';
-import { loadManifest, saveManifest, type AgentSkillsManifest } from '@skillctl/manifest';
-import { loadLockfile, saveLockfile } from '@skillctl/lockfile';
+import { writeFileAtomic, type SkillLockfile } from '@leogriel/core';
+import { loadManifest, saveManifest, type AgentSkillsManifest } from '@leogriel/manifest';
+import { loadLockfile, saveLockfile } from '@leogriel/lockfile';
 
-const JOURNAL_NAME = '.skillctl-transaction.json';
+const JOURNAL_NAME = '.leogriel-transaction.json';
+const LEGACY_JOURNAL_NAME = '.skillctl-transaction.json';
 
 export interface ProjectState {
   manifest: AgentSkillsManifest | null;
@@ -74,13 +75,22 @@ export async function updateProjectState<T>(
 }
 
 export async function recoverProjectState(cwd: string): Promise<boolean> {
-  const journalPath = join(cwd, JOURNAL_NAME);
+  let journalPath = join(cwd, JOURNAL_NAME);
   let journal: TransactionJournal;
   try {
     journal = JSON.parse(await readFile(journalPath, 'utf8')) as TransactionJournal;
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return false;
-    throw new Error(`Invalid project transaction journal: ${journalPath}`, { cause: err });
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+      journalPath = join(cwd, LEGACY_JOURNAL_NAME);
+      try {
+        journal = JSON.parse(await readFile(journalPath, 'utf8')) as TransactionJournal;
+      } catch (legacyError) {
+        if ((legacyError as NodeJS.ErrnoException).code === 'ENOENT') return false;
+        throw new Error(`Invalid project transaction journal: ${journalPath}`, { cause: legacyError });
+      }
+    } else {
+      throw new Error(`Invalid project transaction journal: ${journalPath}`, { cause: err });
+    }
   }
   if (journal.version !== 1) throw new Error(`Unsupported project transaction journal: ${journal.version}`);
   await restore(join(cwd, 'agent-skills.json'), journal.manifest);

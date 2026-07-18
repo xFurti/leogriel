@@ -5,7 +5,7 @@ import lockfile from 'proper-lockfile';
 export class OperationLockError extends Error {
   readonly code = 'E_LOCK_TIMEOUT';
   constructor(path: string, cause?: unknown) {
-    super(`Timed out waiting for skillctl operation lock: ${path}`, { cause });
+    super(`Timed out waiting for leogriel operation lock: ${path}`, { cause });
     this.name = 'OperationLockError';
   }
 }
@@ -24,8 +24,8 @@ export async function withOperationLocks<T>(
   await mkdir(options.store, { recursive: true });
   const timeoutMs = options.timeoutMs ?? 10_000;
   const retries = Math.max(1, Math.ceil(timeoutMs / 250));
-  const projectLockPath = join(options.cwd, '.skillctl-operation.lock');
-  const storeLockPath = join(options.store, '.skillctl-store.lock');
+  const projectLockPath = join(options.cwd, '.leogriel-operation.lock');
+  const storeLockPath = join(options.store, '.leogriel-store.lock');
   let releaseProject: (() => Promise<void>) | undefined;
   let releaseStore: (() => Promise<void>) | undefined;
   try {

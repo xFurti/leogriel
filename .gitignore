@@ -42,17 +42,18 @@ coverage/
 .pnpm-store/
 
 # Project skill store. Ignore local state by default, but dogfood the first-party skill.
-.skillctl/*
-!.skillctl/artifacts/
-.skillctl/artifacts/**
-!.skillctl/tests/
-!.skillctl/tests/**
-!.skillctl/skills/
-.skillctl/skills/*
-!.skillctl/skills/skillctl/
-!.skillctl/skills/skillctl/**
+.skillctl/
+.leogriel/*
+!.leogriel/artifacts/
+.leogriel/artifacts/**
+!.leogriel/tests/
+!.leogriel/tests/**
+!.leogriel/skills/
+.leogriel/skills/*
+!.leogriel/skills/leogriel/
+!.leogriel/skills/leogriel/**
 
-# Agent skill links (created by skillctl sync in local dev)
+# Agent skill links (created by leogriel sync in local dev)
 .agents/
 .claude/
 .codex/
@@ -64,7 +65,7 @@ coverage/
 agent-skills.json
 agent-skills.lock
 
-# skillctl repo dogfoods its own manifest + lock at repository root
+# leogriel repo dogfoods its own manifest + lock at repository root
 !/agent-skills.json
 !/agent-skills.lock
 
@@ -76,6 +77,10 @@ terminals/
 # Misc
 *.tgz
 *.tar.gz
+.leogriel-transaction.json
+.leogriel-transaction-*
+.leogriel-operation.lock
+.leogriel-store.lock
 .skillctl-transaction.json
 .skillctl-transaction-*
 .skillctl-operation.lock

@@ -1,6 +1,6 @@
 import { stat } from 'node:fs/promises';
 import { basename, join, resolve } from 'node:path';
-import { canonicalizeName, parseSkillDirectory } from '@skillctl/core';
+import { canonicalizeName, parseSkillDirectory } from '@leogriel/core';
 import type { AuditFinding, AuditReport } from './types.js';
 import { checkNameDirMatch } from './rules/name-dir-match.js';
 import { checkScriptHeuristics } from './rules/script-heuristics.js';

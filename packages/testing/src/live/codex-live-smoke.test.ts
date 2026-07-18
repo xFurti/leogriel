@@ -16,14 +16,14 @@ import {
   type LiveSmokeDiagnostics,
 } from '../index.js';
 
-const enabled = process.env.SKILLCTL_LIVE_CODEX === '1';
-const debug = process.env.SKILLCTL_LIVE_DEBUG === '1';
-const keepFailedWorkspace = process.env.SKILLCTL_LIVE_KEEP_WORKSPACE === '1';
+const enabled = process.env.LEOGRIEL_LIVE_CODEX === '1';
+const debug = process.env.LEOGRIEL_LIVE_DEBUG === '1';
+const keepFailedWorkspace = process.env.LEOGRIEL_LIVE_KEEP_WORKSPACE === '1';
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
 
 test('live Codex creates the requested file with network disabled', { skip: !enabled }, async () => {
-  const model = process.env.SKILLCTL_LIVE_MODEL;
-  assert.ok(model, 'SKILLCTL_LIVE_MODEL must contain one exact Codex model ID');
+  const model = process.env.LEOGRIEL_LIVE_MODEL;
+  assert.ok(model, 'LEOGRIEL_LIVE_MODEL must contain one exact Codex model ID');
   const isolation = await createIsolation();
   let result: AgentRunResult | undefined;
   let failed = false;
@@ -35,7 +35,7 @@ test('live Codex creates the requested file with network disabled', { skip: !ena
       prompt: [
         'Use the terminal tool. Do not only explain the solution.',
         'Run Node to:',
-        '1. create output.txt containing exactly `skillctl-live-smoke`;',
+        '1. create output.txt containing exactly `leogriel-live-smoke`;',
         '2. create node-proof.txt containing exactly the value of process.version;',
         '3. read both files and verify their contents before finishing.',
         'The files must be created in the current workspace. Do not infer or manually type the Node.js version.',
@@ -53,7 +53,7 @@ test('live Codex creates the requested file with network disabled', { skip: !ena
       result.ok ? undefined : result.error || 'Codex runner did not complete successfully',
       result.requestedModel === model ? undefined : 'The requested model was not preserved',
       output.exists ? undefined : 'output.txt was not created',
-      output.value === 'skillctl-live-smoke' ? undefined : 'output.txt content is not exact',
+      output.value === 'leogriel-live-smoke' ? undefined : 'output.txt content is not exact',
       nodeProof.exists ? undefined : 'node-proof.txt was not created',
       nodeProof.value === process.version ? undefined : `node-proof.txt does not equal process.version (${process.version})`,
     ].filter((item): item is string => Boolean(item));
@@ -65,7 +65,7 @@ test('live Codex creates the requested file with network disabled', { skip: !ena
     assert.equal(result.ok, true, result.error);
     assert.equal(result.requestedModel, model);
     assert.equal(output.exists, true, 'output.txt must exist');
-    assert.equal(output.value, 'skillctl-live-smoke', 'output.txt must contain the exact expected value');
+    assert.equal(output.value, 'leogriel-live-smoke', 'output.txt must contain the exact expected value');
     assert.equal(nodeProof.exists, true, 'node-proof.txt must exist');
     assert.equal(nodeProof.value, process.version, 'node-proof.txt must contain the exact process.version value');
   } catch (error) {
@@ -111,7 +111,7 @@ async function printDiagnostics(result: AgentRunResult | undefined, workspace: s
 async function preserveFailedWorkspace(workspace: string): Promise<string> {
   const destination = join(
     repositoryRoot,
-    '.skillctl',
+    '.leogriel',
     'artifacts',
     'test',
     'live',

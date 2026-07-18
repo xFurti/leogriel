@@ -1,7 +1,7 @@
 {
-  "name": "@skillctl/project-state",
+  "name": "@leogriel/project-state",
   "version": "0.9.0",
-  "description": "Cross-process locks and transactional project state updates for skillctl",
+  "description": "Transactional project state and cross-process operation locks for Leogriel",
   "license": "MIT",
   "author": "xFurti & Gabry848",
   "type": "module",
@@ -20,9 +20,9 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@skillctl/core": "workspace:*",
-    "@skillctl/manifest": "workspace:*",
-    "@skillctl/lockfile": "workspace:*",
+    "@leogriel/core": "workspace:*",
+    "@leogriel/manifest": "workspace:*",
+    "@leogriel/lockfile": "workspace:*",
     "proper-lockfile": "4.1.2"
   },
   "devDependencies": {
@@ -36,7 +36,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/xFurti/skillctl.git",
+    "url": "https://github.com/xFurti/leogriel.git",
     "directory": "packages/project-state"
   }
 }

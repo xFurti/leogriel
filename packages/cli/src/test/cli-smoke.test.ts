@@ -6,12 +6,12 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { computeDirIntegrity, formatCanonicalPathForLock } from '@skillctl/core';
-import { createEmptyLockfile, makeLockEntry, saveLockfile } from '@skillctl/lockfile';
+import { computeDirIntegrity, formatCanonicalPathForLock } from '@leogriel/core';
+import { createEmptyLockfile, makeLockEntry, saveLockfile } from '@leogriel/lockfile';
 
 const execFileAsync = promisify(execFile);
 const here = dirname(fileURLToPath(import.meta.url));
-const cli = join(here, '..', '..', 'bin', 'skillctl.js');
+const cli = join(here, '..', '..', 'bin', 'leogriel.js');
 
 test('CLI awaits async parsing and reports its version', async () => {
   const { stdout } = await execFileAsync(process.execPath, [cli, '--version']);
@@ -20,7 +20,7 @@ test('CLI awaits async parsing and reports its version', async () => {
 });
 
 test('frozen install rejects a manifest dependency missing from the lockfile', async () => {
-  const cwd = await mkdtemp(join(tmpdir(), 'skillctl-frozen-'));
+  const cwd = await mkdtemp(join(tmpdir(), 'leogriel-frozen-'));
   await writeFile(
     join(cwd, 'agent-skills.json'),
     JSON.stringify({ agentSkills: { dependencies: { demo: 'github:owner/demo' } } })
@@ -34,8 +34,8 @@ test('frozen install rejects a manifest dependency missing from the lockfile', a
 });
 
 test('frozen install restores an empty store without changing the lockfile', async () => {
-  const cwd = await mkdtemp(join(tmpdir(), 'skillctl-frozen-restore-'));
-  const store = join(cwd, '.skillctl', 'skills');
+  const cwd = await mkdtemp(join(tmpdir(), 'leogriel-frozen-restore-'));
+  const store = join(cwd, '.leogriel', 'skills');
   const source = join(cwd, 'demo-skill');
   await mkdir(source);
   await writeFile(join(source, 'SKILL.md'), '---\nname: demo\n---\nlocked content\n');
@@ -72,11 +72,11 @@ test('frozen install restores an empty store without changing the lockfile', asy
 });
 
 test('JSON mode emits one stable envelope without human output', async () => {
-  const cwd = await mkdtemp(join(tmpdir(), 'skillctl-json-'));
+  const cwd = await mkdtemp(join(tmpdir(), 'leogriel-json-'));
   const store = join(cwd, '.store');
   const init = await execFileAsync(process.execPath, [cli, 'init', '--no-prompt', '--json'], {
     cwd,
-    env: { ...process.env, SKILLCTL_STORE: store },
+    env: { ...process.env, LEOGRIEL_STORE: store },
   });
   const initEnvelope = JSON.parse(init.stdout);
   assert.equal(initEnvelope.schemaVersion, 1);
@@ -86,7 +86,7 @@ test('JSON mode emits one stable envelope without human output', async () => {
 
   const list = await execFileAsync(process.execPath, [cli, 'list', '--json'], {
     cwd,
-    env: { ...process.env, SKILLCTL_STORE: store },
+    env: { ...process.env, LEOGRIEL_STORE: store },
   });
   const listEnvelope = JSON.parse(list.stdout);
   assert.equal(listEnvelope.schemaVersion, 1);
@@ -96,11 +96,11 @@ test('JSON mode emits one stable envelope without human output', async () => {
 });
 
 test('JSON mode wraps command failures and uses exit code 2', async () => {
-  const cwd = await mkdtemp(join(tmpdir(), 'skillctl-json-error-'));
+  const cwd = await mkdtemp(join(tmpdir(), 'leogriel-json-error-'));
   await assert.rejects(
     execFileAsync(process.execPath, [cli, 'sync', '--json'], {
       cwd,
-      env: { ...process.env, SKILLCTL_STORE: join(cwd, '.store') },
+      env: { ...process.env, LEOGRIEL_STORE: join(cwd, '.store') },
     }),
     (err: NodeJS.ErrnoException & { code?: number; stdout?: string }) => {
       const envelope = JSON.parse(err.stdout || '{}');

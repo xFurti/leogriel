@@ -22,7 +22,7 @@ export interface IsolationLayout {
 
 export async function createIsolation(fixture?: string): Promise<IsolationLayout> {
   if (fixture) await validateFixture(fixture);
-  const root = await mkdtemp(join(tmpdir(), 'skillctl-test-isolation-'));
+  const root = await mkdtemp(join(tmpdir(), 'leogriel-test-isolation-'));
   const layout: IsolationLayout = {
     root,
     workspace: join(root, 'workspace'),

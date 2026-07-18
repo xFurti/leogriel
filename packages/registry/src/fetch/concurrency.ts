@@ -1,4 +1,7 @@
-const MAX_PARALLEL = Math.max(1, Math.min(16, parseInt(process.env.SKILLCTL_PARALLEL || '6', 10) || 6));
+const MAX_PARALLEL = Math.max(
+  1,
+  Math.min(16, parseInt(process.env.LEOGRIEL_PARALLEL ?? process.env.SKILLCTL_PARALLEL ?? '6', 10) || 6),
+);
 
 function createConcurrencyLimiter(maxConcurrent: number) {
   let active = 0;

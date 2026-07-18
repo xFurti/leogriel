@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash, randomUUID } from 'node:crypto';
 import * as tar from 'tar';
-import { getCachedDownload, putCachedDownload } from '@skillctl/core';
+import { getCachedDownload, putCachedDownload } from '@leogriel/core';
 import { defaultHttpClient, type HttpClient } from './https.js';
 
 export function computeSha1(buf: Buffer): string {
@@ -26,7 +26,7 @@ export async function fetchCachedBuffer(
   const buf = response.body;
   if (options.cache === false) return buf;
 
-  const tmp = join(tmpdir(), `skillctl-dl-${randomUUID()}.tgz`);
+  const tmp = join(tmpdir(), `leogriel-dl-${randomUUID()}.tgz`);
   await writeFile(tmp, buf);
   await putCachedDownload(key, tmp).catch(() => {});
   await rm(tmp, { force: true }).catch(() => {});

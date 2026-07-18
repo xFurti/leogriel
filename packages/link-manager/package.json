@@ -1,7 +1,7 @@
 {
-  "name": "@skillctl/link-manager",
+  "name": "@leogriel/link-manager",
   "version": "0.9.0",
-  "description": "Link manager for symlinks, junctions, copies across agent adapters for skillctl",
+  "description": "Cross-platform symlink, junction, and managed-copy support for Leogriel",
   "license": "MIT",
   "author": "xFurti & Gabry848",
   "type": "module",
@@ -20,7 +20,7 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@skillctl/core": "workspace:*"
+    "@leogriel/core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
@@ -32,7 +32,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/xFurti/skillctl.git",
+    "url": "https://github.com/xFurti/leogriel.git",
     "directory": "packages/link-manager"
   },
   "keywords": [

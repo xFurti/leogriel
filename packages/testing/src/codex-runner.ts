@@ -65,7 +65,7 @@ export class CodexRunner implements AgentRunner {
     const baseEnvironment = isolatedEnvironment(layout);
     if (request.auth.mode === 'chatgpt') {
       if (isInside(request.isolationRoot, request.auth.codexHome)) {
-        return incompleteAuthResult(request, started, 'SKILLCTL_CODEX_AUTH_HOME must be outside the temporary isolation root');
+        return incompleteAuthResult(request, started, 'LEOGRIEL_CODEX_AUTH_HOME must be outside the temporary isolation root');
       }
       const status = await this.invoke(['login', 'status'], 10_000, {
         env: { ...baseEnvironment, CODEX_HOME: request.auth.codexHome },
@@ -75,7 +75,7 @@ export class CodexRunner implements AgentRunner {
         return incompleteAuthResult(
           request,
           started,
-          'The dedicated ChatGPT profile is not authenticated. Set CODEX_HOME to SKILLCTL_CODEX_AUTH_HOME, run `codex login`, then retry.',
+          'The dedicated ChatGPT profile is not authenticated. Set CODEX_HOME to LEOGRIEL_CODEX_AUTH_HOME, run `codex login`, then retry.',
         );
       }
     }

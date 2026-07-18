@@ -5,29 +5,36 @@ import { homedir, tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import semver from 'semver';
 import * as tar from 'tar';
-import { computeDirIntegrity, loadConfig, resolvePathInside, writeFileAtomic } from '@skillctl/core';
+import { computeDirIntegrity, loadConfig, resolvePathInside, writeFileAtomic } from '@leogriel/core';
 import type { PluginInspection, PluginLockEntry, PluginManifestEntry } from './types.js';
 
 interface PluginManifestFile { version: 1; plugins: Record<string, PluginManifestEntry> }
 interface PluginLockFile { version: 1; plugins: Record<string, PluginLockEntry> }
 
-const root = join(homedir(), '.skillctl');
+const root = join(homedir(), '.leogriel');
+const legacyRoot = join(homedir(), '.skillctl');
 const manifestPath = join(root, 'plugins.json');
 const lockPath = join(root, 'plugins.lock');
 const pluginsDir = join(root, 'plugins');
+const legacyManifestPath = join(legacyRoot, 'plugins.json');
+const legacyLockPath = join(legacyRoot, 'plugins.lock');
 
 export function getPluginsDir(): string { return pluginsDir; }
 export function getPluginManifestPath(): string { return manifestPath; }
 export function getPluginLockPath(): string { return lockPath; }
 
 export async function loadPluginManifest(options: { migrateLegacy?: boolean } = {}): Promise<PluginManifestFile> {
-  const manifest = await readJson<PluginManifestFile>(manifestPath, { version: 1, plugins: {} });
+  const manifest = await readJsonWithLegacy<PluginManifestFile>(
+    manifestPath,
+    legacyManifestPath,
+    { version: 1, plugins: {} },
+  );
   if (options.migrateLegacy) await migrateLegacy(manifest);
   return manifest;
 }
 
 export async function loadPluginLock(): Promise<PluginLockFile> {
-  return readJson(lockPath, { version: 1, plugins: {} });
+  return readJsonWithLegacy(lockPath, legacyLockPath, { version: 1, plugins: {} });
 }
 
 export async function addPlugin(specifier: string, options: { allowLocal?: boolean } = {}): Promise<PluginLockEntry> {
@@ -58,7 +65,7 @@ export async function inspectPluginSpecifier(specifier: string, options: { allow
   const info = metadata.versions[version];
   const buffer = await download(info.dist.tarball);
   verifySri(buffer, info.dist.integrity || info.dist.shasum);
-  const temporary = join(tmpdir(), `skillctl-plugin-inspect-${randomUUID()}`);
+  const temporary = join(tmpdir(), `leogriel-plugin-inspect-${randomUUID()}`);
   const archive = `${temporary}.tgz`;
   try {
     await mkdir(temporary, { recursive: true });
@@ -145,9 +152,9 @@ async function prepareNpmPlugin(specifier: string): Promise<PluginLockEntry> {
   const info = metadata.versions[version];
   const buffer = await download(info.dist.tarball);
   verifySri(buffer, info.dist.integrity || info.dist.shasum);
-  const temporary = join(tmpdir(), `skillctl-plugin-${randomUUID()}`);
+  const temporary = join(tmpdir(), `leogriel-plugin-${randomUUID()}`);
   await mkdir(temporary, { recursive: true });
-  const archive = join(tmpdir(), `skillctl-plugin-${randomUUID()}.tgz`);
+  const archive = join(tmpdir(), `leogriel-plugin-${randomUUID()}.tgz`);
   try {
     await writeFile(archive, buffer);
     await tar.x({ cwd: temporary, file: archive, strip: 1, preservePaths: false });
@@ -175,9 +182,9 @@ async function prepareNpmPlugin(specifier: string): Promise<PluginLockEntry> {
 async function inspectPlugin(path: string, specifier: string, resolvedSpecifier: string): Promise<PluginLockEntry> {
   await assertPluginTreeContained(path);
   const pkg = JSON.parse(await readFile(join(path, 'package.json'), 'utf8'));
-  const config = pkg.skillctl || {};
+  const config = pkg.leogriel || pkg.skillctl || {};
   const relativeEntry = config.plugin || pkg.main;
-  if (!pkg.name || !relativeEntry) throw new Error('Plugin package requires name and skillctl.plugin entry');
+  if (!pkg.name || !relativeEntry) throw new Error('Plugin package requires name and leogriel.plugin entry');
   const entrypoint = resolvePathInside(path, relativeEntry, 'plugin entry');
   if (!(await stat(entrypoint).catch(() => null))) throw new Error(`Plugin entry does not exist: ${relativeEntry}`);
   const apiVersion = Number(config.apiVersion ?? 1);
@@ -258,7 +265,7 @@ function download(url: string, redirects = 5, maxBytes = 50 * 1024 * 1024): Prom
   return new Promise((resolvePromise, reject) => {
     const parsed = new URL(url);
     if (parsed.protocol !== 'https:') { reject(new Error('Plugin downloads require HTTPS')); return; }
-    const request = https.get(parsed, { headers: { 'User-Agent': 'skillctl' } }, (response) => {
+    const request = https.get(parsed, { headers: { 'User-Agent': 'leogriel' } }, (response) => {
       if ((response.statusCode || 0) >= 300 && (response.statusCode || 0) < 400 && response.headers.location) {
         response.resume();
         if (!redirects) { reject(new Error('Too many plugin download redirects')); return; }
@@ -305,6 +312,15 @@ async function assertPluginTreeContained(rootPath: string): Promise<void> {
 
 async function readJson<T>(path: string, fallback: T): Promise<T> {
   try { return JSON.parse(await readFile(path, 'utf8')); } catch (err) { if ((err as NodeJS.ErrnoException).code === 'ENOENT') return fallback; throw err; }
+}
+
+async function readJsonWithLegacy<T>(path: string, legacyPath: string, fallback: T): Promise<T> {
+  try {
+    return JSON.parse(await readFile(path, 'utf8'));
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+  }
+  return readJson(legacyPath, fallback);
 }
 
 async function saveJson(path: string, value: unknown): Promise<void> {

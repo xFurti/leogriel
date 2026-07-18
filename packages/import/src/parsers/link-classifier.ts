@@ -2,7 +2,7 @@ import { lstat, realpath, stat } from 'node:fs/promises';
 import { resolve as pathResolve } from 'node:path';
 import { hasSkillMd } from './skill-md.js';
 
-export type SkillLinkKind = 'local-copy' | 'skillctl-link' | 'external-link' | 'broken';
+export type SkillLinkKind = 'local-copy' | 'leogriel-link' | 'external-link' | 'broken';
 
 export interface ClassifiedSkillPath {
   kind: SkillLinkKind;
@@ -46,7 +46,7 @@ export async function classifySkillPath(localPath: string, storeRoot: string): P
     if (await isUnderStore(resolvedPath, storeRoot)) {
       const parts = pathResolve(resolvedPath).split(/[/\\]/);
       const canonicalName = parts[parts.length - 1];
-      return { kind: 'skillctl-link', resolvedPath, canonicalName };
+      return { kind: 'leogriel-link', resolvedPath, canonicalName };
     }
 
     try {

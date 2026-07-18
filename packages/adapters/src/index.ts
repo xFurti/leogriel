@@ -1,5 +1,5 @@
-import type { AgentAdapter, SkillctlConfig } from '@skillctl/core';
-import { loadConfig, registerAdapter, getRegisteredAdapters } from '@skillctl/core';
+import type { AgentAdapter, LeogrielConfig } from '@leogriel/core';
+import { loadConfig, registerAdapter, getRegisteredAdapters } from '@leogriel/core';
 import { claudeAdapter } from './claude/index.js';
 import { cursorAdapter } from './cursor/index.js';
 import { opencodeAdapter } from './opencode/index.js';
@@ -32,7 +32,7 @@ export type { AgentAdapter };
 
 export const allAdapters: AgentAdapter[] = BUILTIN_ADAPTERS;
 
-export async function getEnabledAdapters(config?: SkillctlConfig): Promise<AgentAdapter[]> {
+export async function getEnabledAdapters(config?: LeogrielConfig): Promise<AgentAdapter[]> {
   const cfg = config || (await loadConfig());
   const enabled = cfg.agents || {};
   return getRegisteredAdapters().filter((a) => enabled[a.id] !== false);
@@ -89,30 +89,30 @@ export async function scanCoexistence(cwd = process.cwd()): Promise<CoexistenceR
   }
 
   if (projectSkillDirs > 0) {
-    recs.push('Run `skillctl import --dry-run` to review agent skills before copying them into the project store');
+    recs.push('Run `leogriel import --dry-run` to review agent skills before copying them into the project store');
   }
 
   const agentsSkills = join(cwd, '.agents', 'skills');
   if (await pathExists(agentsSkills) && !paths.includes(agentsSkills)) {
     details.push('Found .agents/skills (common universal layout used by npx skills and many agents)');
     paths.push(agentsSkills);
-    recs.push('Run `skillctl import from-npx --dry-run` to migrate into the project store');
+    recs.push('Run `leogriel import from-npx --dry-run` to migrate into the project store');
   }
 
-  const skillctlHome = join(homedir(), '.skillctl');
-  const pythonRepos = join(skillctlHome, 'repos');
-  const pythonManifest = join(skillctlHome, 'manifest.json');
+  const legacySkillctlHome = join(homedir(), '.skillctl');
+  const pythonRepos = join(legacySkillctlHome, 'repos');
+  const pythonManifest = join(legacySkillctlHome, 'manifest.json');
   if ((await pathExists(pythonRepos)) || (await pathExists(pythonManifest))) {
-    details.push('Found Python skillctl data under ~/.skillctl');
-    paths.push(skillctlHome);
-    recs.push('Run `skillctl import from-skillctl --dry-run` if using Python skillctl');
+    details.push('Found legacy Python skillctl data under ~/.skillctl');
+    paths.push(legacySkillctlHome);
+    recs.push('Run `leogriel import from-skillctl --dry-run` to migrate legacy Python skillctl data');
   }
 
   const npxLock = join(cwd, 'skills-lock.json');
   if (await pathExists(npxLock)) {
     details.push('Found skills-lock.json (npx skills / vercel-labs format)');
     paths.push(npxLock);
-    recs.push('Run `skillctl import from-npx --dry-run` to adopt skills with provenance');
+    recs.push('Run `leogriel import from-npx --dry-run` to adopt skills with provenance');
   }
 
   const npxGlobalHint = join(homedir(), '.local', 'share', 'skills');
@@ -121,9 +121,9 @@ export async function scanCoexistence(cwd = process.cwd()): Promise<CoexistenceR
     paths.push(npxGlobalHint);
   }
 
-  const ourConfig = join(homedir(), '.skillctl', 'config.json');
+  const ourConfig = join(homedir(), '.leogriel', 'config.json');
   if (await pathExists(ourConfig)) {
-    details.push('skillctl config present (native)');
+    details.push('leogriel config present (native)');
   }
 
   const detected = details.length > 0;

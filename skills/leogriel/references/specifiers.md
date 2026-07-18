@@ -7,14 +7,14 @@ Manifest and lock specifiers start with one of these forms:
 | `github:` | `github:owner/repo@main#skills/foo` | Optional ref after `@`, subpath after `#` |
 | `skills.sh/` | `skills.sh/owner/repo/skill` | Catalog-selected skill resolved through an immutable GitHub commit |
 | `npm:` | `npm:@scope/pkg@^1.0` | Extracts a skill from an npm package |
-| `file:` | `file:./.skillctl/skills/my-skill` | Portable project-vendored content |
+| `file:` | `file:./.leogriel/skills/my-skill` | Portable project-vendored content |
 
 **Normalization on project `add` and `import`:**
 
-- Local content is copied to `.skillctl/skills/<name>`.
-- Manifest `specifier`, lock `specifier`, and local lock `resolved` become `file:./.skillctl/skills/<name>`.
-- Lock `canonicalPath` becomes `.skillctl/skills/<name>`.
-- A global `add -g` keeps state under `~/.skillctl/` and uses `canonicalPath: ~/.skillctl/skills/<name>`.
+- Local content is copied to `.leogriel/skills/<name>`.
+- Manifest `specifier`, lock `specifier`, and local lock `resolved` become `file:./.leogriel/skills/<name>`.
+- Lock `canonicalPath` becomes `.leogriel/skills/<name>`.
+- A global `add -g` keeps state under `~/.leogriel/` and uses `canonicalPath: ~/.leogriel/skills/<name>`.
 - GitHub shorthand `owner/repo#skills/foo` remains supported.
 - Legacy lock reads accept `github:owner/repo@sha/skills/foo`; new writes use `#`.
 - Branch, tag, and HEAD requests resolve to a full 40-character commit before download.

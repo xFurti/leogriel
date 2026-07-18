@@ -26,7 +26,7 @@ test('findLockReproducibilityWarnings distinguishes pinned and legacy entries', 
         resolved: `github:owner/repo@${sha}#skills/pinned`,
         integrity: `sha256:${'b'.repeat(64)}`,
         name: 'pinned',
-        canonicalPath: '~/.skillctl/skills/pinned',
+        canonicalPath: '~/.leogriel/skills/pinned',
         fetchedAt: '2026-01-01T00:00:00.000Z',
         provenance: { type: 'github', commit: sha },
       },
@@ -35,7 +35,7 @@ test('findLockReproducibilityWarnings distinguishes pinned and legacy entries', 
         resolved: 'github:owner/repo@main#skills/legacy',
         integrity: `sha256:${'c'.repeat(64)}`,
         name: 'legacy',
-        canonicalPath: '~/.skillctl/skills/legacy',
+        canonicalPath: '~/.leogriel/skills/legacy',
         fetchedAt: '2026-01-01T00:00:00.000Z',
         provenance: { type: 'github', requestedRef: 'main' },
       },
@@ -44,7 +44,7 @@ test('findLockReproducibilityWarnings distinguishes pinned and legacy entries', 
         resolved: 'local:imported/imported',
         integrity: `sha256:${'d'.repeat(64)}`,
         name: 'imported',
-        canonicalPath: '~/.skillctl/skills/imported',
+        canonicalPath: '~/.leogriel/skills/imported',
         fetchedAt: '2026-01-01T00:00:00.000Z',
         provenance: { type: 'local' },
       },
@@ -59,7 +59,9 @@ test('findLockReproducibilityWarnings distinguishes pinned and legacy entries', 
 test('isPortableCanonicalPath accepts project and global store paths', () => {
   assert.equal(isPortableCanonicalPath(formatCanonicalPathForLock('demo')), true);
   assert.equal(isPortableCanonicalPath(formatCanonicalPathForLock('demo', 'global')), true);
-  assert.equal(isPortableCanonicalPath('/Users/me/.skillctl/skills/demo'), false);
+  assert.equal(isPortableCanonicalPath('.skillctl/skills/demo'), true);
+  assert.equal(isPortableCanonicalPath('~/.skillctl/skills/demo'), true);
+  assert.equal(isPortableCanonicalPath('/Users/me/.leogriel/skills/demo'), false);
 });
 
 test('findPortablePathWarnings flags legacy lock entries', () => {
@@ -71,7 +73,7 @@ test('findPortablePathWarnings flags legacy lock entries', () => {
         resolved: 'local:/Users/me/project/skill',
         integrity: 'sha256:abc',
         name: 'demo',
-        canonicalPath: '/Users/me/.skillctl/skills/demo',
+        canonicalPath: '/Users/me/.leogriel/skills/demo',
         fetchedAt: '2026-01-01T00:00:00.000Z',
         provenance: { type: 'local' },
       },

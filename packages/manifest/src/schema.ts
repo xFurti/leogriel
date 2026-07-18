@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { canonicalizeName, type SkillManifest } from '@skillctl/core';
+import { canonicalizeName, type SkillManifest } from '@leogriel/core';
 
 // Specifier grammar: github:, skills.sh/, npm:, file:, local:imported/
 const SpecifierSchema = z.string().regex(

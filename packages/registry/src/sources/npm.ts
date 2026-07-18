@@ -3,8 +3,8 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash, randomUUID } from 'node:crypto';
 import semver from 'semver';
-import type { RegistrySource, ResolvedSource } from '@skillctl/core';
-import { ensureDir, computeDirIntegrity } from '@skillctl/core';
+import type { RegistrySource, ResolvedSource } from '@leogriel/core';
+import { ensureDir, computeDirIntegrity } from '@leogriel/core';
 import { canonicalizeName } from '../names.js';
 import { locateSkillDir, packageJsonSkillHints } from '../locate-skill.js';
 import { parseSkillFrontmatterAsync } from '../frontmatter.js';
@@ -87,7 +87,7 @@ export class NpmSource implements RegistrySource {
 
     verifyNpmIntegrity(tarBuf, resolved.tarballHash);
 
-    const tmpBase = join(tmpdir(), `skillctl-npm-${randomUUID()}`);
+    const tmpBase = join(tmpdir(), `leogriel-npm-${randomUUID()}`);
     await ensureDir(tmpBase);
     try {
       await extractTarball(tarBuf, tmpBase, 1);

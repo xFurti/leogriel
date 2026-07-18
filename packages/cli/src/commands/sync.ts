@@ -1,11 +1,11 @@
 import { cliLog } from '../lib/output.js';
 import type { Command } from 'commander';
-import { loadLockfile } from '@skillctl/lockfile';
-import { getProjectSkillsStore, lockToSkillTargets, requireSkillctlProject } from '@skillctl/core';
-import { syncSkillsToAgents, type SyncScope } from '@skillctl/adapters';
-import { withOperationLocks } from '@skillctl/project-state';
+import { loadLockfile } from '@leogriel/lockfile';
+import { getProjectSkillsStore, lockToSkillTargets, requireLeogrielProject } from '@leogriel/core';
+import { syncSkillsToAgents, type SyncScope } from '@leogriel/adapters';
+import { withOperationLocks } from '@leogriel/project-state';
 import { handleCommandError } from '../lib/errors.js';
-import { SkillctlError } from '../lib/errors.js';
+import { LeogrielError } from '../lib/errors.js';
 import * as prompts from '@clack/prompts';
 
 function collectAgents(value: string, previous: string[]): string[] {
@@ -31,19 +31,19 @@ export function registerSync(program: Command): void {
           throw new Error('Use either --project or --global; without either flag both scopes are synced.');
         }
         if (options.replaceUnmanaged) {
-          if (options.prune) throw new SkillctlError('--replace-unmanaged cannot be combined with --prune', 'INVALID_OPTIONS', 2);
-          if (!options.project && !options.global) throw new SkillctlError('--replace-unmanaged requires --project or --global', 'INVALID_OPTIONS', 2);
-          if (!options.agent.length || !options.skill.length) throw new SkillctlError('--replace-unmanaged requires --agent and --skill', 'INVALID_OPTIONS', 2);
+          if (options.prune) throw new LeogrielError('--replace-unmanaged cannot be combined with --prune', 'INVALID_OPTIONS', 2);
+          if (!options.project && !options.global) throw new LeogrielError('--replace-unmanaged requires --project or --global', 'INVALID_OPTIONS', 2);
+          if (!options.agent.length || !options.skill.length) throw new LeogrielError('--replace-unmanaged requires --agent and --skill', 'INVALID_OPTIONS', 2);
           const interactive = Boolean(process.stdin.isTTY && process.stdout.isTTY && !options.json);
           if (!options.dryRun && !options.yes && interactive) {
             const confirmed = await prompts.confirm({ message: 'Back up and replace the selected unmanaged targets?' });
             if (prompts.isCancel(confirmed) || !confirmed) return;
           } else if (!options.dryRun && !options.yes) {
-            throw new SkillctlError('Non-interactive replacement requires --yes', 'CONFIRMATION_REQUIRED', 2);
+            throw new LeogrielError('Non-interactive replacement requires --yes', 'CONFIRMATION_REQUIRED', 2);
           }
         }
         const scope: SyncScope = options.project ? 'project' : options.global ? 'global' : 'both';
-        const cwd = await requireSkillctlProject();
+        const cwd = await requireLeogrielProject();
         const store = getProjectSkillsStore(cwd);
         const result = await withOperationLocks({ cwd, store }, async () => {
           const lock = await loadLockfile(cwd);

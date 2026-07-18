@@ -1,6 +1,6 @@
 import { cliLog, cliError } from '../lib/output.js';
 import type { Command } from 'commander';
-import { executeImport, planImportFromProject, type ImportPlanItem } from '@skillctl/import';
+import { executeImport, planImportFromProject, type ImportPlanItem } from '@leogriel/import';
 import { handleCommandError } from '../lib/errors.js';
 import { choose, confirm, isInteractive } from '../lib/prompt.js';
 
@@ -106,7 +106,7 @@ export function registerImport(program: Command): void {
           process.exitCode = 1;
         }
         if (result.imported.length && !options.sync) {
-          cliLog('Manifest and lock updated. Run `skillctl sync` to refresh agent links.');
+          cliLog('Manifest and lock updated. Run `leogriel sync` to refresh agent links.');
         }
       } catch (err) {
         handleCommandError(err, 'import');
@@ -151,7 +151,7 @@ export function registerImport(program: Command): void {
 
   importCmd
     .command('from-skillctl')
-    .description('Migrate from Python skillctl (~/.skillctl/repos)')
+    .description('Migrate from legacy Python skillctl (~/.skillctl/repos)')
     .option('--json', 'machine-readable output')
     .option('--dry-run', 'show migration plan only')
     .option('--sync', 'sync agent links after import')
@@ -202,7 +202,7 @@ async function importProject(options: {
 
   const conflicts = discovered.deduped.filter((skill) => skill.action === 'skip-conflict');
   if (conflicts.length && options.interactive) {
-    if (!isInteractive()) throw new Error('`skillctl import --interactive` requires an interactive terminal.');
+    if (!isInteractive()) throw new Error('`leogriel import --interactive` requires an interactive terminal.');
     for (const conflict of conflicts) {
       const index = await choose(
         `Conflicting contents found for "${conflict.name}". Choose which copy to import:`,
@@ -223,7 +223,7 @@ async function importProject(options: {
 
   let selectedNames: string[] | undefined;
   if (options.select) {
-    if (!isInteractive()) throw new Error('`skillctl import --select` requires an interactive terminal.');
+    if (!isInteractive()) throw new Error('`leogriel import --select` requires an interactive terminal.');
     selectedNames = [];
     for (const item of plan.filter((candidate) => !candidate.action.startsWith('skip-'))) {
       if (await confirm(`Import ${item.name}?`, true)) selectedNames.push(item.name);
@@ -241,5 +241,5 @@ async function importProject(options: {
   });
   cliLog(`Imported: ${result.imported.join(', ') || '(none)'}`);
   if (result.skipped.length) cliLog(`Skipped: ${result.skipped.join(', ')}`);
-  if (result.imported.length && !options.sync) cliLog('Run `skillctl sync` to refresh agent links.');
+  if (result.imported.length && !options.sync) cliLog('Run `leogriel sync` to refresh agent links.');
 }

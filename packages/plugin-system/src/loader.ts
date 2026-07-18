@@ -1,9 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { computeDirIntegrity, registerAdapter, resolvePathInside } from '@skillctl/core';
-import type { CatalogProvider, RegistrySource } from '@skillctl/core';
-import type { PluginAPI, PluginAuditRule, PluginProgram, SkillctlPlugin } from './types.js';
+import { computeDirIntegrity, registerAdapter, resolvePathInside } from '@leogriel/core';
+import type { CatalogProvider, RegistrySource } from '@leogriel/core';
+import type { PluginAPI, PluginAuditRule, PluginProgram, LeogrielPlugin } from './types.js';
 import {
   addPlugin,
   getPluginsDir,
@@ -43,14 +43,14 @@ export async function loadPlugins(
     if (!requested.enabled) continue;
     try {
       const entry = lock.plugins[name];
-      if (!entry) throw new Error('missing lock entry; run skillctl plugin install');
+      if (!entry) throw new Error('missing lock entry; run leogriel plugin install');
       if (entry.apiVersion !== 1) throw new Error(`unsupported plugin API ${entry.apiVersion}`);
       if (await computeDirIntegrity(entry.path) !== entry.integrity) throw new Error('plugin integrity mismatch');
       const entrypoint = entry.entrypoint.startsWith(entry.path)
         ? entry.entrypoint
         : resolvePathInside(entry.path, entry.entrypoint, 'plugin entry');
       const module = await import(pathToFileURL(entrypoint).href);
-      const plugin: SkillctlPlugin = module.default || module;
+      const plugin: LeogrielPlugin = module.default || module;
       if (typeof plugin.register !== 'function') throw new Error('plugin does not export register(api)');
       await plugin.register(api);
       loaded.push(name);
@@ -78,7 +78,7 @@ export function removePluginRecord(name: string): Promise<boolean> {
 export async function discoverPluginEntry(pluginDir: string): Promise<string | null> {
   try {
     const pkg = JSON.parse(await readFile(join(pluginDir, 'package.json'), 'utf8'));
-    const entry = pkg.skillctl?.plugin || pkg.main;
+    const entry = pkg.leogriel?.plugin || pkg.skillctl?.plugin || pkg.main;
     return entry ? resolvePathInside(pluginDir, entry, 'plugin entry') : null;
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') return null;

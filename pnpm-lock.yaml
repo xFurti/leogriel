@@ -17,10 +17,10 @@ importers:
 
   packages/adapters:
     dependencies:
-      '@skillctl/core':
+      '@leogriel/core':
         specifier: workspace:*
         version: link:../core
-      '@skillctl/link-manager':
+      '@leogriel/link-manager':
         specifier: workspace:*
         version: link:../link-manager
     devDependencies:
@@ -39,37 +39,37 @@ importers:
       '@clack/prompts':
         specifier: ^0.11.0
         version: 0.11.0
-      '@skillctl/adapters':
+      '@leogriel/adapters':
         specifier: workspace:*
         version: link:../adapters
-      '@skillctl/core':
+      '@leogriel/core':
         specifier: workspace:*
         version: link:../core
-      '@skillctl/import':
+      '@leogriel/import':
         specifier: workspace:*
         version: link:../import
-      '@skillctl/link-manager':
+      '@leogriel/link-manager':
         specifier: workspace:*
         version: link:../link-manager
-      '@skillctl/lockfile':
+      '@leogriel/lockfile':
         specifier: workspace:*
         version: link:../lockfile
-      '@skillctl/manifest':
+      '@leogriel/manifest':
         specifier: workspace:*
         version: link:../manifest
-      '@skillctl/plugin-system':
+      '@leogriel/plugin-system':
         specifier: workspace:*
         version: link:../plugin-system
-      '@skillctl/project-state':
+      '@leogriel/project-state':
         specifier: workspace:*
         version: link:../project-state
-      '@skillctl/registry':
+      '@leogriel/registry':
         specifier: workspace:*
         version: link:../registry
-      '@skillctl/security':
+      '@leogriel/security':
         specifier: workspace:*
         version: link:../security
-      '@skillctl/testing':
+      '@leogriel/testing':
         specifier: workspace:*
         version: link:../testing
       commander:
@@ -107,22 +107,22 @@ importers:
 
   packages/import:
     dependencies:
-      '@skillctl/adapters':
+      '@leogriel/adapters':
         specifier: workspace:*
         version: link:../adapters
-      '@skillctl/core':
+      '@leogriel/core':
         specifier: workspace:*
         version: link:../core
-      '@skillctl/lockfile':
+      '@leogriel/lockfile':
         specifier: workspace:*
         version: link:../lockfile
-      '@skillctl/manifest':
+      '@leogriel/manifest':
         specifier: workspace:*
         version: link:../manifest
-      '@skillctl/project-state':
+      '@leogriel/project-state':
         specifier: workspace:*
         version: link:../project-state
-      '@skillctl/registry':
+      '@leogriel/registry':
         specifier: workspace:*
         version: link:../registry
     devDependencies:
@@ -138,7 +138,7 @@ importers:
 
   packages/link-manager:
     dependencies:
-      '@skillctl/core':
+      '@leogriel/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -154,7 +154,7 @@ importers:
 
   packages/lockfile:
     dependencies:
-      '@skillctl/core':
+      '@leogriel/core':
         specifier: workspace:*
         version: link:../core
       js-yaml:
@@ -179,7 +179,7 @@ importers:
 
   packages/manifest:
     dependencies:
-      '@skillctl/core':
+      '@leogriel/core':
         specifier: workspace:*
         version: link:../core
       zod:
@@ -198,7 +198,7 @@ importers:
 
   packages/plugin-system:
     dependencies:
-      '@skillctl/core':
+      '@leogriel/core':
         specifier: workspace:*
         version: link:../core
       semver:
@@ -223,13 +223,13 @@ importers:
 
   packages/project-state:
     dependencies:
-      '@skillctl/core':
+      '@leogriel/core':
         specifier: workspace:*
         version: link:../core
-      '@skillctl/lockfile':
+      '@leogriel/lockfile':
         specifier: workspace:*
         version: link:../lockfile
-      '@skillctl/manifest':
+      '@leogriel/manifest':
         specifier: workspace:*
         version: link:../manifest
       proper-lockfile:
@@ -251,16 +251,16 @@ importers:
 
   packages/registry:
     dependencies:
-      '@skillctl/core':
+      '@leogriel/core':
         specifier: workspace:*
         version: link:../core
-      '@skillctl/lockfile':
+      '@leogriel/lockfile':
         specifier: workspace:*
         version: link:../lockfile
-      '@skillctl/manifest':
+      '@leogriel/manifest':
         specifier: workspace:*
         version: link:../manifest
-      '@skillctl/project-state':
+      '@leogriel/project-state':
         specifier: workspace:*
         version: link:../project-state
       js-yaml:
@@ -294,10 +294,10 @@ importers:
 
   packages/security:
     dependencies:
-      '@skillctl/core':
+      '@leogriel/core':
         specifier: workspace:*
         version: link:../core
-      '@skillctl/lockfile':
+      '@leogriel/lockfile':
         specifier: workspace:*
         version: link:../lockfile
     devDependencies:
@@ -313,7 +313,7 @@ importers:
 
   packages/testing:
     dependencies:
-      '@skillctl/core':
+      '@leogriel/core':
         specifier: workspace:*
         version: link:../core
       js-yaml:

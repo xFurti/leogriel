@@ -37,7 +37,7 @@ test('strict configuration rejection happens during execution and remains incomp
 
 test('strict configuration rejection makes the paired verdict inconclusive without fallback', async () => {
   const fixture = await fakeCodex('strict-rejected');
-  const root = await mkdtemp(join(tmpdir(), 'skillctl-strict-verdict-'));
+  const root = await mkdtemp(join(tmpdir(), 'leogriel-strict-verdict-'));
   const skill = join(root, 'skill');
   const previous = process.env.CODEX_API_KEY;
   process.env.CODEX_API_KEY = 'codex-secret-abcdefghijklmnop';
@@ -55,7 +55,7 @@ test('strict configuration rejection makes the paired verdict inconclusive witho
       runner: fixture.runner,
       runs: 1,
       model: 'fixed-model',
-      skillctlVersion: '0.9.0',
+      leogrielVersion: '0.9.0',
     });
     assert.equal(result.verdict, 'inconclusive');
     assert.match(result.cases[0].pairs[0].baseline.runnerError || '', /strict config rejected/);
@@ -93,7 +93,7 @@ test('Codex receives prompt on stdin and exposes safe tool environment without A
 test('ChatGPT auth preflights the explicit profile without exposing or modifying it', async () => {
   const fixture = await fakeCodex('valid');
   const isolation = await createIsolation();
-  const authHome = await mkdtemp(join(tmpdir(), 'skillctl-chatgpt-auth-'));
+  const authHome = await mkdtemp(join(tmpdir(), 'leogriel-chatgpt-auth-'));
   const sentinel = join(authHome, 'auth.json');
   await writeFile(sentinel, '{"authenticated":true}');
   try {
@@ -125,7 +125,7 @@ test('ChatGPT auth preflights the explicit profile without exposing or modifying
 test('ChatGPT auth stops with remediation when login status fails', async () => {
   const fixture = await fakeCodex('login-unauthenticated');
   const isolation = await createIsolation();
-  const authHome = await mkdtemp(join(tmpdir(), 'skillctl-chatgpt-auth-'));
+  const authHome = await mkdtemp(join(tmpdir(), 'leogriel-chatgpt-auth-'));
   try {
     const input = request(isolation, 'must not execute', 2_000);
     input.auth = { mode: 'chatgpt', codexHome: authHome };
@@ -143,7 +143,7 @@ test('ChatGPT auth stops with remediation when login status fails', async () => 
 test('ChatGPT auth fails closed before detection when an API key is also present', async () => {
   const fixture = await fakeCodex('valid');
   const isolation = await createIsolation();
-  const authHome = await mkdtemp(join(tmpdir(), 'skillctl-chatgpt-auth-'));
+  const authHome = await mkdtemp(join(tmpdir(), 'leogriel-chatgpt-auth-'));
   const previous = process.env.CODEX_API_KEY;
   process.env.CODEX_API_KEY = 'unexpected-api-key-abcdefghijklmnop';
   try {
@@ -248,7 +248,7 @@ function request(layout: Awaited<ReturnType<typeof createIsolation>>, prompt: st
 }
 
 async function fakeCodex(mode: string, maxOutputBytes?: number) {
-  const root = await mkdtemp(join(tmpdir(), 'skillctl-fake-codex-'));
+  const root = await mkdtemp(join(tmpdir(), 'leogriel-fake-codex-'));
   const script = join(root, 'fake-codex.mjs');
   await writeFile(script, `
 import { spawn, spawnSync } from 'node:child_process';

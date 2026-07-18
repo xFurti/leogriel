@@ -1,7 +1,7 @@
 import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { CatalogProvider, CatalogSearchOptions, CatalogSearchResult } from '@skillctl/core';
-import { ensureCacheDir, writeFileAtomic } from '@skillctl/core';
+import type { CatalogProvider, CatalogSearchOptions, CatalogSearchResult } from '@leogriel/core';
+import { ensureCacheDir, writeFileAtomic } from '@leogriel/core';
 import { defaultHttpClient, type HttpClient, type HttpResponse } from './fetch/https.js';
 
 const CACHE_TTL_MS = 15 * 60 * 1000;
@@ -63,7 +63,11 @@ export class SkillsShCatalogProvider implements CatalogProvider {
     try {
       const params = new URLSearchParams({ q: normalized, limit: String(limit) });
       if (options.owner) params.set('owner', options.owner.toLowerCase());
-      const base = this.options.baseUrl || process.env.SKILLCTL_SKILLS_API_URL || 'https://skills.sh';
+      const base =
+        this.options.baseUrl ||
+        process.env.LEOGRIEL_SKILLS_API_URL ||
+        process.env.SKILLCTL_SKILLS_API_URL ||
+        'https://skills.sh';
       const response = await this.requestWithRetry(`${base.replace(/\/$/, '')}/api/search?${params}`);
       if (response.status !== 200) throw new Error(`skills.sh search returned HTTP ${response.status}`);
       const results = parseSearchResponse(response.body, limit);

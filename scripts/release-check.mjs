@@ -54,9 +54,9 @@ runPnpm(['-r', 'lint']);
 runPnpm(['-r', 'test']);
 runPnpm(['test:coverage']);
 runPnpm(['audit', '--prod']);
-run(process.execPath, ['packages/cli/bin/skillctl.js', 'skill', 'validate', 'skills/skillctl', '--strict']);
-run(process.execPath, ['packages/cli/bin/skillctl.js', 'doctor', '--json']);
-run(process.execPath, ['packages/cli/bin/skillctl.js', 'audit', '--strict']);
+run(process.execPath, ['packages/cli/bin/leogriel.js', 'skill', 'validate', 'skills/leogriel', '--strict']);
+run(process.execPath, ['packages/cli/bin/leogriel.js', 'doctor', '--json']);
+run(process.execPath, ['packages/cli/bin/leogriel.js', 'audit', '--strict']);
 run(process.execPath, ['scripts/pack-all.mjs']);
 run(git, ['diff', '--check']);
 

@@ -54,7 +54,7 @@ export async function publishRelease(version, options = {}) {
   const distTag = resolveDistTag(version, options.tag);
   const results = [];
   for (const shortName of releasePackages) {
-    const name = `@skillctl/${shortName}`;
+    const name = `@leogriel/${shortName}`;
     const archive = join(root, 'artifacts', version, archiveName(shortName, version));
     const integrity = tarballIntegrity(await readFile(archive));
     const remote = remoteIntegrity(name, version);

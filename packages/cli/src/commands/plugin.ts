@@ -10,11 +10,11 @@ import {
   pluginDiagnostics,
   removePlugin,
   setPluginEnabled,
-} from '@skillctl/plugin-system';
+} from '@leogriel/plugin-system';
 import { handleCommandError } from '../lib/errors.js';
 
 export function registerPlugin(program: Command): void {
-  const plugin = program.command('plugin').description('Manage experimental skillctl plugins');
+  const plugin = program.command('plugin').description('Manage experimental leogriel plugins');
 
   plugin.command('list').option('--json', 'machine-readable output').action(async (options) => {
     const plugins = await listInstalledPlugins();
@@ -72,7 +72,7 @@ export function registerPlugin(program: Command): void {
       const ok = await setPluginEnabled(name, enabled);
       if (!ok) { cliError(`Plugin not found: ${name}`); process.exitCode = 1; return; }
       if (options.json) cliLog(JSON.stringify({ name, enabled, restartRequired: true }, null, 2));
-      else cliLog(`${enabled ? 'Enabled' : 'Disabled'} ${name}. Restart skillctl to apply.`);
+      else cliLog(`${enabled ? 'Enabled' : 'Disabled'} ${name}. Restart leogriel to apply.`);
     });
   }
 

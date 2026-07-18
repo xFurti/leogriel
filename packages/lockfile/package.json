@@ -1,7 +1,7 @@
 {
-  "name": "@skillctl/lockfile",
+  "name": "@leogriel/lockfile",
   "version": "0.9.0",
-  "description": "agent-skills.lock YAML parser/generator with lockfileVersion and provenance for skillctl",
+  "description": "Reproducible agent-skills.lock parsing and generation for Leogriel",
   "license": "MIT",
   "author": "xFurti & Gabry848",
   "type": "module",
@@ -20,7 +20,7 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@skillctl/core": "workspace:*",
+    "@leogriel/core": "workspace:*",
     "js-yaml": "^4.1.0",
     "zod": "^3.23.8"
   },
@@ -35,7 +35,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/xFurti/skillctl.git",
+    "url": "https://github.com/xFurti/leogriel.git",
     "directory": "packages/lockfile"
   },
   "keywords": [

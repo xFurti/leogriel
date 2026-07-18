@@ -36,7 +36,7 @@ test('resolveCanonicalPath expands portable tilde store paths', () => {
 });
 
 test('directory integrity uses portable separators and accepts legacy Windows hashes', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'skillctl-portable-integrity-'));
+  const root = await mkdtemp(join(tmpdir(), 'leogriel-portable-integrity-'));
   const content = '---\nname: portable-integrity\n---\n';
   try {
     await mkdir(join(root, 'nested'), { recursive: true });
@@ -66,19 +66,19 @@ test('directory integrity uses portable separators and accepts legacy Windows ha
 });
 
 test('resolveCanonicalPath keeps legacy absolute paths', () => {
-  const legacy = join(homedir(), '.skillctl', 'skills', 'legacy-skill');
+  const legacy = join(homedir(), '.leogriel', 'skills', 'legacy-skill');
   assert.equal(resolveCanonicalPath(legacy), legacy);
 });
 
 test('resolveEntryCanonicalPath falls back to store/name for legacy absolute lock paths', async () => {
-  const store = await mkdtemp(join(tmpdir(), 'skillctl-store-'));
+  const store = await mkdtemp(join(tmpdir(), 'leogriel-store-'));
   const skillName = 'legacy-fallback';
   const skillDir = join(store, skillName);
   try {
     await mkdir(skillDir, { recursive: true });
     await writeFile(join(skillDir, 'SKILL.md'), '---\nname: legacy-fallback\n---\n');
 
-    const otherMachinePath = join(homedir(), 'other-machine', '.skillctl', 'skills', skillName);
+    const otherMachinePath = join(homedir(), 'other-machine', '.leogriel', 'skills', skillName);
     const entry = makeEntry({
       name: skillName,
       canonicalPath: otherMachinePath,
@@ -94,7 +94,7 @@ test('resolveEntryCanonicalPath falls back to store/name for legacy absolute loc
 });
 
 test('lockToSkillTargets returns filesystem paths from portable lock entries', async () => {
-  const store = await mkdtemp(join(tmpdir(), 'skillctl-store-'));
+  const store = await mkdtemp(join(tmpdir(), 'leogriel-store-'));
   const skillName = 'sync-target';
   const skillDir = join(store, skillName);
   try {

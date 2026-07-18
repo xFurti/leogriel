@@ -5,8 +5,8 @@
  *   project: .agents/skills   (note: .agents/skills is de-facto universal too, coexistence relevant)
  */
 import { BaseAgentAdapter, join, homedir, basicDetect } from '../base/index.js';
-import type { AgentAdapter } from '@skillctl/core';
-import { pathExists } from '@skillctl/link-manager';
+import type { AgentAdapter } from '@leogriel/core';
+import { pathExists } from '@leogriel/link-manager';
 
 export class CursorAdapter extends BaseAgentAdapter implements AgentAdapter {
   constructor() {

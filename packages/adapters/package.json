@@ -1,7 +1,7 @@
 {
-  "name": "@skillctl/adapters",
+  "name": "@leogriel/adapters",
   "version": "0.9.0",
-  "description": "Agent adapters for Claude Code, Cursor, OpenCode, Codex, Gemini CLI + sync and coexistence detection",
+  "description": "Agent adapters and safe synchronization for Leogriel",
   "license": "MIT",
   "author": "xFurti & Gabry848",
   "type": "module",
@@ -20,8 +20,8 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@skillctl/core": "workspace:*",
-    "@skillctl/link-manager": "workspace:*"
+    "@leogriel/core": "workspace:*",
+    "@leogriel/link-manager": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
@@ -33,7 +33,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/xFurti/skillctl.git",
+    "url": "https://github.com/xFurti/leogriel.git",
     "directory": "packages/adapters"
   },
   "keywords": [

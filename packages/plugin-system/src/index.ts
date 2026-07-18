@@ -9,7 +9,7 @@ export {
 } from './loader.js';
 export * from './store.js';
 export type {
-  SkillctlPlugin,
+  LeogrielPlugin,
   PluginAPI,
   PluginProgram,
   PluginCommand,

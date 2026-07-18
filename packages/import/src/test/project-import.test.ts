@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { planImportFromProject } from '../migrate.js';
 import { classifySkillPath } from '../parsers/link-classifier.js';
 import { discoverProjectSkills } from '../discover-project-skills.js';
-import '@skillctl/adapters';
+import '@leogriel/adapters';
 
 async function writeSkill(dir: string, name: string): Promise<string> {
   const skillDir = join(dir, name);
@@ -16,7 +16,7 @@ async function writeSkill(dir: string, name: string): Promise<string> {
 }
 
 test('discoverProjectSkills finds skills in .codex/skills', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'skillctl-import-'));
+  const root = await mkdtemp(join(tmpdir(), 'leogriel-import-'));
   try {
     await writeSkill(join(root, '.codex', 'skills'), 'my-tdd');
     const { deduped, sources } = await discoverProjectSkills({ cwd: root });
@@ -30,21 +30,21 @@ test('discoverProjectSkills finds skills in .codex/skills', async () => {
 });
 
 test('planImportFromProject uses a vendored project-relative specifier', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'skillctl-import-'));
+  const root = await mkdtemp(join(tmpdir(), 'leogriel-import-'));
   try {
     await writeSkill(join(root, '.claude', 'skills'), 'grill-me');
     const { plan } = await planImportFromProject(root);
     assert.equal(plan.length, 1);
     assert.equal(plan[0].action, 'copy-local');
-    assert.equal(plan[0].specifier, 'file:./.skillctl/skills/grill-me');
+    assert.equal(plan[0].specifier, 'file:./.leogriel/skills/grill-me');
     assert.match(plan[0].originalPath || '', /\.claude\/skills\/grill-me/);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
 });
 
-test('classifySkillPath detects skillctl-link under store root', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'skillctl-store-'));
+test('classifySkillPath detects leogriel-link under store root', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'leogriel-store-'));
   try {
     const store = join(root, 'store');
     const skill = await writeSkill(store, 'linked-skill');
@@ -58,7 +58,7 @@ test('classifySkillPath detects skillctl-link under store root', async () => {
       await symlink(skill, linkPath, 'dir');
     }
     const classified = await classifySkillPath(linkPath, store);
-    assert.equal(classified.kind, 'skillctl-link');
+    assert.equal(classified.kind, 'leogriel-link');
     assert.equal(classified.canonicalName, 'linked-skill');
   } finally {
     await rm(root, { recursive: true, force: true });
@@ -66,7 +66,7 @@ test('classifySkillPath detects skillctl-link under store root', async () => {
 });
 
 test('project import refuses conflicting skills with the same canonical name', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'skillctl-project-conflict-'));
+  const root = await mkdtemp(join(tmpdir(), 'leogriel-project-conflict-'));
   try {
     await writeSkill(join(root, '.codex', 'skills'), 'same-name');
     const other = await writeSkill(join(root, '.claude', 'skills'), 'same-name');

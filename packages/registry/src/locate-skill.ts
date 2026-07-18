@@ -1,6 +1,6 @@
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
-import { resolvePathInside } from '@skillctl/core';
+import { resolvePathInside } from '@leogriel/core';
 import { canonicalizeName } from './names.js';
 import { parseSkillFrontmatterAsync } from './frontmatter.js';
 

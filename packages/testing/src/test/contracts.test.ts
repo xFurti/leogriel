@@ -115,23 +115,23 @@ test('Codex authentication applies precedence and rejects conflicting keys', () 
 
 test('ChatGPT authentication requires an explicit dedicated home and rejects API keys', () => {
   const resolved = resolveCodexAuth({
-    SKILLCTL_CODEX_AUTH_MODE: 'chatgpt',
-    SKILLCTL_CODEX_AUTH_HOME: './dedicated-chatgpt-profile',
+    LEOGRIEL_CODEX_AUTH_MODE: 'chatgpt',
+    LEOGRIEL_CODEX_AUTH_HOME: './dedicated-chatgpt-profile',
   });
   assert.equal(resolved.mode, 'chatgpt');
   if (resolved.mode === 'chatgpt') assert.equal(resolved.codexHome.endsWith('dedicated-chatgpt-profile'), true);
-  assert.throws(() => resolveCodexAuth({ SKILLCTL_CODEX_AUTH_MODE: 'chatgpt' }), /explicit SKILLCTL_CODEX_AUTH_HOME/);
+  assert.throws(() => resolveCodexAuth({ LEOGRIEL_CODEX_AUTH_MODE: 'chatgpt' }), /explicit LEOGRIEL_CODEX_AUTH_HOME/);
   assert.throws(() => resolveCodexAuth({
-    SKILLCTL_CODEX_AUTH_MODE: 'chatgpt',
-    SKILLCTL_CODEX_AUTH_HOME: './profile',
+    LEOGRIEL_CODEX_AUTH_MODE: 'chatgpt',
+    LEOGRIEL_CODEX_AUTH_HOME: './profile',
     CODEX_API_KEY: 'abcdefghijklmnop',
   }), /cannot be combined/);
   assert.throws(() => resolveCodexAuth({
-    SKILLCTL_CODEX_AUTH_MODE: 'chatgpt',
-    SKILLCTL_CODEX_AUTH_HOME: './profile',
+    LEOGRIEL_CODEX_AUTH_MODE: 'chatgpt',
+    LEOGRIEL_CODEX_AUTH_HOME: './profile',
     OPENAI_API_KEY: 'abcdefghijklmnop',
   }), /cannot be combined/);
-  assert.throws(() => resolveCodexAuth({ SKILLCTL_CODEX_AUTH_MODE: 'unknown' }), /api-key or chatgpt/);
+  assert.throws(() => resolveCodexAuth({ LEOGRIEL_CODEX_AUTH_MODE: 'unknown' }), /api-key or chatgpt/);
 });
 
 test('aggregate verdict follows case verdicts instead of assertion counts', () => {
@@ -177,12 +177,12 @@ test('paired runner execution is sequential, deterministic, and records model/ne
     await mkdir(skill);
     await writeFile(join(skill, 'SKILL.md'), '---\nname: demo\ndescription: test\n---\nwork');
     const file = validateTestFile({ version: 1, skill: 'demo', cases: [{ name: 'case', prompt: 'work', assertions: [{ type: 'file-exists', path: 'output.txt' }] }] });
-    await assert.rejects(runSkillTests({ ...file, skill: 'other' }, { testFilePath: join(root, 'test.yaml'), skillPath: skill, runner, skillctlVersion: '0.9.0' }), /does not match/);
+    await assert.rejects(runSkillTests({ ...file, skill: 'other' }, { testFilePath: join(root, 'test.yaml'), skillPath: skill, runner, leogrielVersion: '0.9.0' }), /does not match/);
     const wrongRunner = validateTestFile({ version: 1, skill: 'demo', cases: [{ name: 'case', prompt: 'work', runner: { id: 'other' }, assertions: [{ type: 'file-exists', path: 'output.txt' }] }] });
-    await assert.rejects(runSkillTests(wrongRunner, { testFilePath: join(root, 'test.yaml'), skillPath: skill, runner, skillctlVersion: '0.9.0' }), /requires runner/);
-    await assert.rejects(runSkillTests(file, { testFilePath: join(root, 'test.yaml'), skillPath: skill, runner, runs: 0, skillctlVersion: '0.9.0' }), /between 1 and 20/);
-    await assert.rejects(runSkillTests(file, { testFilePath: join(root, 'test.yaml'), skillPath: skill, runner, runs: 21, skillctlVersion: '0.9.0' }), /between 1 and 20/);
-    const result = await runSkillTests(file, { testFilePath: join(root, 'test.yaml'), skillPath: skill, runner, runs: 3, seed: 7, skillctlVersion: '0.9.0' });
+    await assert.rejects(runSkillTests(wrongRunner, { testFilePath: join(root, 'test.yaml'), skillPath: skill, runner, leogrielVersion: '0.9.0' }), /requires runner/);
+    await assert.rejects(runSkillTests(file, { testFilePath: join(root, 'test.yaml'), skillPath: skill, runner, runs: 0, leogrielVersion: '0.9.0' }), /between 1 and 20/);
+    await assert.rejects(runSkillTests(file, { testFilePath: join(root, 'test.yaml'), skillPath: skill, runner, runs: 21, leogrielVersion: '0.9.0' }), /between 1 and 20/);
+    const result = await runSkillTests(file, { testFilePath: join(root, 'test.yaml'), skillPath: skill, runner, runs: 3, seed: 7, leogrielVersion: '0.9.0' });
     assert.equal(maxActive, 1);
     assert.equal(roots.size, 6);
     assert.deepEqual(result.cases[0].pairs.map((pair) => pair.first), ['skill', 'baseline', 'skill']);
@@ -213,7 +213,7 @@ test('derived seed covers test and skill integrity, runner, model, and run count
     await writeFile(join(skill, 'SKILL.md'), originalSkill);
     const execute = (input = baseInput, runner = makeRunner('fake'), extra: Partial<Parameters<typeof runSkillTests>[1]> = {}) => runSkillTests(
       validateTestFile(input),
-      { testFilePath: join(root, 'missing.yaml'), skillPath: skill, runner, runs: 1, skillctlVersion: '0.9.0', ...extra },
+      { testFilePath: join(root, 'missing.yaml'), skillPath: skill, runner, runs: 1, leogrielVersion: '0.9.0', ...extra },
     );
     const base = await execute();
     const same = await execute();

@@ -6,7 +6,7 @@ import { getDirStatSignature } from './fs.js';
 
 /**
  * Content-addressable cache for performance (PR12).
- * Located at ~/.skillctl/cache/
+ * Located at ~/.leogriel/cache/
  * Keyed by integrity (sha256:<hex> -> strip prefix for dir name under cache/).
  * Used to skip re-extract / reuse identical skill trees across adds/installs.
  * Also supports raw download cache for tarballs keyed by their known hash/shasum.
@@ -15,7 +15,7 @@ import { getDirStatSignature } from './fs.js';
  * Fast-path stat checks for drift before full re-hash.
  */
 
-const CACHE_ROOT = join(homedir(), '.skillctl', 'cache');
+const CACHE_ROOT = join(homedir(), '.leogriel', 'cache');
 const DOWNLOAD_CACHE = join(CACHE_ROOT, 'downloads'); // for raw tarballs etc.
 
 export function getCacheDir(): string {

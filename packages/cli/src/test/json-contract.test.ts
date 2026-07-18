@@ -10,18 +10,18 @@ import { program } from '../index.js';
 
 const execFileAsync = promisify(execFile);
 const here = dirname(fileURLToPath(import.meta.url));
-const cli = resolve(here, '..', '..', 'bin', 'skillctl.js');
+const cli = resolve(here, '..', '..', 'bin', 'leogriel.js');
 const commandsDir = resolve(here, '..', 'commands');
 
 test('first-party JSON commands emit one stable envelope', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'skillctl-json-contract-'));
+  const root = await mkdtemp(join(tmpdir(), 'leogriel-json-contract-'));
   const project = join(root, 'project');
   const env = {
     ...process.env,
     HOME: root,
     USERPROFILE: root,
-    SKILLCTL_CONFIG: join(root, 'config.json'),
-    SKILLCTL_STORE: join(root, 'store'),
+    LEOGRIEL_CONFIG: join(root, 'config.json'),
+    LEOGRIEL_STORE: join(root, 'store'),
     NO_COLOR: '1',
   };
   try {
@@ -62,13 +62,13 @@ test('completion JSON returns the selected shell and script', async () => {
   const result = await runJson(['completion', 'bash', '--json'], process.cwd(), process.env);
   assert.equal(result.value.command, 'completion');
   assert.equal(result.value.data.shell, 'bash');
-  assert.match(result.value.data.script, /complete -F _skillctl skillctl/);
+  assert.match(result.value.data.script, /complete -F _leogriel leogriel/);
 });
 
 test('Commander hierarchy identifies parent actions and every first-party parse error', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'skillctl-json-hierarchy-'));
+  const root = await mkdtemp(join(tmpdir(), 'leogriel-json-hierarchy-'));
   const project = join(root, 'project');
-  const env = { ...process.env, HOME: root, USERPROFILE: root, SKILLCTL_CONFIG: join(root, 'config.json'), SKILLCTL_STORE: join(root, 'store') };
+  const env = { ...process.env, HOME: root, USERPROFILE: root, LEOGRIEL_CONFIG: join(root, 'config.json'), LEOGRIEL_STORE: join(root, 'store') };
   try {
     await mkdir(project, { recursive: true });
     await runJson(['init', '--no-prompt', '--json'], project, env);

@@ -1,20 +1,20 @@
 import { cliLog, cliError } from '../lib/output.js';
 import type { Command } from 'commander';
 import { stat } from 'node:fs/promises';
-import { loadManifest } from '@skillctl/manifest';
-import { loadLockfile, createEmptyLockfile } from '@skillctl/lockfile';
+import { loadManifest } from '@leogriel/manifest';
+import { loadLockfile, createEmptyLockfile } from '@leogriel/lockfile';
 import {
   lockToSkillTargets,
   needsInstall,
   resolveEntryCanonicalPath,
   getProjectSkillsStore,
-  requireSkillctlProject,
+  requireLeogrielProject,
   type LockfileEntry,
-} from '@skillctl/core';
-import { RegistryManager } from '@skillctl/registry';
-import { syncSkillsToAgents } from '@skillctl/adapters';
+} from '@leogriel/core';
+import { RegistryManager } from '@leogriel/registry';
+import { syncSkillsToAgents } from '@leogriel/adapters';
 import { handleCommandError } from '../lib/errors.js';
-import { withOperationLocks } from '@skillctl/project-state';
+import { withOperationLocks } from '@leogriel/project-state';
 
 export interface InstallSummary {
   installed: string[];
@@ -35,12 +35,12 @@ export function registerInstall(program: Command, mgr?: RegistryManager): void {
     .option('--prod', 'exclude devDependencies')
     .action(async (options) => {
       try {
-        const cwd = await requireSkillctlProject();
+        const cwd = await requireLeogrielProject();
         const store = getProjectSkillsStore(cwd);
         const manifest = await loadManifest(cwd);
         let lock = (await loadLockfile(cwd)) || createEmptyLockfile();
         const registry = mgr || new RegistryManager();
-        if (!manifest) throw new Error('agent-skills.json not found. Run `skillctl init` first.');
+        if (!manifest) throw new Error('agent-skills.json not found. Run `leogriel init` first.');
 
         const production = manifest.agentSkills?.dependencies || {};
         const development = manifest.agentSkills?.devDependencies || {};

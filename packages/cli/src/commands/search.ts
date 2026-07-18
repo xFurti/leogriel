@@ -1,8 +1,8 @@
 import { cliLog } from '../lib/output.js';
 import type { Command } from 'commander';
 import * as prompts from '@clack/prompts';
-import { CatalogManager, RegistryManager } from '@skillctl/registry';
-import { SkillctlError, handleCommandError } from '../lib/errors.js';
+import { CatalogManager, RegistryManager } from '@leogriel/registry';
+import { LeogrielError, handleCommandError } from '../lib/errors.js';
 
 export function registerSearch(
   program: Command,
@@ -29,7 +29,7 @@ export function registerSearch(
           if (prompts.isCancel(entered)) return;
           searchQuery = String(entered).trim();
         }
-        if (searchQuery.length < 2) throw new SkillctlError('A search query of at least 2 characters is required', 'SEARCH_QUERY_REQUIRED', 2);
+        if (searchQuery.length < 2) throw new LeogrielError('A search query of at least 2 characters is required', 'SEARCH_QUERY_REQUIRED', 2);
 
         const results = await catalog.search(searchQuery, { owner: options.owner, limit: options.limit, provider: options.provider });
         if (options.json && !options.add) {
@@ -64,7 +64,7 @@ export function registerSearch(
         }
         if (!selectedId) return;
         const selected = results.find((result) => result.id === selectedId);
-        if (!selected) throw new SkillctlError(`Catalog result not found: ${selectedId}`, 'SEARCH_RESULT_NOT_FOUND', 2);
+        if (!selected) throw new LeogrielError(`Catalog result not found: ${selectedId}`, 'SEARCH_RESULT_NOT_FOUND', 2);
 
         let global = Boolean(options.global);
         if (interactive && !options.global) {
@@ -79,13 +79,13 @@ export function registerSearch(
           if (prompts.isCancel(scope) || scope === 'cancel') return;
           global = scope === 'global';
         } else if (!interactive && !options.yes) {
-          throw new SkillctlError('Non-interactive catalog adds require --yes', 'CONFIRMATION_REQUIRED', 2);
+          throw new LeogrielError('Non-interactive catalog adds require --yes', 'CONFIRMATION_REQUIRED', 2);
         }
 
         if (!options.json) cliLog(`Adding ${selected.installSpecifier} to ${global ? 'global' : 'project'} scope...`);
         const entry = await registry.add(selected.installSpecifier, { global, updateManifest: !global });
         if (options.json) cliLog(JSON.stringify({ query: searchQuery, results, added: entry }, null, 2));
-        else cliLog(`Added ${entry.name} (${entry.resolved}). Run skillctl sync to refresh agent targets.`);
+        else cliLog(`Added ${entry.name} (${entry.resolved}). Run leogriel sync to refresh agent targets.`);
       } catch (err) {
         handleCommandError(err, 'search');
       }

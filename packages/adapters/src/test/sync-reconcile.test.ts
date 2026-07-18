@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, readdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { AgentAdapter } from '@skillctl/core';
-import { linkManager } from '@skillctl/link-manager';
+import type { AgentAdapter } from '@leogriel/core';
+import { linkManager } from '@leogriel/link-manager';
 import { inspectSkillTargets, syncSkillsToAgents } from '../sync.js';
 
 test('reports unmanaged targets and replaces them only with an explicit backup', async () => {
-  const cwd = await mkdtemp(join(tmpdir(), 'skillctl-reconcile-'));
-  const canonical = join(cwd, '.skillctl', 'skills', 'demo');
+  const cwd = await mkdtemp(join(tmpdir(), 'leogriel-reconcile-'));
+  const canonical = join(cwd, '.leogriel', 'skills', 'demo');
   const target = join(cwd, '.fake', 'skills', 'demo');
   await mkdir(canonical, { recursive: true });
   await mkdir(target, { recursive: true });
@@ -30,7 +30,7 @@ test('reports unmanaged targets and replaces them only with an explicit backup',
       adapters: [adapter], scope: 'project', replaceUnmanaged: true, skillNames: ['demo'],
     });
     assert.equal(result.counts.updated, 1);
-    const backups = await readdir(join(cwd, '.skillctl', 'backups'), { recursive: true });
+    const backups = await readdir(join(cwd, '.leogriel', 'backups'), { recursive: true });
     assert.ok(backups.some((path) => String(path).endsWith('metadata.json')));
     assert.match(await import('node:fs/promises').then((fs) => fs.readFile(join(target, 'SKILL.md'), 'utf8')), /new/);
   } finally {

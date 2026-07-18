@@ -2,8 +2,8 @@
  * Base adapter helpers and interface re-export.
  * Adapters are independent per design.
  */
-import type { AgentAdapter } from '@skillctl/core';
-import { linkManager, pathExists } from '@skillctl/link-manager';
+import type { AgentAdapter } from '@leogriel/core';
+import { linkManager, pathExists } from '@leogriel/link-manager';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 

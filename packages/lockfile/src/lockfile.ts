@@ -2,8 +2,8 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import yaml from 'js-yaml';
 import { SkillLockfileSchema, validateLockfile } from './schema.js';
-import type { SkillLockfile, LockfileEntry } from '@skillctl/core';
-import { writeFileAtomic, ensureDir } from '@skillctl/core';
+import type { SkillLockfile, LockfileEntry } from '@leogriel/core';
+import { writeFileAtomic, ensureDir } from '@leogriel/core';
 
 /**
  * Lockfile parser/generator: pnpm-style YAML with lockfileVersion.

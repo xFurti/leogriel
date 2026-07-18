@@ -1,7 +1,7 @@
 {
-  "name": "@skillctl/import",
+  "name": "@leogriel/import",
   "version": "0.9.0",
-  "description": "Import and migrate skills from npx skills and Python skillctl",
+  "description": "Import and migrate Agent Skills from projects, npx skills, and legacy Python skillctl",
   "license": "MIT",
   "author": "xFurti & Gabry848",
   "type": "module",
@@ -19,12 +19,12 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@skillctl/core": "workspace:*",
-    "@skillctl/lockfile": "workspace:*",
-    "@skillctl/manifest": "workspace:*",
-    "@skillctl/registry": "workspace:*",
-    "@skillctl/adapters": "workspace:*",
-    "@skillctl/project-state": "workspace:*"
+    "@leogriel/core": "workspace:*",
+    "@leogriel/lockfile": "workspace:*",
+    "@leogriel/manifest": "workspace:*",
+    "@leogriel/registry": "workspace:*",
+    "@leogriel/adapters": "workspace:*",
+    "@leogriel/project-state": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
@@ -36,7 +36,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/xFurti/skillctl.git",
+    "url": "https://github.com/xFurti/leogriel.git",
     "directory": "packages/import"
   },
   "keywords": [

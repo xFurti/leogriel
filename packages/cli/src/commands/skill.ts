@@ -1,7 +1,7 @@
 import { cliLog } from '../lib/output.js';
 import type { Command } from 'commander';
 import { resolve } from 'node:path';
-import { validateSkillDir, auditExitCode } from '@skillctl/security';
+import { validateSkillDir, auditExitCode } from '@leogriel/security';
 import { handleCommandError } from '../lib/errors.js';
 
 export function registerSkill(program: Command): void {
@@ -14,7 +14,7 @@ export function registerSkill(program: Command): void {
     .option('--strict', 'treat warnings as errors (exit 2)')
     .action(async (pathArg, options) => {
       try {
-        const skillPath = resolve(process.cwd(), pathArg || 'skills/skillctl');
+        const skillPath = resolve(process.cwd(), pathArg || 'skills/leogriel');
         const report = await validateSkillDir(skillPath);
 
         if (options.json) {
@@ -23,7 +23,7 @@ export function registerSkill(program: Command): void {
           return;
         }
 
-        cliLog(`skillctl skill validate — ${skillPath}`);
+        cliLog(`leogriel skill validate — ${skillPath}`);
         cliLog(`Status: ${report.status} (scanned ${report.scanned})`);
         for (const f of report.findings) {
           cliLog(`  [${f.severity}] ${f.rule}: ${f.message}`);

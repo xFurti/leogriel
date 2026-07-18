@@ -1,8 +1,8 @@
 import type { Command } from 'commander';
-import { findSkillctlProject } from '@skillctl/core';
-import { loadLockfile } from '@skillctl/lockfile';
-import { loadPluginManifest } from '@skillctl/plugin-system';
-import { SkillctlError, handleCommandError } from '../lib/errors.js';
+import { findLeogrielProject } from '@leogriel/core';
+import { loadLockfile } from '@leogriel/lockfile';
+import { loadPluginManifest } from '@leogriel/plugin-system';
+import { LeogrielError, handleCommandError } from '../lib/errors.js';
 import { cliLog, writeCliRaw } from '../lib/output.js';
 
 const commands = ['init', 'add', 'install', 'list', 'search', 'info', 'outdated', 'update', 'sync', 'remove', 'doctor', 'import', 'audit', 'plugin', 'backup', 'skill', 'test', 'completion'];
@@ -21,7 +21,7 @@ export function registerCompletion(program: Command): void {
           : selected === 'zsh' ? zshCompletion()
           : selected === 'powershell' ? powerShellCompletion()
           : null;
-        if (!script) throw new SkillctlError('Supported shells: bash, zsh, powershell', 'INVALID_SHELL', 2);
+        if (!script) throw new LeogrielError('Supported shells: bash, zsh, powershell', 'INVALID_SHELL', 2);
         if (options.json) cliLog(JSON.stringify({ shell: selected, script }));
         else writeCliRaw('stdout', script);
       } catch (err) { handleCommandError(err, 'completion'); }
@@ -35,15 +35,15 @@ export function registerCompletion(program: Command): void {
         const manifest = await loadPluginManifest();
         writeCliRaw('stdout', `${Object.keys(manifest.plugins).sort().join('\n')}\n`);
       } else if (kind === 'skills') {
-        const root = await findSkillctlProject();
+        const root = await findLeogrielProject();
         const lock = root ? await loadLockfile(root) : null;
         writeCliRaw('stdout', `${Object.keys(lock?.skills || {}).sort().join('\n')}\n`);
-      } else throw new SkillctlError('Candidate kind must be skills, plugins, or agents', 'INVALID_COMPLETION_KIND', 2);
+      } else throw new LeogrielError('Candidate kind must be skills, plugins, or agents', 'INVALID_COMPLETION_KIND', 2);
     });
 }
 
 export function bashCompletion(): string {
-  return `_skillctl() {
+  return `_leogriel() {
   local cur prev
   COMPREPLY=()
   cur="\${COMP_WORDS[COMP_CWORD]}"
@@ -52,47 +52,47 @@ export function bashCompletion(): string {
     COMPREPLY=( $(compgen -W "${agents.join(' ')}" -- "$cur") ); return
   fi
   if [[ "\${COMP_WORDS[1]}" =~ ^(info|update|remove|test)$ ]]; then
-    COMPREPLY=( $(compgen -W "$(skillctl completion-candidates skills 2>/dev/null)" -- "$cur") ); return
+    COMPREPLY=( $(compgen -W "$(leogriel completion-candidates skills 2>/dev/null)" -- "$cur") ); return
   fi
   if [[ "\${COMP_WORDS[1]}" == "plugin" && "\${COMP_WORDS[2]}" =~ ^(info|update|remove|enable|disable)$ ]]; then
-    COMPREPLY=( $(compgen -W "$(skillctl completion-candidates plugins 2>/dev/null)" -- "$cur") ); return
+    COMPREPLY=( $(compgen -W "$(leogriel completion-candidates plugins 2>/dev/null)" -- "$cur") ); return
   fi
   if [[ $COMP_CWORD -eq 1 ]]; then
     COMPREPLY=( $(compgen -W "${commands.join(' ')}" -- "$cur") ); return
   fi
   COMPREPLY=( $(compgen -W "--help --json --global --project --dry-run --yes" -- "$cur") )
 }
-complete -F _skillctl skillctl
+complete -F _leogriel leogriel
 `;
 }
 
 export function zshCompletion(): string {
-  return `#compdef skillctl
-_skillctl() {
+  return `#compdef leogriel
+_leogriel() {
   local -a commands agents
   commands=(${commands.map((command) => `'${command}:${command}'`).join(' ')})
   agents=(${agents.map((agent) => `'${agent}'`).join(' ')})
   if (( CURRENT == 2 )); then _describe 'command' commands; return; fi
   if [[ $words[CURRENT-1] == '--agent' ]]; then _describe 'agent' agents; return; fi
   if [[ $words[2] == (info|update|remove|test) ]]; then
-    local -a skills; skills=(\${(f)"$(skillctl completion-candidates skills 2>/dev/null)"}); _describe 'skill' skills; return
+    local -a skills; skills=(\${(f)"$(leogriel completion-candidates skills 2>/dev/null)"}); _describe 'skill' skills; return
   fi
   if [[ $words[2] == plugin && $words[3] == (info|update|remove|enable|disable) ]]; then
-    local -a plugins; plugins=(\${(f)"$(skillctl completion-candidates plugins 2>/dev/null)"}); _describe 'plugin' plugins; return
+    local -a plugins; plugins=(\${(f)"$(leogriel completion-candidates plugins 2>/dev/null)"}); _describe 'plugin' plugins; return
   fi
   _arguments '*:argument:_files'
 }
-_skillctl "$@"
+_leogriel "$@"
 `;
 }
 
 export function powerShellCompletion(): string {
-  return `Register-ArgumentCompleter -Native -CommandName skillctl -ScriptBlock {
+  return `Register-ArgumentCompleter -Native -CommandName leogriel -ScriptBlock {
   param($wordToComplete, $commandAst, $cursorPosition)
   $commands = '${commands.join("','")}'
   $agents = '${agents.join("','")}'
   $tokens = @($commandAst.CommandElements | ForEach-Object { $_.Extent.Text })
-  $candidates = if ($tokens.Count -gt 1 -and $tokens[-2] -eq '--agent') { $agents } elseif ($tokens.Count -le 2) { $commands } elseif ($tokens[1] -in 'info','update','remove','test') { @(skillctl completion-candidates skills 2>$null) } elseif ($tokens.Count -gt 2 -and $tokens[1] -eq 'plugin' -and $tokens[2] -in 'info','update','remove','enable','disable') { @(skillctl completion-candidates plugins 2>$null) } else { '--help','--json','--global','--project','--dry-run','--yes' }
+  $candidates = if ($tokens.Count -gt 1 -and $tokens[-2] -eq '--agent') { $agents } elseif ($tokens.Count -le 2) { $commands } elseif ($tokens[1] -in 'info','update','remove','test') { @(leogriel completion-candidates skills 2>$null) } elseif ($tokens.Count -gt 2 -and $tokens[1] -eq 'plugin' -and $tokens[2] -in 'info','update','remove','enable','disable') { @(leogriel completion-candidates plugins 2>$null) } else { '--help','--json','--global','--project','--dry-run','--yes' }
   $candidates | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
 }
 `;

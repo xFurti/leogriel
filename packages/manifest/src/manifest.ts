@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { AgentSkillsManifestSchema, validateManifest, type AgentSkillsManifest } from './schema.js';
-import { writeFileAtomic } from '@skillctl/core';
+import { writeFileAtomic } from '@leogriel/core';
 
 // Re-export schema symbols + types for consumers/tests importing from manifest entry
 export { AgentSkillsManifestSchema, validateManifest, type AgentSkillsManifest } from './schema.js';

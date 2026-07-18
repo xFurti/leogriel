@@ -5,8 +5,8 @@
  *   project: .claude/skills
  */
 import { BaseAgentAdapter, join, homedir, basicDetect } from '../base/index.js';
-import type { AgentAdapter } from '@skillctl/core';
-import { pathExists } from '@skillctl/link-manager';
+import type { AgentAdapter } from '@leogriel/core';
+import { pathExists } from '@leogriel/link-manager';
 
 export class ClaudeAdapter extends BaseAgentAdapter implements AgentAdapter {
   constructor() {

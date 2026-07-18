@@ -1,8 +1,8 @@
 import { cliLog } from '../lib/output.js';
 import type { Command } from 'commander';
-import { RegistryManager } from '@skillctl/registry';
-import { syncSkillsToAgents } from '@skillctl/adapters';
-import { getGlobalSkillsStore, resolveEntryCanonicalPath } from '@skillctl/core';
+import { RegistryManager } from '@leogriel/registry';
+import { syncSkillsToAgents } from '@leogriel/adapters';
+import { getGlobalSkillsStore, resolveEntryCanonicalPath } from '@leogriel/core';
 import { handleCommandError } from '../lib/errors.js';
 
 export function registerAdd(program: Command, mgr?: RegistryManager): void {

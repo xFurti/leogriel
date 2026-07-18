@@ -19,10 +19,11 @@ import {
 } from 'node:fs/promises';
 import { join, dirname, relative, resolve as pathResolve, isAbsolute } from 'node:path';
 import { homedir } from 'node:os';
-import type { LinkMode } from '@skillctl/core';
-import { computeDirIntegrity, ensureDir, matchesDirIntegrity } from '@skillctl/core';
+import type { LinkMode } from '@leogriel/core';
+import { computeDirIntegrity, ensureDir, matchesDirIntegrity } from '@leogriel/core';
 
-const MANAGED_COPY_MARKER = '.skillctl-managed.json';
+const MANAGED_COPY_MARKER = '.leogriel-managed.json';
+const LEGACY_MANAGED_COPY_MARKER = '.skillctl-managed.json';
 
 interface ManagedCopyMarker {
   version: 1;
@@ -149,7 +150,7 @@ export class LinkManager {
       const managedLink = await this.isLinkedTo(canonical, target);
       const managedCopy = await this.hasManagedCopyMarker(canonical, target);
       if (!managedLink && !managedCopy) {
-        throw new Error('target is not a link or copy managed by skillctl');
+        throw new Error('target is not a link or copy managed by leogriel');
       }
 
       await rm(target, { recursive: true, force: true });
@@ -236,13 +237,16 @@ export class LinkManager {
   }
 
   private async readManagedCopyMarker(target: string): Promise<ManagedCopyMarker | null> {
-    try {
-      const parsed = JSON.parse(await readFile(join(target, MANAGED_COPY_MARKER), 'utf8')) as ManagedCopyMarker;
-      if (parsed.version !== 1 || !parsed.canonical || !parsed.integrity) return null;
-      return parsed;
-    } catch {
-      return null;
+    for (const markerName of [MANAGED_COPY_MARKER, LEGACY_MANAGED_COPY_MARKER]) {
+      try {
+        const parsed = JSON.parse(await readFile(join(target, markerName), 'utf8')) as ManagedCopyMarker;
+        if (parsed.version !== 1 || !parsed.canonical || !parsed.integrity) continue;
+        return parsed;
+      } catch {
+        // Try the next supported marker.
+      }
     }
+    return null;
   }
 
   private async hasManagedCopyMarker(canonical: string, target: string): Promise<boolean> {

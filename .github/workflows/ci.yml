@@ -46,15 +46,15 @@ jobs:
         run: pnpm test:coverage
 
       - name: Verify CLI
-        run: node packages/cli/bin/skillctl.js --version
+        run: node packages/cli/bin/leogriel.js --version
 
       - name: Functional smoke
         shell: bash
         run: |
           set -euo pipefail
-          CLI="$GITHUB_WORKSPACE/packages/cli/bin/skillctl.js"
-          WORK="$RUNNER_TEMP/skillctl-smoke"
-          export SKILLCTL_STORE="$WORK/.store"
+          CLI="$GITHUB_WORKSPACE/packages/cli/bin/leogriel.js"
+          WORK="$RUNNER_TEMP/leogriel-smoke"
+          export LEOGRIEL_STORE="$WORK/.store"
           mkdir -p "$WORK"
           cp -R "$GITHUB_WORKSPACE/packages/cli/src/test/fixtures/ci-smoke" "$WORK/ci-smoke"
           cd "$WORK"
@@ -64,12 +64,12 @@ jobs:
           node "$CLI" doctor --json > doctor.json
           node --input-type=commonjs -e "const d=JSON.parse(require('fs').readFileSync('doctor.json','utf8')); if(!d.ok || !d.data?.manifestPresent) process.exit(1); console.log('doctor ok:', d.data.status);"
           node "$CLI" audit --strict
-          node "$CLI" skill validate "$GITHUB_WORKSPACE/skills/skillctl" --json
+          node "$CLI" skill validate "$GITHUB_WORKSPACE/skills/leogriel" --json
 
       - name: Verify repository dogfood state
         run: |
-          node packages/cli/bin/skillctl.js doctor --json
-          node packages/cli/bin/skillctl.js audit --strict
+          node packages/cli/bin/leogriel.js doctor --json
+          node packages/cli/bin/leogriel.js audit --strict
 
   publish-dry-run:
     runs-on: ubuntu-latest

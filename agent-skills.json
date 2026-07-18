@@ -1,9 +1,9 @@
 {
-  "name": "skillctl",
+  "name": "leogriel",
   "version": "0.9.0",
   "agentSkills": {
     "dependencies": {
-      "skillctl": "file:./.skillctl/skills/skillctl"
+      "leogriel": "file:./.leogriel/skills/leogriel"
     },
     "devDependencies": {}
   }

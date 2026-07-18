@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { cp, lstat, mkdir, readFile, readdir, rename, rm } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
-import { canonicalizeName, computeDirIntegrity, findSkillctlProject, getRegisteredAdapters } from '@skillctl/core';
+import { canonicalizeName, computeDirIntegrity, findLeogrielProject, getRegisteredAdapters } from '@leogriel/core';
 
 export type BackupScope = 'project' | 'global';
 
@@ -22,7 +22,7 @@ export interface BackupRecord {
 
 export async function listBackups(options: { scope?: BackupScope; cwd?: string } = {}): Promise<BackupRecord[]> {
   const scope = options.scope || 'project';
-  const projectRoot = scope === 'project' ? await findSkillctlProject(options.cwd || process.cwd()) : null;
+  const projectRoot = scope === 'project' ? await findLeogrielProject(options.cwd || process.cwd()) : null;
   if (scope === 'project' && !projectRoot) return [];
   const root = backupRoot(scope, projectRoot || options.cwd);
   const metadata = await findMetadata(root);
@@ -43,7 +43,7 @@ export async function restoreBackup(
   if (!backup) throw new Error(`Backup not found: ${id}`);
   await verifyBackup(backup);
   if (options.dryRun) return { backup, restored: false };
-  const rollback = `${backup.originalPath}.skillctl-restore-${randomUUID()}`;
+  const rollback = `${backup.originalPath}.leogriel-restore-${randomUUID()}`;
   const existing = await lstat(backup.originalPath).catch(() => null);
   if (existing) await rename(backup.originalPath, rollback);
   try {
@@ -128,7 +128,7 @@ async function findMetadata(root: string): Promise<string[]> {
 }
 
 function backupRoot(scope: BackupScope, cwd = process.cwd()): string {
-  const root = scope === 'global' ? join(homedir(), '.skillctl') : resolve(cwd, '.skillctl');
+  const root = scope === 'global' ? join(homedir(), '.leogriel') : resolve(cwd, '.leogriel');
   return join(root, 'backups', 'sync');
 }
 

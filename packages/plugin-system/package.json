@@ -1,7 +1,7 @@
 {
-  "name": "@skillctl/plugin-system",
+  "name": "@leogriel/plugin-system",
   "version": "0.9.0",
-  "description": "Experimental plugin loader for skillctl (commands, adapters, registries)",
+  "description": "Experimental plugin system for Leogriel commands, adapters, registries, catalogs, and audit rules",
   "license": "MIT",
   "author": "xFurti & Gabry848",
   "type": "module",
@@ -19,7 +19,7 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@skillctl/core": "workspace:*",
+    "@leogriel/core": "workspace:*",
     "semver": "^7.6.3",
     "tar": "^7.5.16"
   },
@@ -34,7 +34,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/xFurti/skillctl.git",
+    "url": "https://github.com/xFurti/leogriel.git",
     "directory": "packages/plugin-system"
   },
   "keywords": [

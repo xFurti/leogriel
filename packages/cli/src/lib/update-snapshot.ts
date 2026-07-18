@@ -13,7 +13,7 @@ export interface UpdateSnapshot {
 }
 
 export async function createUpdateSnapshot(cwd: string, store: string, names: string[]): Promise<UpdateSnapshot> {
-  const root = await mkdtemp(join(tmpdir(), 'skillctl-update-rollback-'));
+  const root = await mkdtemp(join(tmpdir(), 'leogriel-update-rollback-'));
   const existing = new Set<string>();
   for (const name of names) {
     const source = join(store, name);

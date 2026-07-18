@@ -1,5 +1,5 @@
 import type { Command } from 'commander';
-import { redactSecrets } from '@skillctl/core';
+import { redactSecrets } from '@leogriel/core';
 
 export interface CliIssue {
   code: string;

@@ -1,6 +1,6 @@
 import { stat } from 'node:fs/promises';
-import type { SkillLockfile } from '@skillctl/core';
-import { matchesDirIntegrity, resolveEntryCanonicalPath } from '@skillctl/core';
+import type { SkillLockfile } from '@leogriel/core';
+import { matchesDirIntegrity, resolveEntryCanonicalPath } from '@leogriel/core';
 import type { AuditFinding } from '../types.js';
 
 export async function checkIntegrityDrift(lock: SkillLockfile, options?: { store?: string }): Promise<AuditFinding[]> {

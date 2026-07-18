@@ -12,7 +12,7 @@ const corepack = process.platform === 'win32'
 const npmCli = process.platform === 'win32'
   ? join(dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js')
   : null;
-const toolShimRoot = process.platform === 'win32' ? await mkdtemp(join(tmpdir(), 'skillctl-tools-')) : null;
+const toolShimRoot = process.platform === 'win32' ? await mkdtemp(join(tmpdir(), 'leogriel-tools-')) : null;
 if (toolShimRoot) {
   await writeFile(
     join(toolShimRoot, 'pnpm.cmd'),
@@ -83,7 +83,7 @@ for (const directoryName of releasePackages) {
   const archive = join(output, packageArchiveName(packageJson.name, packageJson.version));
   await assertFile(archive, `Missing archive for ${packageJson.name}: ${archive}`);
 
-  const extracted = await mkdtemp(join(tmpdir(), 'skillctl-pack-'));
+  const extracted = await mkdtemp(join(tmpdir(), 'leogriel-pack-'));
   try {
     run('tar', ['-xzf', archive, '-C', extracted]);
     const packagedRoot = join(extracted, 'package');
@@ -110,11 +110,11 @@ for (const directoryName of releasePackages) {
   archives.push(archive);
 }
 
-const installRoot = await mkdtemp(join(tmpdir(), 'skillctl-install-'));
+const installRoot = await mkdtemp(join(tmpdir(), 'leogriel-install-'));
 try {
   if (npmCli) run(process.execPath, [npmCli, 'install', '--ignore-scripts', '--no-audit', '--no-fund', ...archives], { cwd: installRoot });
   else run('npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund', ...archives], { cwd: installRoot });
-  const bin = join(installRoot, 'node_modules', '@skillctl', 'cli', 'bin', 'skillctl.js');
+  const bin = join(installRoot, 'node_modules', '@leogriel', 'cli', 'bin', 'leogriel.js');
   const result = run(process.execPath, [bin, '--version'], { cwd: installRoot, capture: true });
   if (result.stdout.trim() !== version) {
     throw new Error(`Packed CLI reported ${result.stdout.trim()}; expected ${version}`);

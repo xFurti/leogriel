@@ -1,9 +1,9 @@
 /**
  * Adapter registration helpers (minimal for PR6).
- * Core defines the surface; concrete adapters live in @skillctl/adapters.
+ * Core defines the surface; concrete adapters live in @leogriel/adapters.
  * This allows future plugin registration without core depending on concrete pkgs.
  */
-import type { AgentAdapter, SkillctlConfig } from './types.js';
+import type { AgentAdapter, LeogrielConfig } from './types.js';
 
 const registeredAdapters: AgentAdapter[] = [];
 
@@ -21,9 +21,9 @@ export function getRegisteredAdapters(): AgentAdapter[] {
 /**
  * Filter by enabled in config.
  */
-export function getEnabledRegisteredAdapters(config: SkillctlConfig): AgentAdapter[] {
+export function getEnabledRegisteredAdapters(config: LeogrielConfig): AgentAdapter[] {
   return registeredAdapters.filter((a) => config.agents?.[a.id] !== false);
 }
 
-// Note: the concrete first adapters (claude etc) auto-register on import of @skillctl/adapters
+// Note: the concrete first adapters (claude etc) auto-register on import of @leogriel/adapters
 // See adapters package for wiring + getEnabledAdapters (which may use this or its own).
