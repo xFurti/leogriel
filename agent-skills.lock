@@ -3,9 +3,9 @@ skills:
   leogriel:
     specifier: file:./.leogriel/skills/leogriel
     resolved: file:./.leogriel/skills/leogriel
-    integrity: sha256:f2995ebc34779d0cbe48ebffdd95fbc92cff6f8efb03677c0b1e2332f467c3bd
+    integrity: sha256:c4ed4cf2591315bf6629038efc5b652466dc9777cb19222138a08f9e1c62811f
     name: leogriel
     canonicalPath: .leogriel/skills/leogriel
-    fetchedAt: '2026-07-18T17:51:39.423Z'
+    fetchedAt: '2026-07-18T19:54:28.178Z'
     provenance:
       type: local

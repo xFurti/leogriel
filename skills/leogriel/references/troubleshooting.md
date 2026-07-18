@@ -20,6 +20,10 @@ Mutating commands serialize project then store access. `E_LOCK_TIMEOUT` means an
 
 Symlinks may require Developer Mode or administrator privileges. Set `defaultMode: "copy"` in `~/.leogriel/config.json`, then run `leogriel doctor --fix`.
 
+## Missing or managed-stale targets
+
+`doctor` exits with code 1 and reports state counts when an agent target is missing or no longer matches the canonical skill. Review `leogriel sync --project --dry-run`, then use `leogriel doctor --fix` for managed missing/stale targets. Unmanaged targets still require the narrow `sync --replace-unmanaged` flow and a verified backup.
+
 ## Coexistence with npx skills or Python skillctl
 
 `doctor` may detect `.agents/skills`, `skills-lock.json`, or `~/.skillctl/repos`. Use plain `leogriel import` for project agent directories, `leogriel import from-npx`, or `leogriel import from-skillctl`; avoid double-managing the same targets.
@@ -32,6 +36,6 @@ Symlinks may require Developer Mode or administrator privileges. Set `defaultMod
 
 ## Version compatibility
 
-This skill targets **leogriel 1.0.0-beta.2**. Lock schema remains 1.0 and config remains version 1. Older locks remain readable, but legacy mutable remote entries require `update`, and pre-0.6 local/global project paths should be re-added or re-imported into the project store.
+This skill targets **leogriel 1.0.0-beta.3**. Lock schema remains 1.0 and config remains version 1. Older locks remain readable, but legacy mutable remote entries require `update`, and pre-0.6 local/global project paths should be re-added or re-imported into the project store.
 
 Catalog network failures use a cached result when available and mark it stale. Without cache, retry later or verify `LEOGRIEL_SKILLS_API_URL`. Plugin integrity/API failures appear in `leogriel plugin doctor`; reinstall the trusted package rather than editing its locked store.

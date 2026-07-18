@@ -2,7 +2,7 @@
 
 See the [root README](../../README.md) and [docs site](https://xfurti.github.io/leogriel/) for full documentation.
 
-Leogriel weaves [Agent Skills](https://agentskills.io) into every workflow with reproducible discovery, installation, synchronization, audit, and testing. The post-beta.2 tree adds Git-ref regression comparison, GitHub-native reports, and a second experimental Claude Code runner alongside the isolated Codex runner.
+Leogriel weaves [Agent Skills](https://agentskills.io) into every workflow with reproducible discovery, installation, synchronization, audit, and testing. The `1.0.0-beta.3` candidate consolidates Git-ref regression comparison, optional GitHub-native reports, complete first-party JSON contracts, and a second experimental Claude Code runner alongside the isolated Codex runner.
 
 All first-party `--json` commands use the schema-1 leogriel envelope. Release candidates are tested from their packed tarballs and again from npm on Windows, macOS, and Linux.
 

@@ -1,6 +1,6 @@
 {
   "name": "@leogriel/lockfile",
-  "version": "1.0.0-beta.2",
+  "version": "1.0.0-beta.3",
   "description": "Reproducible agent-skills.lock parsing and generation for Leogriel",
   "license": "MIT",
   "author": "xFurti & Gabry848",

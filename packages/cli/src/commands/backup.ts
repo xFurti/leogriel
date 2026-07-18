@@ -6,7 +6,12 @@ import { handleCommandError, LeogrielError } from '../lib/errors.js';
 
 export function registerBackup(program: Command): void {
   const backup = program.command('backup').description('Inspect and restore leogriel backups');
-  backup.command('list').option('--project').option('--global').option('--json').action(async (options) => {
+  backup.command('list')
+    .description('List verified project or global sync backups')
+    .option('--project', 'list project backups')
+    .option('--global', 'list global backups')
+    .option('--json', 'machine-readable output')
+    .action(async (options) => {
     try {
       const scope = selectScope(options);
       const backups = await listBackups({ scope });
@@ -14,7 +19,10 @@ export function registerBackup(program: Command): void {
       else for (const item of backups) cliLog(`${item.id} ${item.timestamp} ${item.originalPath}`);
     } catch (error) { handleCommandError(error, 'backup list'); }
   });
-  backup.command('info <id>').option('--json').action(async (id, options) => {
+  backup.command('info <id>')
+    .description('Inspect one verified backup without restoring it')
+    .option('--json', 'machine-readable output')
+    .action(async (id, options) => {
     try {
       const record = await getBackup(id);
       if (!record) throw new LeogrielError(`Backup not found: ${id}`, 'BACKUP_NOT_FOUND', 1);
@@ -23,7 +31,12 @@ export function registerBackup(program: Command): void {
     } catch (error) { handleCommandError(error, 'backup info'); }
   });
   for (const action of ['restore', 'remove'] as const) {
-    backup.command(`${action} <id>`).option('--dry-run').option('-y, --yes').option('--json').action(async (id, options) => {
+    backup.command(`${action} <id>`)
+      .description(`${action === 'restore' ? 'Restore' : 'Remove'} one verified backup`)
+      .option('--dry-run', 'show the operation without changing files')
+      .option('-y, --yes', 'confirm a non-interactive operation')
+      .option('--json', 'machine-readable output')
+      .action(async (id, options) => {
       try {
         await confirmDangerous(`${action} backup ${id}?`, options);
         const result = action === 'restore'

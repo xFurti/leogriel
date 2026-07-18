@@ -1,5 +1,7 @@
 # Behavioral testing (experimental, 1.0 beta)
 
+This document describes the `1.0.0-beta.3` candidate behavior. The testing package and AgentRunner API remain unstable until RC validation.
+
 `leogriel test` compares paired executions of the same task without and with one exact skill. Tests run sequentially. Each variant receives a clean workspace and separate temporary HOME, USERPROFILE, XDG configuration/data/cache, and runner configuration directories.
 
 ```yaml
@@ -36,7 +38,7 @@ Native Windows Codex runs require the elevated Windows sandbox. Leogriel request
 
 Command assertions execute arbitrary code even without a shell. TTY runs display executable, argv, and working directory for one confirmation. CI requires `--trust-tests`; this flag does not change the runner network policy or provide a security sandbox, and the executable may still use capabilities available to the host process.
 
-The `0.9` runner is always paired; there is no unpaired baseline option. An improvement or regression requires at least two transitions in the same direction and none in the opposite direction. Every required assertion and budget determines the test-case pass/fail result. Durations and tokens are secondary metrics. If no model is pinned, the result warns that it is paired-valid for the current execution but not stably comparable across dates or environments.
+The beta runner is always paired; there is no unpaired baseline option. An improvement or regression requires at least two transitions in the same direction and none in the opposite direction. Every required assertion and budget determines the test-case pass/fail result. Durations and tokens are secondary metrics. If no model is pinned, the result warns that it is paired-valid for the current execution but not stably comparable across dates or environments.
 
 ## Git regression comparison
 

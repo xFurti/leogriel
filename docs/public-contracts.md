@@ -1,6 +1,6 @@
 # Public contract candidates for Leogriel 1.0
 
-This document records the contracts currently proposed for `1.0.0`. They are implemented in the post-`1.0.0-beta.2` tree but remain prerelease contracts until `1.0.0-rc.1` is validated. Any incompatible change before the RC must be documented in `CHANGELOG.md` and the migration guide.
+This document records the contracts currently proposed for `1.0.0`. They are implemented in the `1.0.0-beta.3` candidate tree but remain prerelease contracts until `1.0.0-rc.1` is validated. Any incompatible change before the RC must be documented in `CHANGELOG.md` and the migration guide.
 
 ## English
 

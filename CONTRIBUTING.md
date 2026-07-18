@@ -58,7 +58,8 @@ packages/
 ├── import/         Migration from npx skills / legacy Python skillctl
 ├── security/       Audit scanner
 ├── plugin-system/  Experimental plugins
-└── project-state/  Cross-process locks and transactional manifest/lock writes
+├── project-state/  Cross-process locks and transactional manifest/lock writes
+└── testing/        Experimental AgentRunner and paired behavioral tests
 ```
 
 All twelve workspace packages are versioned together and publishable. The CLI depends on the other scoped packages; `@leogriel/testing` remains explicitly experimental until 1.0.
@@ -101,7 +102,7 @@ High-value areas:
 
 ## Versioning
 
-We follow [Semantic Versioning](https://semver.org/). All workspace packages are kept at the same version (currently **1.0.0-beta.2**). Update `CHANGELOG.md` under `[Unreleased]` or the next version section.
+We follow [Semantic Versioning](https://semver.org/). All workspace packages are kept at the same version (currently **1.0.0-beta.3**). Update `CHANGELOG.md` under `[Unreleased]` or the next version section.
 
 ## Publishing (maintainers)
 
@@ -114,7 +115,7 @@ Release preparation is local and does not publish by itself:
 
 The manual `Release` workflow always checks and packs. Publication is disabled by default and requires `publish=true` plus approval through the protected `npm-production` environment. It publishes in dependency order and only then creates the tag and GitHub Release.
 
-Before the first Leogriel publication, create or obtain access to the `@leogriel` npm scope and configure each package's Trusted Publisher for repository `xFurti/leogriel`, workflow `release.yml`, and environment `npm-production`. The release workflow uses short-lived OIDC credentials and does not require `NPM_TOKEN`.
+When adding a package or changing release ownership, configure its Trusted Publisher for repository `xFurti/leogriel`, workflow `release.yml`, and environment `npm-production`. The release workflow uses short-lived OIDC credentials and does not require `NPM_TOKEN`.
 
 ## Code of conduct
 

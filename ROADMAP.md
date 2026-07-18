@@ -1,14 +1,34 @@
-# Roadmap to leogriel 1.0
+# Roadmap to Leogriel 1.0
 
-There will be no `0.10.0`. After `0.9.0`, the project may ship focused `0.9.1` and `0.9.2` fixes, followed by `1.0.0-alpha` or `1.0.0-beta` builds when public contracts still need iteration. At least `1.0.0-rc.1` is mandatory before stable.
+Leogriel does not skip directly from beta to stable. The current target sequence is `1.0.0-beta.3`, at least `1.0.0-rc.1`, and then `1.0.0` after real external use.
 
-## Required before 1.0
+## Beta.3 consolidation
 
-- [x] `leogriel test --compare <git-ref>` and repeatable paired regression testing. Implemented after beta.2; external validation remains required before RC.
-- [x] An optional GitHub Action with GitHub Job Summary, Markdown/HTML reports, downloadable artifacts, badge data, and opt-in pull-request comments. Implemented after beta.2; it is not required for maintainer live-runner validation or the RC.
-- [ ] Stable manifest, lock, artifact, test YAML, JSON envelope, plugin, catalog, audit, and AgentRunner contracts with migration guides. Bilingual contract and migration candidates are documented; RC validation is pending.
-- [x] Two AgentRunner implementations with capability detection and fail-closed isolation: Codex plus experimental Claude Code on macOS/Linux/WSL2. Real cross-platform Claude validation remains required before RC.
-- [ ] Real local test programs across external repositories, operating systems, and runner versions. Opt-in local live smokes and a redacted evidence matrix are prepared; external runs are pending.
-- [ ] Complete English and Italian documentation, security guidance, compatibility guarantees, and migration instructions. Candidate contract/migration docs are bilingual; final RC review is pending.
+- [x] Git-ref paired comparison and immutable reference materialization.
+- [x] Optional GitHub-native reports and pull-request comments.
+- [x] Codex plus fail-closed experimental Claude runner.
+- [x] Complete plain-import JSON output and target-drift diagnostics.
+- [x] Local opt-in live validation without hosted model credentials.
+- [x] Current architecture separated from archived skillctl design.
+- [ ] Final documentation, package, pack, and cross-platform CI gates.
 
-`1.0.0` is released only after those contracts are verified in external repositories with at least two runners. Pre-releases do not imply API stability for `@leogriel/testing`.
+## Required before RC
+
+- [ ] Publish beta.3 through the normal pre-publish and registry smoke gates.
+- [ ] Validate Codex locally on Windows and at least one Unix-like host with an exact model.
+- [ ] Validate Claude locally on a supported macOS, Linux, or WSL2 host, or remove it from the stable promise.
+- [ ] Exercise Git comparison in two external repositories with redacted evidence.
+- [ ] Have at least two operators install and use the prerelease from npm.
+- [ ] Decide which of the twelve workspace packages receive stable public API guarantees.
+- [ ] Add repository security policy and complete the bilingual documentation review.
+- [ ] Raise targeted coverage for npm/tarball resolution, update, backup, import, plugin, and audit paths.
+
+## RC and stable
+
+- [ ] Publish and use at least `1.0.0-rc.1`.
+- [ ] Verify manifest, lock, config, JSON, artifact, audit, catalog, plugin, and AgentRunner contracts against the shipped package.
+- [ ] Exercise release rerun behavior after a controlled partial publication.
+- [ ] Resolve all compatibility blockers and error-severity audit findings.
+- [ ] Publish `1.0.0` with npm `latest`, an annotated Git tag, complete release notes, and the stable `v1` Action alias if the optional Action remains supported.
+
+`@leogriel/testing`, the plugin API, Claude runner, and composite Action remain experimental until their contracts satisfy the RC evidence matrix.

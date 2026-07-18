@@ -1,0 +1,35 @@
+name: Feature request
+description: Propose a focused Leogriel capability or contract change.
+title: "feat: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the user problem independently of a preferred implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Include CLI, JSON, manifest/lock, migration, and safety implications when relevant.
+    validations:
+      required: true
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Area
+      options:
+        - Core install/update
+        - Sync/adapter
+        - Registry/catalog
+        - Import/migration
+        - Audit/security
+        - Plugin system
+        - Behavioral testing
+        - Documentation/release
+    validations:
+      required: true

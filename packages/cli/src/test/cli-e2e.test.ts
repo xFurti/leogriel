@@ -118,6 +118,21 @@ test('plain import emits structured JSON without human output', async () => {
   assert.equal(result.stderr, '');
 });
 
+test('plain import rejects interactive selection in JSON mode', async () => {
+  const cwd = await mkdtemp(join(tmpdir(), 'leogriel-import-json-interactive-'));
+  await execFileAsync(process.execPath, [cli, 'init', '--no-prompt'], { cwd });
+  await assert.rejects(
+    execFileAsync(process.execPath, [cli, 'import', '--json', '--select'], { cwd }),
+    (error: { code?: number; stdout?: string }) => {
+      assert.equal(error.code, 2);
+      const envelope = JSON.parse(error.stdout || '{}');
+      assert.equal(envelope.command, 'import');
+      assert.match(envelope.errors[0].message, /cannot be combined/);
+      return true;
+    },
+  );
+});
+
 test('doctor warns for missing targets and reports current state after fix', async () => {
   const cwd = await mkdtemp(join(tmpdir(), 'leogriel-doctor-targets-'));
   const source = join(cwd, 'demo-skill');

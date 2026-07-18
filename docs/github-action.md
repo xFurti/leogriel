@@ -22,7 +22,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: xFurti/leogriel@v1
+      # During beta, replace this with the exact published prerelease tag.
+      - uses: xFurti/leogriel@v1.0.0-beta.3
         with:
           skill: my-skill
           compare: ${{ github.event.pull_request.base.sha }}
@@ -37,7 +38,7 @@ jobs:
 
 For Claude Code, use `agent: claude`, pin a Claude Code version at least `2.1.187`, and provide `ANTHROPIC_API_KEY`. The hosted runner must be Linux or macOS; native Windows is rejected because the required Claude sandbox is unavailable.
 
-Use an exact prerelease tag instead of `@v1` until the stable major tag exists. `fetch-depth: 0` is required when `compare` targets history not present in a shallow checkout.
+The example tag becomes usable only after that prerelease is published. Use an exact published prerelease tag instead of `@v1` until the stable major tag exists. `fetch-depth: 0` is required when `compare` targets history not present in a shallow checkout. The action is optional and is not used for maintainer live-runner validation.
 
 ## Outputs and artifacts
 

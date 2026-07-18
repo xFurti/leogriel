@@ -16,7 +16,7 @@ import { handleCommandError } from '../lib/errors.js';
 export function registerPlugin(program: Command): void {
   const plugin = program.command('plugin').description('Manage experimental leogriel plugins');
 
-  plugin.command('list').option('--json', 'machine-readable output').action(async (options) => {
+  plugin.command('list').description('List requested experimental plugins and enabled state').option('--json', 'machine-readable output').action(async (options) => {
     const plugins = await listInstalledPlugins();
     if (options.json) cliLog(JSON.stringify({ experimental: true, plugins }, null, 2));
     else if (!plugins.length) cliLog('No plugins installed.');
@@ -68,7 +68,10 @@ export function registerPlugin(program: Command): void {
   });
 
   for (const enabled of [true, false]) {
-    plugin.command(`${enabled ? 'enable' : 'disable'} <name>`).option('--json', 'machine-readable output').action(async (name, options) => {
+    plugin.command(`${enabled ? 'enable' : 'disable'} <name>`)
+      .description(`${enabled ? 'Enable' : 'Disable'} a requested plugin on the next CLI start`)
+      .option('--json', 'machine-readable output')
+      .action(async (name, options) => {
       const ok = await setPluginEnabled(name, enabled);
       if (!ok) { cliError(`Plugin not found: ${name}`); process.exitCode = 1; return; }
       if (options.json) cliLog(JSON.stringify({ name, enabled, restartRequired: true }, null, 2));
@@ -76,7 +79,7 @@ export function registerPlugin(program: Command): void {
     });
   }
 
-  plugin.command('info <name>').option('--json', 'machine-readable output').action(async (name, options) => {
+  plugin.command('info <name>').description('Inspect requested and locked plugin metadata').option('--json', 'machine-readable output').action(async (name, options) => {
     const [manifest, lock] = await Promise.all([loadPluginManifest({ migrateLegacy: true }), loadPluginLock()]);
     const report = { requested: manifest.plugins[name], locked: lock.plugins[name] };
     if (!report.requested) { cliError(`Plugin not found: ${name}`); process.exitCode = 1; return; }
@@ -84,14 +87,14 @@ export function registerPlugin(program: Command): void {
     else cliLog(JSON.stringify(report, null, 2));
   });
 
-  plugin.command('doctor').option('--json', 'machine-readable output').action(async (options) => {
+  plugin.command('doctor').description('Verify plugin lock, integrity, entrypoints, and API versions').option('--json', 'machine-readable output').action(async (options) => {
     const diagnostics = await pluginDiagnostics();
     if (options.json) cliLog(JSON.stringify({ diagnostics }, null, 2));
     else for (const item of diagnostics) cliLog(`${item.ok ? 'ok' : 'error'} ${item.name}: ${item.message}`);
     if (diagnostics.some((item) => !item.ok)) process.exitCode = 1;
   });
 
-  plugin.command('remove <name>').option('--json', 'machine-readable output').action(async (name, options) => {
+  plugin.command('remove <name>').description('Remove a plugin from manifest, lock, and store').option('--json', 'machine-readable output').action(async (name, options) => {
     const ok = await removePlugin(name);
     if (!ok) { cliError(`Plugin not found: ${name}`); process.exitCode = 1; return; }
     if (options.json) cliLog(JSON.stringify({ name, removed: true }, null, 2));

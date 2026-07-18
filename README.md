@@ -8,7 +8,7 @@ Universal, package-manager-style CLI for managing **Agent Skills** across AI cod
 
 **Leogriel** installs project skills into `.leogriel/skills/` and personal skills into `~/.leogriel/skills/`, then syncs them (symlink, junction on Windows, or copy) into Claude Code, Cursor, OpenCode, Codex, Gemini CLI, Grok, Pi, and other [agentskills.io](https://agentskills.io)-compatible agents.
 
-> **Status**: v1.0.0-beta.2 — the first Leogriel-branded prerelease, with experimental paired behavioral testing on top of the 0.8 parser, audit, backup, plugin-inspection, artifact, and redaction foundations. See [CHANGELOG.md](./CHANGELOG.md).
+> **Status**: v1.0.0-beta.3 candidate — a consolidation prerelease that aligns the post-beta.2 runner, regression, JSON, diagnostics, documentation, and release contracts before the required RC validation. See [CHANGELOG.md](./CHANGELOG.md).
 
 Machine-readable commands emit one stable JSON envelope with `schemaVersion: 1`; warnings and errors stay on stderr. Official releases smoke-test both packed tarballs and the package fetched back from npm before the tag is created.
 
@@ -249,7 +249,7 @@ Before the RC, review the [public contract candidates](./docs/public-contracts.m
 
 See the [docs site](https://xfurti.github.io/leogriel/) for the full command reference, config schema, Windows notes, and coexistence with other tools.
 
-For CI regressions, the repository includes an [official composite GitHub Action](./docs/github-action.md) that performs a frozen install, writes the Job Summary, uploads JSON/Markdown/HTML and badge artifacts, and can update a marked pull-request comment.
+For optional consumer CI regressions, the repository includes a [composite GitHub Action](./docs/github-action.md) that performs a frozen install, writes the Job Summary, uploads JSON/Markdown/HTML and badge artifacts, and can update a marked pull-request comment. Maintainer live-runner validation remains local and does not require hosted model credentials.
 
 ## Development
 
@@ -265,7 +265,7 @@ pnpm test
 
 Run the CLI locally: `node packages/cli/bin/leogriel.js --help`
 
-Architecture and design: [leogriel-design.md](./leogriel-design.md) · Contributing: [CONTRIBUTING.md](./CONTRIBUTING.md)
+Architecture and design: [leogriel-design.md](./leogriel-design.md) · Contributing: [CONTRIBUTING.md](./CONTRIBUTING.md) · Security: [SECURITY.md](./SECURITY.md)
 
 ### Maintainer release setup
 

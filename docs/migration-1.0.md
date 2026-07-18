@@ -34,17 +34,18 @@ leogriel sync --project --dry-run
 
 Inspect the dry run before mutating targets. Unmanaged targets are never replaced implicitly.
 
-### From beta.2 to an RC candidate
+### From beta.2 to beta.3 and the RC candidate
 
-The post-beta.2 tree adds:
+The beta.3 candidate consolidates:
 
 - `test --compare <git-ref>`;
-- official GitHub Action reports;
+- optional GitHub Action reports without requiring hosted maintainer live tests;
 - Claude Code as a second experimental runner;
 - explicit root package exports;
-- updated dependency and runtime metadata.
+- updated dependency and runtime metadata;
+- complete JSON output for plain import and actionable target drift from doctor.
 
-Existing manifest, lock, configuration, plugin state, backups, and test YAML do not require a schema conversion. Re-run `doctor`, `audit`, and behavioral validation after installing a future prerelease.
+Historical no-op config fields `registries` and `experimental.plugins` are ignored. Existing manifest, lock, configuration, plugin state, backups, and test YAML do not require a schema conversion. Re-run `doctor`, `audit`, and behavioral validation after installing a future prerelease.
 
 Runner authentication:
 
@@ -93,9 +94,9 @@ leogriel sync --project --dry-run
 
 Controlla il dry-run prima di modificare i target. I contenuti unmanaged non vengono mai sostituiti implicitamente.
 
-### Da beta.2 verso la release candidate
+### Da beta.2 a beta.3 e verso la release candidate
 
-Il ramo successivo a beta.2 aggiunge confronto Git dei test, GitHub Action con report, runner Claude Code, export pubblici espliciti e metadata runtime aggiornati. Manifest, lock, config, plugin, backup e YAML test esistenti non richiedono conversione dello schema.
+La candidata beta.3 consolida confronto Git dei test, Action GitHub facoltativa senza live test hosted dei maintainer, runner Claude Code, export pubblici espliciti, metadata runtime aggiornati, JSON completo per l’import semplice e diagnostica dei target tramite doctor. I campi config inutilizzati `registries` ed `experimental.plugins` vengono ignorati. Manifest, lock, config, plugin, backup e YAML test esistenti non richiedono conversione dello schema.
 
 Autenticazione runner:
 
@@ -107,6 +108,6 @@ Non inserire credenziali in YAML, manifest, report o variabili visibili alle pul
 
 ### GitHub Action e rollback
 
-Prima della stabile usa un tag prerelease esatto. Fissa `leogriel-version` e `runner-version` per confronti riproducibili. L’Action conserva i report prima di applicare l’exit code del test.
+Prima della stabile usa un tag prerelease esatto. Fissa `leogriel-version` e `runner-version` per confronti riproducibili. L’Action facoltativa conserva i report prima di applicare l’exit code del test; i live test dei maintainer restano locali.
 
 Per tornare indietro reinstalla la prerelease precedente e ripristina da Git i normali file di progetto. I backup gestiti vanno ripristinati con `leogriel backup restore`; non modificare i metadata per puntare a percorsi arbitrari.

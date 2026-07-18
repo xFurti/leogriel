@@ -46,7 +46,7 @@ Global state is machine-specific and is not a replacement for committed project 
 ## CI pipeline
 
 ```bash
-npm install -g @leogriel/cli@1.0.0-beta.2
+npm install -g @leogriel/cli@1.0.0-beta.3
 leogriel install --frozen
 leogriel audit --strict --json
 ```
@@ -64,7 +64,7 @@ leogriel test my-skill --compare main --runs 3 --model <model> --json
 
 Tests are sequential and pair a clean baseline with the skill variant. With `--compare`, the baseline is the same skill from the exact commit resolved from the Git ref; the result records both integrity hashes. Network and web search are denied by default. Command assertions require an interactive confirmation or `--trust-tests` in non-interactive use; that flag does not sandbox commands or enable network access. Keep-workspace output may contain sensitive generated files.
 
-For pull requests, `xFurti/leogriel@v1` can perform a frozen restore, run the regression, write the GitHub Job Summary, upload JSON/Markdown/HTML and badge reports, and optionally update one marked PR comment. Pin an exact prerelease tag before the stable `v1` tag exists, check out full history for `--compare`, and pass authentication through the job environment rather than an action input.
+The optional pull-request Action can perform a frozen restore, run the regression, write the GitHub Job Summary, upload JSON/Markdown/HTML and badge reports, and update one marked PR comment. Use an exact published prerelease tag, such as `xFurti/leogriel@v1.0.0-beta.3` after publication, before the stable `v1` tag exists. Check out full history for `--compare`, and pass authentication through the job environment rather than an action input. Maintainer live validation remains local and does not require GitHub-hosted model credentials.
 
 For GitHub code scanning, emit pure SARIF:
 

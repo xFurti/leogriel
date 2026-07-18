@@ -7,21 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-beta.3] - 2026-07-18
+
 ### Added
 
 - Added `leogriel test <skill> --compare <git-ref>` to run paired regressions between the skill at an immutable Git commit and the current working-tree candidate, recording both integrity hashes.
 - Added an official composite GitHub Action with frozen restore, Job Summary, redacted JSON/Markdown/HTML reports, downloadable artifacts, Shields badge data, optional pull-request comments, and fail-after-report regression enforcement.
 - Added an experimental Claude Code `AgentRunner` alongside Codex, with version/capability detection, isolated configuration, fail-closed native sandboxing, subprocess credential filtering, default-deny networking, explicit staged-skill injection, and an opt-in live smoke.
-- Added bilingual public-contract and 1.0 migration candidates, an evidence-based external validation matrix, and a manual cross-platform live-runner workflow.
+- Added bilingual public-contract and 1.0 migration candidates plus an evidence-based external validation matrix for local, redacted runner validation.
 
 ### Changed
 
+- Made live runner validation local and opt-in, removing the hosted credential workflow while retaining the composite Action as an optional consumer feature.
+- Replaced the mixed current/historical design document with a concise Leogriel architecture and archived the original skillctl proposal under `docs/history/`.
+- Removed the unused `registries` and `experimental.plugins` config type fields; legacy values are ignored without changing config schema version 1.
+- Added repository security guidance, structured issue and pull-request templates, and automated documentation/version/meta-skill contract checks.
 - Restricted every published package to an explicit public root export in preparation for stable API contracts.
 - Extended plugin audit findings with categories, remediation, confidence, and evidence fields matching the first-party audit model.
 - Updated `tar` to 7.5.20 and removed the deprecated external `@types/tar` package.
 
 ### Fixed
 
+- Made `doctor` report missing and managed-stale targets as warnings with exit code `1`, expose state counts, and re-inspect targets after `--fix`.
+- Added structured schema-1 JSON output to plain `leogriel import`, including deterministic dry-run and empty-project results.
+- Completed help descriptions for backup and plugin lifecycle subcommands and rejected interactive import flags in JSON mode.
+- Ignored the built-in Pi adapter target directory in the repository dogfood state.
+- Aligned the README, package documentation, bilingual site, migration guide, validation matrix, roadmap, contributor guide, and first-party skill with the beta.3 candidate.
 - Made non-interactive Codex runs set an explicit no-prompt approval policy and require the elevated native Windows sandbox, preserving fail-closed workspace writes and network denial.
 - Made the release gate execute the root test command so release-script contract tests cannot be skipped.
 - Updated the architecture document to reflect the completed Leogriel rebrand and current beta baseline.
