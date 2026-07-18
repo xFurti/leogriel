@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-beta.4] - 2026-07-18
+
 ### Fixed
 
 - Ignore Leogriel-managed adapter targets during coexistence detection while continuing to report genuinely unmanaged skills.
@@ -18,6 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Discover a complete standalone Codex installation on Windows so the elevated sandbox can locate both setup and command-runner helpers.
 - Exclude directory-only scaffolding from `max-changed-files` while continuing to count created, removed, and modified files and symlinks.
 - Update current Vercel skill examples to the repository's `skills/web-design-guidelines` path.
+- Include the root architecture document in coordinated version preparation so release candidates cannot retain a stale version label.
+
+### Validation
+
+- Completed the opt-in Windows Codex live smoke through an explicit ChatGPT authentication profile, exact model `gpt-5.4`, elevated native sandbox, denied network, and a sandboxed Node.js file proof.
+- Exercised a real two-run paired test with the immutable public `documentation-writer` skill; Leogriel correctly returned `inconclusive` when one skill-side run timed out instead of claiming an unsupported improvement or regression.
 
 ## [1.0.0-beta.3] - 2026-07-18
 

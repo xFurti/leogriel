@@ -1,7 +1,7 @@
 # Leogriel architecture
 
 **Authors:** xFurti and Gabry848
-**Status:** Implemented `1.0.0-beta.3` candidate; RC validation pending
+**Status:** Implemented `1.0.0-beta.4` candidate; RC validation pending
 **Updated:** 2026-07-18
 
 Leogriel is a package-manager-style CLI for discovering, resolving, installing, synchronizing, auditing, and testing Agent Skills across multiple coding agents. The stable product promise is the reproducible management layer. Plugins, behavioral runners, and the composite GitHub Action remain explicitly experimental until their contracts complete RC validation.

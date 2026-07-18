@@ -1,6 +1,6 @@
 {
   "name": "@leogriel/link-manager",
-  "version": "1.0.0-beta.3",
+  "version": "1.0.0-beta.4",
   "description": "Cross-platform symlink, junction, and managed-copy support for Leogriel",
   "license": "MIT",
   "author": "xFurti & Gabry848",

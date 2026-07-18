@@ -23,7 +23,7 @@ jobs:
           fetch-depth: 0
 
       # During beta, replace this with the exact published prerelease tag.
-      - uses: xFurti/leogriel@v1.0.0-beta.3
+      - uses: xFurti/leogriel@v1.0.0-beta.4
         with:
           skill: my-skill
           compare: ${{ github.event.pull_request.base.sha }}

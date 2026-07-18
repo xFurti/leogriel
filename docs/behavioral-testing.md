@@ -1,6 +1,6 @@
 # Behavioral testing (experimental, 1.0 beta)
 
-This document describes the `1.0.0-beta.3` candidate behavior. The testing package and AgentRunner API remain unstable until RC validation.
+This document describes the `1.0.0-beta.4` candidate behavior. The testing package and AgentRunner API remain unstable until RC validation.
 
 `leogriel test` compares paired executions of the same task without and with one exact skill. Tests run sequentially. Each variant receives a clean workspace and separate temporary HOME, USERPROFILE, XDG configuration/data/cache, and runner configuration directories.
 

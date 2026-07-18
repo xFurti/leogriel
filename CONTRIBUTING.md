@@ -102,7 +102,7 @@ High-value areas:
 
 ## Versioning
 
-We follow [Semantic Versioning](https://semver.org/). All workspace packages are kept at the same version (currently **1.0.0-beta.3**). Update `CHANGELOG.md` under `[Unreleased]` or the next version section.
+We follow [Semantic Versioning](https://semver.org/). All workspace packages are kept at the same version (currently **1.0.0-beta.4**). Update `CHANGELOG.md` under `[Unreleased]` or the next version section.
 
 ## Publishing (maintainers)
 

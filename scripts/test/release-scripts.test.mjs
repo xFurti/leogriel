@@ -99,6 +99,7 @@ test('release packing removes stale build output before rebuilding', async () =>
 
 test('version preparation updates the canonical and distributable Leogriel skills', async () => {
   const script = await readFile(join(root, 'scripts', 'set-version.mjs'), 'utf8');
+  assert.match(script, /join\(root, 'leogriel-design\.md'\)/);
   assert.match(script, /join\(root, 'skills', 'leogriel'\)/);
   assert.match(script, /join\(root, '\.leogriel', 'skills', 'leogriel'\)/);
 });

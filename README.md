@@ -8,7 +8,7 @@ Universal, package-manager-style CLI for managing **Agent Skills** across AI cod
 
 **Leogriel** installs project skills into `.leogriel/skills/` and personal skills into `~/.leogriel/skills/`, then syncs them (symlink, junction on Windows, or copy) into Claude Code, Cursor, OpenCode, Codex, Gemini CLI, Grok, Pi, and other [agentskills.io](https://agentskills.io)-compatible agents.
 
-> **Status**: v1.0.0-beta.3 candidate — a consolidation prerelease that aligns the post-beta.2 runner, regression, JSON, diagnostics, documentation, and release contracts before the required RC validation. See [CHANGELOG.md](./CHANGELOG.md).
+> **Status**: v1.0.0-beta.4 candidate — a consolidation prerelease that aligns the post-beta.2 runner, regression, JSON, diagnostics, documentation, and release contracts before the required RC validation. See [CHANGELOG.md](./CHANGELOG.md).
 
 Machine-readable commands emit one stable JSON envelope with `schemaVersion: 1`; warnings and errors stay on stderr. Official releases smoke-test both packed tarballs and the package fetched back from npm before the tag is created.
 

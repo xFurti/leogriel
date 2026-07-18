@@ -1,6 +1,6 @@
 {
   "name": "@leogriel/plugin-system",
-  "version": "1.0.0-beta.3",
+  "version": "1.0.0-beta.4",
   "description": "Experimental plugin system for Leogriel commands, adapters, registries, catalogs, and audit rules",
   "license": "MIT",
   "author": "xFurti & Gabry848",

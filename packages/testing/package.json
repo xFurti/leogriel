@@ -1,6 +1,6 @@
 {
   "name": "@leogriel/testing",
-  "version": "1.0.0-beta.3",
+  "version": "1.0.0-beta.4",
   "description": "Experimental behavioral testing primitives for Leogriel; API unstable until 1.0",
   "license": "MIT",
   "author": "xFurti & Gabry848",

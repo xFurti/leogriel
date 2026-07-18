@@ -55,6 +55,7 @@ await writeJson(manifestPath, manifest);
 const textFiles = [
   join(root, 'README.md'),
   join(root, 'CONTRIBUTING.md'),
+  join(root, 'leogriel-design.md'),
   join(root, 'packages', 'cli', 'README.md'),
   ...await collectTextFiles(join(root, 'docs')),
   ...await collectTextFiles(join(root, 'skills', 'leogriel')),
