@@ -18,6 +18,10 @@ inputs:
     description: AgentRunner ID
     required: false
     default: codex
+  runner-version:
+    description: Exact Codex or Claude Code CLI version; latest is convenient but not reproducible
+    required: false
+    default: latest
   model:
     description: Exact runner model ID; strongly recommended for comparable results
     required: false
@@ -80,6 +84,23 @@ runs:
       with:
         node-version: '24'
         package-manager-cache: false
+
+    - name: Install selected agent runner
+      shell: bash
+      env:
+        LEOGRIEL_AGENT: ${{ inputs.agent }}
+        LEOGRIEL_RUNNER_VERSION: ${{ inputs.runner-version }}
+        CODEX_API_KEY: ''
+        OPENAI_API_KEY: ''
+        ANTHROPIC_API_KEY: ''
+      run: |
+        set -euo pipefail
+        case "$LEOGRIEL_AGENT" in
+          codex) package='@openai/codex' ;;
+          claude) package='@anthropic-ai/claude-code' ;;
+          *) echo "Unsupported AgentRunner: $LEOGRIEL_AGENT" >&2; exit 2 ;;
+        esac
+        npm install --global "$package@$LEOGRIEL_RUNNER_VERSION"
 
     - name: Prepare report paths
       id: paths

@@ -2,6 +2,7 @@ import { isAbsolute, join, relative } from 'node:path';
 import type { AgentRunRequest, AgentRunResult, AgentRunner, RunnerDetection } from './types.js';
 import { isolatedEnvironment, type IsolationLayout } from './isolation.js';
 import { runProcess } from './process.js';
+import { resolveCodexRunnerAuth, type ResolvedCodexAuth } from './auth.js';
 
 const REQUIRED_FLAGS = ['--json', '--ephemeral', '--ignore-user-config', '--ignore-rules', '--sandbox', '--strict-config', '--skip-git-repo-check'];
 const SAFE_TOOL_ENV = ['PATH', 'Path', 'PATHEXT', 'HOME', 'USERPROFILE', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_CACHE_HOME', 'SYSTEMROOT', 'COMSPEC', 'TEMP', 'TMP'];
@@ -17,6 +18,8 @@ export class CodexRunner implements AgentRunner {
   private detection?: RunnerDetection;
 
   constructor(private readonly options: CodexRunnerOptions = {}) {}
+
+  resolveAuth() { return resolveCodexRunnerAuth(); }
 
   async detect(): Promise<RunnerDetection> {
     if (this.detection) return this.detection;
@@ -49,7 +52,8 @@ export class CodexRunner implements AgentRunner {
 
   async run(request: AgentRunRequest): Promise<AgentRunResult> {
     const started = Date.now();
-    if (request.auth.mode === 'chatgpt' && (process.env.CODEX_API_KEY || process.env.OPENAI_API_KEY)) {
+    const auth = codexAuth(request);
+    if (auth.mode === 'chatgpt' && (process.env.CODEX_API_KEY || process.env.OPENAI_API_KEY)) {
       return incompleteAuthResult(request, started, 'ChatGPT authentication cannot be combined with CODEX_API_KEY or OPENAI_API_KEY');
     }
     const detection = await this.detect();
@@ -63,12 +67,12 @@ export class CodexRunner implements AgentRunner {
     if (request.requestedModel) args.push('--model', request.requestedModel);
     args.push('-');
     const baseEnvironment = isolatedEnvironment(layout);
-    if (request.auth.mode === 'chatgpt') {
-      if (isInside(request.isolationRoot, request.auth.codexHome)) {
+    if (auth.mode === 'chatgpt') {
+      if (isInside(request.isolationRoot, auth.codexHome)) {
         return incompleteAuthResult(request, started, 'LEOGRIEL_CODEX_AUTH_HOME must be outside the temporary isolation root');
       }
       const status = await this.invoke(['login', 'status'], 10_000, {
-        env: { ...baseEnvironment, CODEX_HOME: request.auth.codexHome },
+        env: { ...baseEnvironment, CODEX_HOME: auth.codexHome },
         maxOutputBytes: 64 * 1024,
       });
       if (status.code !== 0 || status.timedOut || status.truncated) {
@@ -79,17 +83,14 @@ export class CodexRunner implements AgentRunner {
         );
       }
     }
-    const environment = request.auth.mode === 'chatgpt'
-      ? { ...baseEnvironment, CODEX_HOME: request.auth.codexHome }
-      : { ...baseEnvironment, CODEX_API_KEY: request.auth.apiKey };
-    const knownSecrets = request.auth.mode === 'api-key'
-      ? { CODEX_API_KEY: request.auth.apiKey, OPENAI_API_KEY: request.auth.apiKey }
-      : {};
+    const environment = auth.mode === 'chatgpt'
+      ? { ...baseEnvironment, CODEX_HOME: auth.codexHome }
+      : { ...baseEnvironment, CODEX_API_KEY: auth.apiKey };
     const processResult = await this.invoke(args, request.timeoutMs, {
       env: environment,
       input: request.prompt,
       maxOutputBytes: this.options.maxOutputBytes,
-      knownSecrets,
+      knownSecrets: request.auth.knownSecrets,
     });
     const parsed = parseCodexJsonl(processResult.stdout, processResult.truncated);
     const exitError = processResult.code === 0 ? undefined : processResult.stderr.trim() || `Codex exited with code ${processResult.code}`;
@@ -173,9 +174,16 @@ function layoutFromRequest(request: AgentRunRequest): IsolationLayout {
     root: request.isolationRoot,
     workspace: request.workspace,
     home: child('home'), userprofile: child('userprofile'), xdgConfig: child('xdg-config'),
-    xdgData: child('xdg-data'), xdgCache: child('xdg-cache'), codexHome: child('codex-home'),
+    xdgData: child('xdg-data'), xdgCache: child('xdg-cache'), codexHome: child('codex-home'), claudeHome: child('claude-home'),
     temp: child('temp'), tmp: child('tmp'),
   };
+}
+
+function codexAuth(request: AgentRunRequest): ResolvedCodexAuth {
+  if (request.auth.runner !== 'codex') throw new Error(`Codex runner received authentication for ${request.auth.runner}`);
+  const auth = request.auth.payload as Partial<ResolvedCodexAuth> | undefined;
+  if (!auth || (auth.mode !== 'api-key' && auth.mode !== 'chatgpt')) throw new Error('Codex runner received invalid authentication context');
+  return auth as ResolvedCodexAuth;
 }
 
 interface ParsedCodexOutput {

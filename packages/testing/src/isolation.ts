@@ -16,6 +16,7 @@ export interface IsolationLayout {
   xdgData: string;
   xdgCache: string;
   codexHome: string;
+  claudeHome: string;
   temp: string;
   tmp: string;
 }
@@ -32,6 +33,7 @@ export async function createIsolation(fixture?: string): Promise<IsolationLayout
     xdgData: join(root, 'xdg-data'),
     xdgCache: join(root, 'xdg-cache'),
     codexHome: join(root, 'codex-home'),
+    claudeHome: join(root, 'claude-home'),
     temp: join(root, 'temp'),
     tmp: join(root, 'tmp'),
   };
@@ -65,10 +67,12 @@ export async function resolveFixturePath(testFilePath: string, fixture: string, 
   return candidate;
 }
 
-export async function installTestSkill(workspace: string, skillPath: string, name: string): Promise<void> {
-  const target = join(workspace, '.codex', 'skills', name);
-  await mkdir(join(workspace, '.codex', 'skills'), { recursive: true });
+export async function installTestSkill(workspace: string, skillPath: string, name: string, runner: string): Promise<string> {
+  const agentRoot = runner === 'claude' ? '.claude' : '.codex';
+  const target = join(workspace, agentRoot, 'skills', name);
+  await mkdir(join(workspace, agentRoot, 'skills'), { recursive: true });
   await cp(skillPath, target, { recursive: true, force: false, errorOnExist: true });
+  return target;
 }
 
 export function isolatedEnvironment(layout: IsolationLayout): NodeJS.ProcessEnv {
@@ -86,6 +90,7 @@ export function isolatedEnvironment(layout: IsolationLayout): NodeJS.ProcessEnv 
     XDG_DATA_HOME: layout.xdgData,
     XDG_CACHE_HOME: layout.xdgCache,
     CODEX_HOME: layout.codexHome,
+    CLAUDE_CONFIG_DIR: layout.claudeHome,
   };
 }
 

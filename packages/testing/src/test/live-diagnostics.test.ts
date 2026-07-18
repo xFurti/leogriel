@@ -19,6 +19,13 @@ test('live diagnostics report JSONL event types and the final agent message', ()
     eventTypes: ['invalid-jsonl'],
     finalAgentMessage: null,
   });
+  assert.deepEqual(inspectCodexJsonl([
+    JSON.stringify({ type: 'system', subtype: 'init' }),
+    JSON.stringify({ type: 'result', subtype: 'success', result: 'claude finished' }),
+  ].join('\n')), {
+    eventTypes: ['system', 'result'],
+    finalAgentMessage: 'claude finished',
+  });
 });
 
 test('live diagnostics redact known secrets from messages, stderr, and workspace names', () => {
@@ -38,6 +45,8 @@ test('live diagnostics redact known secrets from messages, stderr, and workspace
   const redacted = redactLiveDiagnostics(diagnostics, { CODEX_API_KEY: secret });
   assert.doesNotMatch(JSON.stringify(redacted), new RegExp(secret));
   assert.match(JSON.stringify(redacted), /REDACTED/);
+  const claude = redactLiveDiagnostics({ ...diagnostics, stderr: secret }, { ANTHROPIC_API_KEY: secret });
+  assert.doesNotMatch(JSON.stringify(claude), new RegExp(secret));
 });
 
 test('live diagnostics list workspace files without following symlinks', async () => {

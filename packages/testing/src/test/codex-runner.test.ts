@@ -98,7 +98,7 @@ test('ChatGPT auth preflights the explicit profile without exposing or modifying
   await writeFile(sentinel, '{"authenticated":true}');
   try {
     const input = request(isolation, 'chatgpt prompt', 2_000);
-    input.auth = { mode: 'chatgpt', codexHome: authHome };
+    input.auth = chatgptAuth(authHome);
     const result = await fixture.runner.run(input);
     assert.equal(result.ok, true, result.error);
     const status = JSON.parse(await readFile(join(fixture.root, 'login-status.json'), 'utf8')) as Record<string, unknown>;
@@ -128,7 +128,7 @@ test('ChatGPT auth stops with remediation when login status fails', async () => 
   const authHome = await mkdtemp(join(tmpdir(), 'leogriel-chatgpt-auth-'));
   try {
     const input = request(isolation, 'must not execute', 2_000);
-    input.auth = { mode: 'chatgpt', codexHome: authHome };
+    input.auth = chatgptAuth(authHome);
     const result = await fixture.runner.run(input);
     assert.equal(result.ok, false);
     assert.equal(result.incomplete, true);
@@ -148,7 +148,7 @@ test('ChatGPT auth fails closed before detection when an API key is also present
   process.env.CODEX_API_KEY = 'unexpected-api-key-abcdefghijklmnop';
   try {
     const input = request(isolation, 'must not execute', 2_000);
-    input.auth = { mode: 'chatgpt', codexHome: authHome };
+    input.auth = chatgptAuth(authHome);
     const result = await fixture.runner.run(input);
     assert.equal(result.incomplete, true);
     assert.match(result.error || '', /cannot be combined/);
@@ -243,8 +243,24 @@ function request(layout: Awaited<ReturnType<typeof createIsolation>>, prompt: st
     isolationRoot: layout.root,
     timeoutMs,
     network: { mode: 'deny', webSearch: 'disabled' },
-    auth: { mode: 'api-key', apiKey: 'codex-secret-abcdefghijklmnop', source: 'CODEX_API_KEY' },
+    auth: codexApiAuth('codex-secret-abcdefghijklmnop'),
   };
+}
+
+function codexApiAuth(apiKey: string) {
+  return {
+    runner: 'codex', mode: 'api-key',
+    payload: { mode: 'api-key', apiKey, source: 'CODEX_API_KEY' },
+    knownSecrets: { CODEX_API_KEY: apiKey, OPENAI_API_KEY: apiKey },
+  } as const;
+}
+
+function chatgptAuth(codexHome: string) {
+  return {
+    runner: 'codex', mode: 'chatgpt',
+    payload: { mode: 'chatgpt', codexHome },
+    knownSecrets: {},
+  } as const;
 }
 
 async function fakeCodex(mode: string, maxOutputBytes?: number) {

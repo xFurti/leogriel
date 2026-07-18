@@ -1,4 +1,5 @@
 import { resolve } from 'node:path';
+import type { RunnerAuthContext } from './types.js';
 
 export type ResolvedCodexAuth =
   | { mode: 'api-key'; apiKey: string; source: 'CODEX_API_KEY' | 'OPENAI_API_KEY' }
@@ -23,4 +24,39 @@ export function resolveCodexAuth(env: NodeJS.ProcessEnv = process.env): Resolved
   if (codex) return { mode: 'api-key', apiKey: codex, source: 'CODEX_API_KEY' };
   if (openai) return { mode: 'api-key', apiKey: openai, source: 'OPENAI_API_KEY' };
   throw new Error('Codex authentication requires CODEX_API_KEY or OPENAI_API_KEY');
+}
+
+export function resolveCodexRunnerAuth(env: NodeJS.ProcessEnv = process.env): RunnerAuthContext {
+  const resolved = resolveCodexAuth(env);
+  return {
+    runner: 'codex',
+    mode: resolved.mode,
+    payload: resolved,
+    knownSecrets: resolved.mode === 'api-key'
+      ? { CODEX_API_KEY: resolved.apiKey, OPENAI_API_KEY: resolved.apiKey }
+      : {},
+  };
+}
+
+export interface ResolvedClaudeAuth {
+  mode: 'api-key';
+  apiKey: string;
+  source: 'ANTHROPIC_API_KEY';
+}
+
+export function resolveClaudeAuth(env: NodeJS.ProcessEnv = process.env): ResolvedClaudeAuth {
+  const apiKey = env.ANTHROPIC_API_KEY?.trim();
+  if (!apiKey) throw new Error('Claude authentication requires ANTHROPIC_API_KEY');
+  if (apiKey.length < 12) throw new Error('ANTHROPIC_API_KEY is too short to be a valid credential');
+  return { mode: 'api-key', apiKey, source: 'ANTHROPIC_API_KEY' };
+}
+
+export function resolveClaudeRunnerAuth(env: NodeJS.ProcessEnv = process.env): RunnerAuthContext {
+  const resolved = resolveClaudeAuth(env);
+  return {
+    runner: 'claude',
+    mode: resolved.mode,
+    payload: resolved,
+    knownSecrets: { ANTHROPIC_API_KEY: resolved.apiKey },
+  };
 }

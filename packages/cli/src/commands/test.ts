@@ -3,7 +3,7 @@ import { basename, dirname, extname, join, resolve } from 'node:path';
 import type { Command } from 'commander';
 import { confirm } from '@clack/prompts';
 import { getProjectSkillsStore, requireLeogrielProject, writeArtifact } from '@leogriel/core';
-import { CodexRunner, loadTestFile, runSkillTests, type SkillTestFile } from '@leogriel/testing';
+import { ClaudeRunner, CodexRunner, loadTestFile, runSkillTests, type AgentRunner, type SkillTestFile } from '@leogriel/testing';
 import { loadLockfile } from '@leogriel/lockfile';
 import { cliLog, cliWarn } from '../lib/output.js';
 import { handleCommandError, LeogrielError } from '../lib/errors.js';
@@ -11,7 +11,7 @@ import { materializeGitSkill, removeMaterializedGitSkill } from '../lib/git-comp
 
 export function registerTest(program: Command, version: string): void {
   const command = program.command('test [skill]').description('Run experimental paired behavioral tests')
-    .option('--agent <agent>', 'agent runner', 'codex')
+    .option('--agent <agent>', 'agent runner: codex or claude', 'codex')
     .option('--runs <number>', 'paired runs per test case', '3')
     .option('--json', 'machine-readable envelope output')
     .option('--output <file>', 'persist a versioned result artifact')
@@ -23,7 +23,7 @@ export function registerTest(program: Command, version: string): void {
     .action(async (skill, options) => {
       if (!skill) return;
       try {
-        if (options.agent !== 'codex') throw new LeogrielError(`Only the codex runner is available in ${version}`, 'UNSUPPORTED_RUNNER', 2);
+        const runner = createRunner(options.agent);
         const cwd = await requireLeogrielProject();
         const testPath = await findTestFile(cwd, skill);
         const testFile = await loadTestFile(testPath);
@@ -37,7 +37,7 @@ export function registerTest(program: Command, version: string): void {
           const result = await runSkillTests(testFile, {
             testFilePath: testPath,
             skillPath,
-            runner: new CodexRunner(),
+            runner,
             runs: parseRuns(options.runs),
             model: options.model,
             timeoutMs: parsePositive(options.timeout, '--timeout'),
@@ -52,11 +52,15 @@ export function registerTest(program: Command, version: string): void {
             } : undefined,
           });
           if (result.warning) cliWarn(result.warning);
-          if (options.keepWorkspace) cliWarn('Kept workspaces may contain sensitive agent-generated files or output. Credentials and isolated HOME/XDG/CODEX_HOME directories were not copied intentionally.');
+          if (options.keepWorkspace) cliWarn('Kept workspaces may contain sensitive agent-generated files or output. Credentials and isolated HOME/XDG/runner configuration directories were not copied intentionally.');
           if (options.output) {
             const artifact = await writeArtifact('test', options.output, result, {
               cwd,
-              knownSecrets: { CODEX_API_KEY: process.env.CODEX_API_KEY, OPENAI_API_KEY: process.env.OPENAI_API_KEY },
+              knownSecrets: {
+                CODEX_API_KEY: process.env.CODEX_API_KEY,
+                OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+                ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+              },
             });
             cliLog(JSON.stringify({ ...result, artifact: artifact.path }, null, 2));
           } else cliLog(JSON.stringify(result, null, 2));
@@ -101,6 +105,12 @@ export function registerTest(program: Command, version: string): void {
       cliLog(JSON.stringify(tests, null, 2));
     } catch (error) { handleCommandError(error, 'test list'); }
   });
+}
+
+function createRunner(value: string): AgentRunner {
+  if (value === 'codex') return new CodexRunner();
+  if (value === 'claude') return new ClaudeRunner();
+  throw new LeogrielError(`Unsupported test runner: ${value}; expected codex or claude`, 'UNSUPPORTED_RUNNER', 2);
 }
 
 async function authorizeCommands(testFile: SkillTestFile, trusted: boolean): Promise<void> {

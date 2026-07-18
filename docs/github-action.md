@@ -2,7 +2,7 @@
 
 The repository includes a composite action for reproducible behavioral regressions. It restores project skills with `install --frozen`, runs paired tests, writes the GitHub Job Summary, uploads JSON/Markdown/HTML reports and a Shields endpoint badge document, and optionally creates or updates one marked pull-request comment.
 
-The action does not accept authentication as an input. Provide the runner key through the job environment so GitHub masks it, and scope repository permissions explicitly.
+The action does not accept authentication as an input. Provide the runner key through the job environment so GitHub masks it, and scope repository permissions explicitly. It installs the selected runner CLI without authentication variables in that install process. Pin `runner-version` for reproducible comparisons; its default `latest` is intended only for initial evaluation.
 
 ```yaml
 name: Agent Skill regression
@@ -27,12 +27,15 @@ jobs:
           skill: my-skill
           compare: ${{ github.event.pull_request.base.sha }}
           model: <exact-model-id>
+          runner-version: <exact-codex-cli-version>
           runs: '3'
           comment-on-pr: 'true'
           github-token: ${{ github.token }}
         env:
           CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
 ```
+
+For Claude Code, use `agent: claude`, pin a Claude Code version at least `2.1.187`, and provide `ANTHROPIC_API_KEY`. The hosted runner must be Linux or macOS; native Windows is rejected because the required Claude sandbox is unavailable.
 
 Use an exact prerelease tag instead of `@v1` until the stable major tag exists. `fetch-depth: 0` is required when `compare` targets history not present in a shallow checkout.
 

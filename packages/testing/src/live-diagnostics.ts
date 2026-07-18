@@ -44,6 +44,10 @@ export function inspectCodexJsonl(output: string): Pick<LiveSmokeDiagnostics, 'e
       finalAgentMessage = event.message;
       break;
     }
+    if (event.type === 'result' && typeof event.result === 'string') {
+      finalAgentMessage = event.result;
+      break;
+    }
   }
   return { eventTypes, finalAgentMessage };
 }
@@ -73,5 +77,6 @@ export function redactLiveDiagnostics(
   return redactSecrets(diagnostics, {
     CODEX_API_KEY: env.CODEX_API_KEY,
     OPENAI_API_KEY: env.OPENAI_API_KEY,
+    ANTHROPIC_API_KEY: env.ANTHROPIC_API_KEY,
   }).value;
 }

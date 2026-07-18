@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   caseVerdict, countSnapshotChanges, createIsolation, destroyIsolation, evaluateAssertions, isolatedEnvironment,
-  resolveCodexAuth, resolveFixturePath, runSkillTests, skillVerdict, snapshotWorkspace, validateFixture, validateTestFile,
+  resolveClaudeAuth, resolveCodexAuth, resolveFixturePath, runSkillTests, skillVerdict, snapshotWorkspace, validateFixture, validateTestFile,
   type AgentRunner, type CaseResult,
 } from '../index.js';
 
@@ -94,15 +94,17 @@ test('timed-out command assertions terminate their complete process tree', async
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
-test('each isolation uses separate HOME, XDG, USERPROFILE, and CODEX_HOME trees', async () => {
+test('each isolation uses separate HOME, XDG, USERPROFILE, CODEX_HOME, and CLAUDE_CONFIG_DIR trees', async () => {
   const one = await createIsolation();
   const two = await createIsolation();
   try {
     assert.notEqual(one.root, two.root);
-    assert.equal(new Set([one.home, one.userprofile, one.xdgConfig, one.xdgData, one.xdgCache, one.codexHome]).size, 6);
+    assert.equal(new Set([one.home, one.userprofile, one.xdgConfig, one.xdgData, one.xdgCache, one.codexHome, one.claudeHome]).size, 7);
     const environment = isolatedEnvironment(one);
     assert.equal(environment.CODEX_API_KEY, undefined);
     assert.equal(environment.OPENAI_API_KEY, undefined);
+    assert.equal(environment.ANTHROPIC_API_KEY, undefined);
+    assert.equal(environment.CLAUDE_CONFIG_DIR, one.claudeHome);
   } finally { await destroyIsolation(one); await destroyIsolation(two); }
 });
 
@@ -111,6 +113,14 @@ test('Codex authentication applies precedence and rejects conflicting keys', () 
   assert.deepEqual(resolveCodexAuth({ OPENAI_API_KEY: 'abcdefghijklmnop' }), { mode: 'api-key', apiKey: 'abcdefghijklmnop', source: 'OPENAI_API_KEY' });
   assert.deepEqual(resolveCodexAuth({ CODEX_API_KEY: 'abcdefghijklmnop', OPENAI_API_KEY: 'abcdefghijklmnop' }), { mode: 'api-key', apiKey: 'abcdefghijklmnop', source: 'CODEX_API_KEY' });
   assert.throws(() => resolveCodexAuth({ CODEX_API_KEY: 'abcdefghijklmnop', OPENAI_API_KEY: 'different-secret-value' }), /different values/);
+});
+
+test('Claude authentication requires one sufficiently long API key', () => {
+  assert.deepEqual(resolveClaudeAuth({ ANTHROPIC_API_KEY: 'abcdefghijklmnop' }), {
+    mode: 'api-key', apiKey: 'abcdefghijklmnop', source: 'ANTHROPIC_API_KEY',
+  });
+  assert.throws(() => resolveClaudeAuth({}), /requires ANTHROPIC_API_KEY/);
+  assert.throws(() => resolveClaudeAuth({ ANTHROPIC_API_KEY: 'short' }), /too short/);
 });
 
 test('ChatGPT authentication requires an explicit dedicated home and rejects API keys', () => {
@@ -163,6 +173,7 @@ test('paired runner execution is sequential, deterministic, and records model/ne
   const roots = new Set<string>();
   const runner: AgentRunner = {
     id: 'fake',
+    resolveAuth: () => fakeAuth('fake'),
     detect: async () => ({ available: true, version: '1.0', capabilities: ['isolated-home-directories'] }),
     run: async (request) => {
       active++;
@@ -203,6 +214,7 @@ test('derived seed covers test and skill integrity, runner, model, and run count
   process.env.CODEX_API_KEY = 'test-secret-abcdefghijklmnop';
   const makeRunner = (id: string): AgentRunner => ({
     id,
+    resolveAuth: () => fakeAuth(id),
     detect: async () => ({ available: true, capabilities: [] }),
     run: async (request) => ({ ok: true, exitCode: 0, durationMs: 1, requestedModel: request.requestedModel || null, output: '' }),
   });
@@ -240,6 +252,7 @@ test('git comparison installs the reference skill as the paired baseline', async
   process.env.CODEX_API_KEY = 'test-secret-abcdefghijklmnop';
   const runner: AgentRunner = {
     id: 'fake',
+    resolveAuth: () => fakeAuth('fake'),
     detect: async () => ({ available: true, capabilities: [] }),
     run: async (request) => {
       const installed = await readFile(join(request.workspace, '.codex', 'skills', 'demo', 'SKILL.md'), 'utf8');
@@ -275,3 +288,7 @@ test('git comparison installs the reference skill as the paired baseline', async
     await rm(root, { recursive: true, force: true });
   }
 });
+
+function fakeAuth(runner: string) {
+  return { runner, mode: 'none', payload: {}, knownSecrets: {} };
+}

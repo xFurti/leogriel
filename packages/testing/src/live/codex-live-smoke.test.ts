@@ -11,7 +11,7 @@ import {
   inspectCodexJsonl,
   listLiveWorkspaceFiles,
   redactLiveDiagnostics,
-  resolveCodexAuth,
+  resolveCodexRunnerAuth,
   type AgentRunResult,
   type LiveSmokeDiagnostics,
 } from '../index.js';
@@ -45,7 +45,7 @@ test('live Codex creates the requested file with network disabled', { skip: !ena
       timeoutMs: 120_000,
       network: { mode: 'deny', webSearch: 'disabled' },
       requestedModel: model,
-      auth: resolveCodexAuth(),
+      auth: resolveCodexRunnerAuth(),
     });
     const output = await readOptional(join(isolation.workspace, 'output.txt'));
     const nodeProof = await readOptional(join(isolation.workspace, 'node-proof.txt'));

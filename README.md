@@ -225,20 +225,21 @@ Persistent artifacts are opt-in and use the versioned `.leogriel/artifacts/{audi
 
 ## Experimental behavioral testing
 
-Versioned YAML tests compare the same task without and with a skill using separate workspaces and separate HOME, USERPROFILE, XDG, and CODEX_HOME directories. The initial 0.9 runner supports Codex only and validates its version, flags, strict configuration, network control, and environment filtering before execution.
+Versioned YAML tests compare the same task without and with a skill using separate workspaces and isolated HOME, USERPROFILE, XDG, and runner configuration directories. Codex remains the primary runner. A second experimental Claude Code runner is available on macOS, Linux, and WSL2 with version/capability detection, fail-closed native sandboxing, subprocess credential filtering, and explicit skill prompt injection under bare mode. Native Windows is rejected because Claude Code does not provide the required sandbox there.
 
 ```bash
 leogriel test init my-skill
 leogriel test validate
 leogriel test list --json
 leogriel test my-skill --runs 3 --model <model> --json
+leogriel test my-skill --agent claude --runs 3 --model <model> --json
 leogriel test my-skill --compare main --runs 3 --model <model> --json
 leogriel test my-skill --output my-skill-result.json
 ```
 
-Tests are sequential. Network and web search are denied by default and must be enabled independently in YAML. Command assertions execute arbitrary programs: interactive runs show executable, argv, and cwd once; non-interactive runs require `--trust-tests`. The flag does not change the runner policy or create an OS sandbox. `--keep-workspace` is explicit and warns that agent output may be sensitive. Isolated HOME/XDG/CODEX_HOME trees and credentials are never copied to retained workspaces.
+Tests are sequential. Network and web search are denied by default and must be enabled independently in YAML. The Claude runner currently supports `webSearch: disabled` only and fails closed for other values. Command assertions execute arbitrary programs: interactive runs show executable, argv, and cwd once; non-interactive runs require `--trust-tests`. The flag does not change the runner policy or create an OS sandbox. `--keep-workspace` is explicit and warns that agent output may be sensitive. Isolated HOME/XDG/runner configuration trees and credentials are never copied to retained workspaces.
 
-This reduces configuration leakage but is not an absolute security sandbox. Authentication accepts `CODEX_API_KEY` or `OPENAI_API_KEY`; conflicting values fail before execution, and the selected key is exposed only to the Codex process. Opt-in live runs can instead use `LEOGRIEL_CODEX_AUTH_MODE=chatgpt` with an explicit, dedicated `LEOGRIEL_CODEX_AUTH_HOME` already authenticated by `codex login`; leogriel checks `codex login status`, never falls back to `~/.codex`, and does not copy, log, modify, redact, or delete that profile. Agent subprocesses receive an explicit safe allowlist derived from the isolated environment—enough to find executables and use isolated HOME and temporary directories—while API keys and every non-allowlisted variable remain excluded. If no model is pinned, paired results are useful within that execution but are not declared stable across dates or environments.
+This reduces configuration leakage but is not an absolute security sandbox. Codex authentication accepts `CODEX_API_KEY` or `OPENAI_API_KEY`; conflicting values fail before execution, and opt-in live runs can instead use `LEOGRIEL_CODEX_AUTH_MODE=chatgpt` with an explicit dedicated profile. Claude authentication currently requires `ANTHROPIC_API_KEY`; the parent CLI receives it, while Claude Code subprocess scrubbing and sandbox credential rules remove it from agent commands. If no model is pinned, paired results are useful within that execution but are not declared stable across dates or environments.
 
 Case verdicts use whole-case pass/fail outcomes and paired runs, not assertion counts. The aggregate verdict is `improved`, `regressed`, `unchanged`, or `inconclusive`; mixed outcomes, errors, timeouts, and fewer than three samples are inconclusive. See [behavioral testing](./docs/behavioral-testing.md) and the [1.0 roadmap](./ROADMAP.md).
 

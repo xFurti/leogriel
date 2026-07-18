@@ -101,6 +101,9 @@ test('creates and updates only marked pull-request comments', async () => {
 test('official composite action preserves reports before enforcing the CLI exit code', async () => {
   const source = await readFile(new URL('../../action.yml', import.meta.url), 'utf8');
   assert.match(source, /actions\/setup-node@v6/);
+  assert.match(source, /@openai\/codex/);
+  assert.match(source, /@anthropic-ai\/claude-code/);
+  assert.match(source, /ANTHROPIC_API_KEY: ''/);
   assert.match(source, /actions\/upload-artifact@v7/);
   assert.match(source, /render-test-report\.mjs/);
   assert.match(source, /comment-test-report\.mjs/);

@@ -3,6 +3,8 @@ export * from './schema.js';
 export * from './auth.js';
 export * from './isolation.js';
 export * from './codex-runner.js';
+export * from './claude-runner.js';
+export * from './claude-runner.js';
 export * from './assertions.js';
 export * from './verdicts.js';
 export * from './run-tests.js';

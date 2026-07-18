@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `leogriel test <skill> --compare <git-ref>` to run paired regressions between the skill at an immutable Git commit and the current working-tree candidate, recording both integrity hashes.
 - Added an official composite GitHub Action with frozen restore, Job Summary, redacted JSON/Markdown/HTML reports, downloadable artifacts, Shields badge data, optional pull-request comments, and fail-after-report regression enforcement.
+- Added an experimental Claude Code `AgentRunner` alongside Codex, with version/capability detection, isolated configuration, fail-closed native sandboxing, subprocess credential filtering, default-deny networking, explicit staged-skill injection, and an opt-in live smoke.
 
 ### Changed
 

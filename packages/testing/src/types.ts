@@ -1,5 +1,3 @@
-import type { ResolvedCodexAuth } from './auth.js';
-
 export type AssertionType = 'file-exists' | 'file-not-exists' | 'file-contains' | 'file-not-contains' | 'regex' | 'command' | 'json-schema' | 'snapshot' | 'forbidden-path' | 'max-changed-files';
 export type CaseVerdict = 'improved' | 'unchanged' | 'regressed' | 'inconclusive';
 export type SkillVerdict = CaseVerdict;
@@ -47,6 +45,18 @@ export interface SkillTestFile {
   cases: SkillTestCase[];
 }
 
+export interface RunnerAuthContext {
+  runner: string;
+  mode: string;
+  payload: unknown;
+  knownSecrets: Readonly<Record<string, string>>;
+}
+
+export interface InstalledTestSkill {
+  name: string;
+  path: string;
+}
+
 export interface AgentRunRequest {
   prompt: string;
   workspace: string;
@@ -54,7 +64,8 @@ export interface AgentRunRequest {
   timeoutMs: number;
   network: NetworkPolicy;
   requestedModel?: string;
-  auth: ResolvedCodexAuth;
+  auth: RunnerAuthContext;
+  skill?: InstalledTestSkill;
 }
 
 export interface AgentRunResult {
@@ -75,6 +86,7 @@ export interface AgentRunResult {
 
 export interface AgentRunner {
   readonly id: string;
+  resolveAuth(): RunnerAuthContext;
   detect(): Promise<RunnerDetection>;
   preflight?(policies: NetworkPolicy[]): Promise<void>;
   run(request: AgentRunRequest): Promise<AgentRunResult>;

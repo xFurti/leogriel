@@ -24,8 +24,8 @@
 | `completion <shell>` | Print Bash, Zsh, or PowerShell completion |
 | `backup list/info/restore/remove` | Inspect and explicitly reconcile managed sync backups |
 | `test init/validate/list` | Create and validate versioned behavioral test YAML without running commands |
-| `test <skill>` | Run sequential paired baseline/skill tests with the experimental Codex runner; use `--compare <git-ref>` for regressions |
+| `test <skill>` | Run sequential paired baseline/skill tests with experimental Codex or Claude runners; use `--agent` and `--compare <git-ref>` for regressions |
 
-Common flags: `search --provider skills.sh`, `install --frozen`, `update --dry-run`, `update --latest --save --yes`, `doctor --fix`, `sync --project`, `sync --agent codex`, `sync --skill name`, `sync --replace-unmanaged --yes`, `plugin add --dry-run`, `backup restore --dry-run`, `audit --format sarif --output results.sarif`, `test --runs 3 --model <model>`, `test --compare <git-ref>`, `test --trust-tests`, and `import --dry-run`.
+Common flags: `search --provider skills.sh`, `install --frozen`, `update --dry-run`, `update --latest --save --yes`, `doctor --fix`, `sync --project`, `sync --agent codex`, `sync --skill name`, `sync --replace-unmanaged --yes`, `plugin add --dry-run`, `backup restore --dry-run`, `audit --format sarif --output results.sarif`, `test --agent codex|claude`, `test --runs 3 --model <model>`, `test --compare <git-ref>`, `test --trust-tests`, and `import --dry-run`.
 
 Commands exposing `--json` emit one stable envelope and use exit code 0 for success, 1 for warnings/partial results, and 2 for fatal or validation errors.

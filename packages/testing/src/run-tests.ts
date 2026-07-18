@@ -4,7 +4,6 @@ import { dirname, join, resolve } from 'node:path';
 import { canonicalizeName, computeFileHash, parseSkillDirectory } from '@leogriel/core';
 import { countSnapshotChanges, evaluateAssertions, snapshotWorkspace } from './assertions.js';
 import { createIsolation, destroyIsolation, installTestSkill, isolatedEnvironment, resolveFixturePath } from './isolation.js';
-import { resolveCodexAuth } from './auth.js';
 import { caseVerdict, skillVerdict } from './verdicts.js';
 import type { AgentRunner, CaseResult, SkillTestFile, SkillTestResult, VariantResult } from './types.js';
 
@@ -46,9 +45,9 @@ export async function runSkillTests(testFile: SkillTestFile, options: RunSkillTe
   const modelSeed = options.model || testFile.cases.map((testCase) => testCase.runner?.model || 'runner-default').join(',');
   const seed = options.seed ?? stableSeed(`${testIntegrity}\0${parsedReference?.integrity || 'no-skill-baseline'}\0${parsedSkill.integrity}\0${options.runner.id}\0${modelSeed}\0${runs}`);
   const runId = `${new Date().toISOString().replace(/[:.]/g, '-')}-${randomUUID()}`;
-  const auth = resolveCodexAuth();
   const detection = await options.runner.detect();
   if (!detection.available) throw new Error(detection.reason || `Runner ${options.runner.id} is unavailable`);
+  const auth = options.runner.resolveAuth();
   const policies = testFile.cases.map((testCase) => testCase.network || { mode: 'deny' as const, webSearch: 'disabled' as const });
   await options.runner.preflight?.([...new Map(policies.map((policy) => [`${policy.mode}:${policy.webSearch}`, policy])).values()]);
   const caseResults: CaseResult[] = [];
@@ -68,8 +67,11 @@ export async function runSkillTests(testFile: SkillTestFile, options: RunSkillTe
       for (const variant of [first, first === 'baseline' ? 'skill' : 'baseline'] as const) {
         const isolation = await createIsolation(fixture);
         try {
-          if (variant === 'skill') await installTestSkill(isolation.workspace, options.skillPath, parsedSkill.name);
-          else if (options.comparison) await installTestSkill(isolation.workspace, options.comparison.skillPath, parsedSkill.name);
+          const installedSkill = variant === 'skill'
+            ? await installTestSkill(isolation.workspace, options.skillPath, parsedSkill.name, options.runner.id)
+            : options.comparison
+              ? await installTestSkill(isolation.workspace, options.comparison.skillPath, parsedSkill.name, options.runner.id)
+              : undefined;
           const initialFiles = await snapshotWorkspace(isolation.workspace);
           const requestedModel = options.model || testCase.runner?.model;
           const network = testCase.network || { mode: 'deny', webSearch: 'disabled' };
@@ -81,6 +83,7 @@ export async function runSkillTests(testFile: SkillTestFile, options: RunSkillTe
             network,
             requestedModel,
             auth,
+            skill: installedSkill ? { name: parsedSkill.name, path: installedSkill } : undefined,
           });
           if (agent.resolvedModel) resolvedModels.add(agent.resolvedModel);
           const assertions = agent.ok
