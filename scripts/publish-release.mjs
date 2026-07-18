@@ -40,7 +40,11 @@ export function canonicalPackageJson(value) {
 export function canonicalArchiveEntry(portablePath, buffer) {
   if (portablePath === 'dist/.tsbuildinfo') return null;
   if (portablePath === 'package.json') return Buffer.from(canonicalPackageJson(buffer.toString('utf8')));
-  if (portablePath === 'README.md' || portablePath === 'LICENSE') {
+  if (
+    portablePath === 'README.md'
+    || portablePath === 'LICENSE'
+    || portablePath === 'dist/commands/completion.js'
+  ) {
     return Buffer.from(buffer.toString('utf8').replace(/\r\n/g, '\n'));
   }
   return buffer;

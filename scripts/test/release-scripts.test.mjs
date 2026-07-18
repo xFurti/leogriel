@@ -55,6 +55,10 @@ test('canonical archive comparison ignores only cross-platform release metadata'
     canonicalArchiveEntry('LICENSE', Buffer.from('license\r\n')),
     Buffer.from('license\n'),
   );
+  assert.deepEqual(
+    canonicalArchiveEntry('dist/commands/completion.js', Buffer.from('const bash = `one\r\ntwo`;\r\n')),
+    Buffer.from('const bash = `one\ntwo`;\n'),
+  );
   assert.notDeepEqual(
     canonicalArchiveEntry('dist/index.js', Buffer.from('export const value = 1;\r\n')),
     canonicalArchiveEntry('dist/index.js', Buffer.from('export const value = 1;\n')),
