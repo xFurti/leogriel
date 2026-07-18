@@ -1,6 +1,6 @@
 {
   "name": "@leogriel/cli",
-  "version": "0.9.0",
+  "version": "1.0.0-beta.1",
   "description": "Leogriel CLI ? weave Agent Skills into every workflow",
   "license": "MIT",
   "author": "xFurti & Gabry848",

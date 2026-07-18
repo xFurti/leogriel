@@ -1,7 +1,7 @@
 window.TRANSLATIONS = {
   it: {
     nav: {
-      brandSub: 'Documentazione v0.9.0',
+      brandSub: 'Documentazione v1.0.0-beta.1',
       navSection: 'Guida',
       navOverview: 'Panoramica',
       navConfig: 'Configurazione',
@@ -19,7 +19,7 @@ window.TRANSLATIONS = {
 <section class="hero">
   <div class="hero-glow"></div>
   <div class="hero-content">
-    <p class="hero-badge">v0.9.0 · Agent Skills</p>
+    <p class="hero-badge">v1.0.0-beta.1 · Agent Skills</p>
     <h1 class="hero-title">Leogriel</h1>
     <p class="hero-lead">CLI universale in stile package manager per gestire <strong>Agent Skills</strong> su più agenti di coding AI — con meta-skill first-party per insegnare agli agenti come usare leogriel.</p>
     <div class="hero-terminal">
@@ -33,7 +33,7 @@ window.TRANSLATIONS = {
 </section>
 
 <div class="alert alert-info">
-  <strong>Versione 0.9.0</strong> — npm <code>@leogriel/cli@0.9.0</code>
+  <strong>Versione 1.0.0-beta.1</strong> — npm <code>@leogriel/cli@1.0.0-beta.1</code>
   Discovery skills.sh, piani outdated/update, sync riconciliabile, plugin sperimentali con integrità, audit SARIF e completion shell. Lock schema 1.0 e config version 1 restano compatibili.
 </div>
 
@@ -143,7 +143,7 @@ node packages/cli/bin/leogriel.js doctor</code></pre>
 </div>
 
 <footer class="page-footer">
-  leogriel v0.9.0 — creato da <a href="https://github.com/xFurti" target="_blank" rel="noopener">xFurti</a> e <a href="https://github.com/gabry848" target="_blank" rel="noopener">Gabry848</a><br>
+  leogriel v1.0.0-beta.1 — creato da <a href="https://github.com/xFurti" target="_blank" rel="noopener">xFurti</a> e <a href="https://github.com/gabry848" target="_blank" rel="noopener">Gabry848</a><br>
   <a href="#config">Configurazione</a> · <a href="#commands">Comandi</a> · <a href="#problems">Problemi</a>
 </footer>
 `,
@@ -350,7 +350,7 @@ leogriel test my-skill --runs 3 --model MODEL --json</code></pre>
         title: 'Comandi — leogriel',
         html: `
 <h1>Comandi CLI</h1>
-<p class="lead">Riferimento completo ai comandi leogriel v0.9.0. I blocchi comando restano in inglese come nell'interfaccia CLI.</p>
+<p class="lead">Riferimento completo ai comandi leogriel v1.0.0-beta.1. I blocchi comando restano in inglese come nell'interfaccia CLI.</p>
 <p>Con <code>--json</code>, ogni comando first-party emette un solo envelope con <code>schemaVersion</code>, <code>ok</code>, <code>command</code>, <code>data</code>, <code>warnings</code> ed <code>errors</code>. Exit code: 0 successo, 1 warning/risultato parziale, 2 errore fatale o validazione.</p>
 
 <h2>Workflow principali</h2>
@@ -741,7 +741,7 @@ skills.sh/vercel-labs/agent-skills</code></pre>
   },
   en: {
     nav: {
-      brandSub: 'Documentation v0.9.0',
+      brandSub: 'Documentation v1.0.0-beta.1',
       navSection: 'Guide',
       navOverview: 'Overview',
       navConfig: 'Configuration',
@@ -759,7 +759,7 @@ skills.sh/vercel-labs/agent-skills</code></pre>
 <section class="hero">
   <div class="hero-glow"></div>
   <div class="hero-content">
-    <p class="hero-badge">v0.9.0 · Agent Skills</p>
+    <p class="hero-badge">v1.0.0-beta.1 · Agent Skills</p>
     <h1 class="hero-title">Leogriel</h1>
     <p class="hero-lead">Universal package-manager-style CLI for managing <strong>Agent Skills</strong> across AI coding agents — with a first-party meta-skill that teaches agents how to use leogriel.</p>
     <div class="hero-terminal">
@@ -773,7 +773,7 @@ skills.sh/vercel-labs/agent-skills</code></pre>
 </section>
 
 <div class="alert alert-info">
-  <strong>Version 0.9.0</strong> — npm <code>@leogriel/cli@0.9.0</code>
+  <strong>Version 1.0.0-beta.1</strong> — npm <code>@leogriel/cli@1.0.0-beta.1</code>
   skills.sh discovery, outdated/update plans, reconcilable sync, integrity-locked experimental plugins, SARIF audit, and shell completion. Lock schema 1.0 and config version 1 remain compatible.
 </div>
 
@@ -883,7 +883,7 @@ node packages/cli/bin/leogriel.js doctor</code></pre>
 </div>
 
 <footer class="page-footer">
-  leogriel v0.9.0 — created by <a href="https://github.com/xFurti" target="_blank" rel="noopener">xFurti</a> and <a href="https://github.com/gabry848" target="_blank" rel="noopener">Gabry848</a><br>
+  leogriel v1.0.0-beta.1 — created by <a href="https://github.com/xFurti" target="_blank" rel="noopener">xFurti</a> and <a href="https://github.com/gabry848" target="_blank" rel="noopener">Gabry848</a><br>
   <a href="#config">Configuration</a> · <a href="#commands">Commands</a> · <a href="#problems">Problems</a>
 </footer>
 `,
@@ -1090,7 +1090,7 @@ leogriel test my-skill --runs 3 --model MODEL --json</code></pre>
         title: 'Commands — leogriel',
         html: `
 <h1>CLI commands</h1>
-<p class="lead">Complete reference for leogriel v0.9.0 commands. Command blocks remain in English as in the CLI interface.</p>
+<p class="lead">Complete reference for leogriel v1.0.0-beta.1 commands. Command blocks remain in English as in the CLI interface.</p>
 <p>With <code>--json</code>, every first-party command emits one envelope containing <code>schemaVersion</code>, <code>ok</code>, <code>command</code>, <code>data</code>, <code>warnings</code>, and <code>errors</code>. Exit codes: 0 success, 1 warning/partial result, 2 fatal or validation failure.</p>
 
 <h2>Main workflows</h2>

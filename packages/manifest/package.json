@@ -1,6 +1,6 @@
 {
   "name": "@leogriel/manifest",
-  "version": "0.9.0",
+  "version": "1.0.0-beta.1",
   "description": "agent-skills.json parsing, generation, and validation for Leogriel",
   "license": "MIT",
   "author": "xFurti & Gabry848",

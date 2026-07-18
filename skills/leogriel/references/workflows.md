@@ -46,7 +46,7 @@ Global state is machine-specific and is not a replacement for committed project 
 ## CI pipeline
 
 ```bash
-npm install -g @leogriel/cli@0.9.0
+npm install -g @leogriel/cli@1.0.0-beta.1
 
 ## Behavioral test workflow (experimental)
 

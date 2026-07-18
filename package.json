@@ -1,6 +1,6 @@
 {
   "name": "leogriel",
-  "version": "0.9.0",
+  "version": "1.0.0-beta.1",
   "private": true,
   "description": "Leogriel — weave Agent Skills into every workflow",
   "license": "MIT",

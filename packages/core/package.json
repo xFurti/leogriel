@@ -1,6 +1,6 @@
 {
   "name": "@leogriel/core",
-  "version": "0.9.0",
+  "version": "1.0.0-beta.1",
   "description": "Core types, configuration, parsing, artifacts, and filesystem utilities for Leogriel",
   "license": "MIT",
   "author": "xFurti & Gabry848",

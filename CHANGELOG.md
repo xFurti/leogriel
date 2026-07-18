@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-beta.1] - 2026-07-18
+
+### Beta status
+
+- Introduced the first Leogriel-branded prerelease for migration testing before the required `1.0.0-rc.1` validation phase and the stable `1.0.0` release.
+- Coordinated all twelve workspace packages at the same version for publication with the npm `next` dist-tag.
+
 ### Rebranded
 
 - Renamed the project and command from `skillctl` to **Leogriel** and moved the coordinated npm package set from `@skillctl/*` to `@leogriel/*`.
@@ -22,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Migration
 
 - Existing npm packages are not renamed in place. Users migrate from `@skillctl/cli` to `@leogriel/cli`; maintainers publish all twelve coordinated packages under the new scope and configure new npm Trusted Publishers.
+- The historical `@skillctl/*` packages remain installable during the beta and are deprecated only after every `@leogriel/*` package passes registry smoke verification.
 
 ## [0.9.0] - 2026-07-14
 

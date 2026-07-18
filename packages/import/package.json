@@ -1,6 +1,6 @@
 {
   "name": "@leogriel/import",
-  "version": "0.9.0",
+  "version": "1.0.0-beta.1",
   "description": "Import and migrate Agent Skills from projects, npx skills, and legacy Python skillctl",
   "license": "MIT",
   "author": "xFurti & Gabry848",

@@ -1,6 +1,6 @@
 {
   "name": "@leogriel/registry",
-  "version": "0.9.0",
+  "version": "1.0.0-beta.1",
   "description": "Immutable GitHub, npm, local, and skills.sh source resolution for Leogriel",
   "license": "MIT",
   "author": "xFurti & Gabry848",
