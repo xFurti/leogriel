@@ -112,16 +112,15 @@ test('official composite action preserves reports before enforcing the CLI exit 
   assert.doesNotMatch(source, /CODEX_API_KEY:\s*\$\{\{/);
 });
 
-test('manual live-runner workflow pins versions and keeps credentials out of installers', async () => {
-  const source = await readFile(new URL('../../.github/workflows/runner-live.yml', import.meta.url), 'utf8');
-  assert.match(source, /codex-version:/);
-  assert.match(source, /claude-version:/);
-  assert.match(source, /ubuntu-22\.04, macos-15/);
-  assert.match(source, /windows-latest/);
-  assert.match(source, /CODEX_API_KEY: ''/);
-  assert.match(source, /ANTHROPIC_API_KEY: ''/);
-  assert.match(source, /LEOGRIEL_LIVE_CODEX_API_KEY/);
-  assert.match(source, /LEOGRIEL_LIVE_ANTHROPIC_API_KEY/);
+test('live-runner validation remains local and does not require hosted secrets', async () => {
+  await assert.rejects(
+    readFile(new URL('../../.github/workflows/runner-live.yml', import.meta.url), 'utf8'),
+    (error) => error?.code === 'ENOENT',
+  );
+  const matrix = await readFile(new URL('../../docs/validation-matrix.md', import.meta.url), 'utf8');
+  assert.match(matrix, /Live runner validation is local and opt-in/);
+  assert.match(matrix, /hosted workflow URL is not required/);
+  assert.doesNotMatch(matrix, /LEOGRIEL_LIVE_(?:CODEX|CLAUDE)_API_KEY/);
 });
 
 function response(value, status = 200) {

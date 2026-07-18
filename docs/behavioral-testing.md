@@ -1,4 +1,4 @@
-# Behavioral testing (experimental, 0.9)
+# Behavioral testing (experimental, 1.0 beta)
 
 `leogriel test` compares paired executions of the same task without and with one exact skill. Tests run sequentially. Each variant receives a clean workspace and separate temporary HOME, USERPROFILE, XDG configuration/data/cache, and runner configuration directories.
 
@@ -48,7 +48,7 @@ The current test YAML and fixtures are applied to both variants. Results record 
 
 ## Opt-in live Codex smoke
 
-The live smoke is excluded from the standard suite. It requires an exact pinned model and either API-key authentication or the explicit dedicated ChatGPT profile below. It runs with outbound network denied and web search disabled, verifies the requested file, checks that Codex itself can run Node.js, and removes its complete temporary isolation root without modifying the authentication profile.
+The live smoke is excluded from the standard suite and runs locally from a trusted clone. Maintainers and collaborators do not need to place model credentials in GitHub Actions. It requires an exact pinned model and either API-key authentication or the explicit dedicated ChatGPT profile below. It runs with outbound network denied and web search disabled, verifies the requested file, checks that Codex itself can run Node.js, and removes its complete temporary isolation root without modifying the authentication profile.
 
 ```powershell
 $env:LEOGRIEL_LIVE_CODEX = "1"
