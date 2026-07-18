@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join, relative, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { archiveName, releasePackages } from './release-packages.mjs';
@@ -23,9 +24,23 @@ export function tarballIntegrity(buffer) {
   return `sha512-${createHash('sha512').update(buffer).digest('base64')}`;
 }
 
-export function publicationDecision(localIntegrity, remoteIntegrity) {
+function sortJson(value) {
+  if (Array.isArray(value)) return value.map(sortJson);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.keys(value).sort().map((key) => [key, sortJson(value[key])]));
+  }
+  return value;
+}
+
+export function canonicalPackageJson(value) {
+  const parsed = typeof value === 'string' ? JSON.parse(value) : value;
+  return `${JSON.stringify(sortJson(parsed))}\n`;
+}
+
+export function publicationDecision(localIntegrity, remoteIntegrity, contentEquivalent = false) {
   if (!remoteIntegrity) return 'publish';
   if (remoteIntegrity === localIntegrity) return 'skip';
+  if (contentEquivalent) return 'skip-equivalent';
   return 'conflict';
 }
 
@@ -53,11 +68,85 @@ function remoteIntegrity(name, version) {
   return typeof parsed === 'string' ? parsed : null;
 }
 
-async function waitForRemoteIntegrity(name, version, expected, attempts = 12) {
+function assertSafeArchiveListing(listing, archive) {
+  for (const entry of listing.split(/\r?\n/).filter(Boolean)) {
+    const normalized = entry.replaceAll('\\', '/');
+    if (normalized.startsWith('/') || /^[A-Za-z]:/.test(normalized) || normalized.split('/').includes('..')) {
+      throw new Error(`Unsafe tar entry in ${archive}: ${entry}`);
+    }
+  }
+}
+
+async function collectArchiveFiles(root, current = root) {
+  const files = [];
+  for (const entry of await readdir(current, { withFileTypes: true })) {
+    const path = join(current, entry.name);
+    if (entry.isSymbolicLink()) throw new Error(`Symlink is not allowed in release archive: ${path}`);
+    if (entry.isDirectory()) files.push(...await collectArchiveFiles(root, path));
+    else if (entry.isFile()) files.push(path);
+  }
+  return files;
+}
+
+async function archiveContentDigest(archive) {
+  const staging = await mkdtemp(join(tmpdir(), 'leogriel-release-compare-'));
+  try {
+    const listing = spawnSync('tar', ['-tzf', archive], { encoding: 'utf8' });
+    if (listing.status !== 0) throw new Error(listing.stderr || `Unable to list ${archive}`);
+    assertSafeArchiveListing(listing.stdout, archive);
+    const extracted = spawnSync('tar', ['-xzf', archive, '-C', staging], { encoding: 'utf8' });
+    if (extracted.status !== 0) throw new Error(extracted.stderr || `Unable to extract ${archive}`);
+    const packageRoot = join(staging, 'package');
+    const files = await collectArchiveFiles(packageRoot);
+    const hash = createHash('sha256');
+    for (const path of files.sort((left, right) => left.localeCompare(right))) {
+      const portablePath = relative(packageRoot, path).replaceAll('\\', '/');
+      const buffer = await readFile(path);
+      hash.update(portablePath).update('\0');
+      hash.update(portablePath === 'package.json' ? canonicalPackageJson(buffer.toString('utf8')) : buffer);
+      hash.update('\0');
+    }
+    return `sha256-${hash.digest('hex')}`;
+  } finally {
+    await rm(staging, { recursive: true, force: true });
+  }
+}
+
+async function remoteArchiveEquivalent(name, version, localArchive, expectedRemoteIntegrity) {
+  const result = npm(['view', `${name}@${version}`, 'dist.tarball', '--json']);
+  if (result.status !== 0) throw new Error(result.stderr || `npm view tarball failed for ${name}@${version}`);
+  const url = JSON.parse(result.stdout || 'null');
+  if (typeof url !== 'string' || !url.startsWith('https://registry.npmjs.org/')) {
+    throw new Error(`Unexpected npm tarball URL for ${name}@${version}`);
+  }
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Unable to download ${name}@${version}: HTTP ${response.status}`);
+  const buffer = Buffer.from(await response.arrayBuffer());
+  if (tarballIntegrity(buffer) !== expectedRemoteIntegrity) {
+    throw new Error(`Downloaded integrity mismatch for ${name}@${version}`);
+  }
+  const staging = await mkdtemp(join(tmpdir(), 'leogriel-registry-archive-'));
+  const remoteArchive = join(staging, 'package.tgz');
+  try {
+    await writeFile(remoteArchive, buffer);
+    const [localDigest, remoteDigest] = await Promise.all([
+      archiveContentDigest(localArchive),
+      archiveContentDigest(remoteArchive),
+    ]);
+    return localDigest === remoteDigest;
+  } finally {
+    await rm(staging, { recursive: true, force: true });
+  }
+}
+
+async function waitForRemoteIntegrity(name, version, archive, expected, attempts = 12) {
   for (let attempt = 0; attempt < attempts; attempt++) {
     const remote = remoteIntegrity(name, version);
-    if (remote === expected) return;
-    if (remote && remote !== expected) throw new Error(`Post-publish integrity conflict for ${name}@${version}`);
+    if (remote === expected) return remote;
+    if (remote && remote !== expected) {
+      if (await remoteArchiveEquivalent(name, version, archive, remote)) return remote;
+      throw new Error(`Post-publish integrity conflict for ${name}@${version}`);
+    }
     if (attempt + 1 < attempts) await new Promise((resolvePromise) => setTimeout(resolvePromise, 5_000));
   }
   throw new Error(`Post-publish verification timed out for ${name}@${version}`);
@@ -72,7 +161,10 @@ export async function publishRelease(version, options = {}) {
     const archive = join(root, 'artifacts', version, archiveName(shortName, version));
     const integrity = tarballIntegrity(await readFile(archive));
     const remote = remoteIntegrity(name, version);
-    const decision = publicationDecision(integrity, remote);
+    let decision = publicationDecision(integrity, remote);
+    if (decision === 'conflict' && await remoteArchiveEquivalent(name, version, archive, remote)) {
+      decision = publicationDecision(integrity, remote, true);
+    }
     if (decision === 'conflict') {
       throw new Error(`${name}@${version} exists with different integrity`);
     }
@@ -80,11 +172,11 @@ export async function publishRelease(version, options = {}) {
       const result = npm(['publish', archive, '--access', 'public', '--tag', distTag], { stdio: 'inherit' });
       if (result.status !== 0) throw new Error(`npm publish failed for ${name}@${version}`);
     }
-    results.push({ name, version, integrity, decision, distTag });
+    results.push({ name, version, archive, integrity, decision, distTag });
   }
   if (!dryRun) {
     for (const result of results) {
-      await waitForRemoteIntegrity(result.name, version, result.integrity);
+      result.registryIntegrity = await waitForRemoteIntegrity(result.name, version, result.archive, result.integrity);
     }
   }
   return results;

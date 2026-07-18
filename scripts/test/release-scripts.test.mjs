@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { extractReleaseNotes } from '../extract-release-notes.mjs';
-import { npmInvocation, publicationDecision, resolveDistTag, tarballIntegrity } from '../publish-release.mjs';
+import { canonicalPackageJson, npmInvocation, publicationDecision, resolveDistTag, tarballIntegrity } from '../publish-release.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -17,11 +17,20 @@ test('publication decisions are idempotent and reject conflicts', () => {
   assert.equal(publicationDecision('sha512-a', null), 'publish');
   assert.equal(publicationDecision('sha512-a', 'sha512-a'), 'skip');
   assert.equal(publicationDecision('sha512-a', 'sha512-b'), 'conflict');
+  assert.equal(publicationDecision('sha512-a', 'sha512-b', true), 'skip-equivalent');
   assert.match(tarballIntegrity(Buffer.from('archive')), /^sha512-/);
   assert.equal(resolveDistTag('1.2.3'), 'latest');
   assert.equal(resolveDistTag('1.2.3-beta.1'), 'next');
   assert.equal(resolveDistTag('1.2.3-beta.1', 'beta'), 'beta');
   assert.throws(() => resolveDistTag('1.2.3', '1.2.3'), /cannot be a version/);
+});
+
+test('canonical package JSON ignores object-key order but preserves arrays', () => {
+  const left = canonicalPackageJson({ dependencies: { b: '1', a: '2' }, files: ['dist', 'README.md'] });
+  const right = canonicalPackageJson({ files: ['dist', 'README.md'], dependencies: { a: '2', b: '1' } });
+  const changedArray = canonicalPackageJson({ dependencies: { a: '2', b: '1' }, files: ['README.md', 'dist'] });
+  assert.equal(left, right);
+  assert.notEqual(left, changedArray);
 });
 
 test('release publishing invokes the npm CLI through Node on Windows', () => {
