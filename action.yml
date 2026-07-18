@@ -1,0 +1,180 @@
+name: Leogriel behavioral regression
+description: Run paired Agent Skill regressions and publish GitHub-native reports
+author: xFurti & Gabry848
+
+branding:
+  icon: activity
+  color: purple
+
+inputs:
+  skill:
+    description: Installed project skill name or project-relative skill directory
+    required: true
+  compare:
+    description: Optional Git ref used as the immutable reference skill
+    required: false
+    default: ''
+  agent:
+    description: AgentRunner ID
+    required: false
+    default: codex
+  model:
+    description: Exact runner model ID; strongly recommended for comparable results
+    required: false
+    default: ''
+  runs:
+    description: Sequential paired runs per test case (1-20)
+    required: false
+    default: '3'
+  working-directory:
+    description: Project directory containing agent-skills.json
+    required: false
+    default: .
+  leogriel-version:
+    description: npm version or dist-tag of @leogriel/cli
+    required: false
+    default: next
+  frozen-install:
+    description: Restore project skills from agent-skills.lock before testing
+    required: false
+    default: 'true'
+  trust-tests:
+    description: Allow command assertions from the checked-out test YAML
+    required: false
+    default: 'false'
+  artifact-name:
+    description: Name of the uploaded regression-report artifact
+    required: false
+    default: leogriel-regression
+  comment-on-pr:
+    description: Create or update the Leogriel pull-request comment
+    required: false
+    default: 'false'
+  github-token:
+    description: Token used only for an optional pull-request comment
+    required: false
+    default: ''
+
+outputs:
+  verdict:
+    description: improved, unchanged, regressed, or inconclusive
+    value: ${{ steps.report.outputs.verdict }}
+  result-json:
+    description: Absolute path to the redacted JSON result
+    value: ${{ steps.paths.outputs.result-json }}
+  markdown-report:
+    description: Absolute path to the Markdown report
+    value: ${{ steps.paths.outputs.markdown-report }}
+  html-report:
+    description: Absolute path to the HTML report
+    value: ${{ steps.paths.outputs.html-report }}
+  badge-json:
+    description: Absolute path to a Shields endpoint badge document
+    value: ${{ steps.paths.outputs.badge-json }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: '24'
+        package-manager-cache: false
+
+    - name: Prepare report paths
+      id: paths
+      shell: bash
+      env:
+        LEOGRIEL_REPORT_ROOT: ${{ runner.temp }}/leogriel-report-${{ github.run_id }}-${{ github.run_attempt }}
+      run: |
+        set -euo pipefail
+        mkdir -p "$LEOGRIEL_REPORT_ROOT"
+        {
+          echo "root=$LEOGRIEL_REPORT_ROOT"
+          echo "result-json=$LEOGRIEL_REPORT_ROOT/result.json"
+          echo "install-json=$LEOGRIEL_REPORT_ROOT/install.json"
+          echo "markdown-report=$LEOGRIEL_REPORT_ROOT/report.md"
+          echo "html-report=$LEOGRIEL_REPORT_ROOT/report.html"
+          echo "badge-json=$LEOGRIEL_REPORT_ROOT/badge.json"
+          echo "exit-code=$LEOGRIEL_REPORT_ROOT/exit-code.txt"
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Run paired regression
+      id: test
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        LEOGRIEL_SKILL: ${{ inputs.skill }}
+        LEOGRIEL_COMPARE: ${{ inputs.compare }}
+        LEOGRIEL_AGENT: ${{ inputs.agent }}
+        LEOGRIEL_MODEL: ${{ inputs.model }}
+        LEOGRIEL_RUNS: ${{ inputs.runs }}
+        LEOGRIEL_VERSION: ${{ inputs.leogriel-version }}
+        LEOGRIEL_FROZEN_INSTALL: ${{ inputs.frozen-install }}
+        LEOGRIEL_TRUST_TESTS: ${{ inputs.trust-tests }}
+        LEOGRIEL_RESULT_JSON: ${{ steps.paths.outputs.result-json }}
+        LEOGRIEL_INSTALL_JSON: ${{ steps.paths.outputs.install-json }}
+        LEOGRIEL_EXIT_CODE: ${{ steps.paths.outputs.exit-code }}
+      run: |
+        set +e
+        if [[ "$LEOGRIEL_FROZEN_INSTALL" == "true" ]]; then
+          npx --yes "@leogriel/cli@$LEOGRIEL_VERSION" install --frozen --no-sync --json > "$LEOGRIEL_INSTALL_JSON"
+          code=$?
+          if [[ "$code" -ne 0 ]]; then
+            printf '%s\n' "$code" > "$LEOGRIEL_EXIT_CODE"
+            exit 0
+          fi
+        fi
+        args=(test "$LEOGRIEL_SKILL" --agent "$LEOGRIEL_AGENT" --runs "$LEOGRIEL_RUNS" --json)
+        if [[ -n "$LEOGRIEL_COMPARE" ]]; then args+=(--compare "$LEOGRIEL_COMPARE"); fi
+        if [[ -n "$LEOGRIEL_MODEL" ]]; then args+=(--model "$LEOGRIEL_MODEL"); fi
+        if [[ "$LEOGRIEL_TRUST_TESTS" == "true" ]]; then args+=(--trust-tests); fi
+        npx --yes "@leogriel/cli@$LEOGRIEL_VERSION" "${args[@]}" > "$LEOGRIEL_RESULT_JSON"
+        code=$?
+        printf '%s\n' "$code" > "$LEOGRIEL_EXIT_CODE"
+        exit 0
+
+    - name: Render Job Summary and reports
+      id: report
+      if: always()
+      shell: bash
+      env:
+        LEOGRIEL_RESULT_JSON: ${{ steps.paths.outputs.result-json }}
+        LEOGRIEL_MARKDOWN_REPORT: ${{ steps.paths.outputs.markdown-report }}
+        LEOGRIEL_HTML_REPORT: ${{ steps.paths.outputs.html-report }}
+        LEOGRIEL_BADGE_JSON: ${{ steps.paths.outputs.badge-json }}
+      run: |
+        node "${{ github.action_path }}/scripts/render-test-report.mjs" \
+          "$LEOGRIEL_RESULT_JSON" \
+          --markdown "$LEOGRIEL_MARKDOWN_REPORT" \
+          --html "$LEOGRIEL_HTML_REPORT" \
+          --badge "$LEOGRIEL_BADGE_JSON" \
+          --summary
+
+    - name: Upload regression reports
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ steps.paths.outputs.root }}
+        if-no-files-found: error
+
+    - name: Create or update pull-request comment
+      if: always() && inputs.comment-on-pr == 'true' && github.event_name == 'pull_request'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        LEOGRIEL_REPORT: ${{ steps.paths.outputs.markdown-report }}
+        LEOGRIEL_REPOSITORY: ${{ github.repository }}
+        LEOGRIEL_PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: node "${{ github.action_path }}/scripts/comment-test-report.mjs" "$LEOGRIEL_REPORT"
+
+    - name: Enforce regression verdict
+      if: always()
+      shell: bash
+      env:
+        LEOGRIEL_EXIT_CODE: ${{ steps.paths.outputs.exit-code }}
+      run: |
+        code=2
+        if [[ -f "$LEOGRIEL_EXIT_CODE" ]]; then code="$(cat "$LEOGRIEL_EXIT_CODE")"; fi
+        exit "$code"

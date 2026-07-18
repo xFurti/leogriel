@@ -64,6 +64,8 @@ leogriel test my-skill --compare main --runs 3 --model <model> --json
 
 Tests are sequential and pair a clean baseline with the skill variant. With `--compare`, the baseline is the same skill from the exact commit resolved from the Git ref; the result records both integrity hashes. Network and web search are denied by default. Command assertions require an interactive confirmation or `--trust-tests` in non-interactive use; that flag does not sandbox commands or enable network access. Keep-workspace output may contain sensitive generated files.
 
+For pull requests, `xFurti/leogriel@v1` can perform a frozen restore, run the regression, write the GitHub Job Summary, upload JSON/Markdown/HTML and badge reports, and optionally update one marked PR comment. Pin an exact prerelease tag before the stable `v1` tag exists, check out full history for `--compare`, and pass authentication through the job environment rather than an action input.
+
 For GitHub code scanning, emit pure SARIF:
 
 ```bash

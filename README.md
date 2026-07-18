@@ -246,6 +246,8 @@ Case verdicts use whole-case pass/fail outcomes and paired runs, not assertion c
 
 See the [docs site](https://xfurti.github.io/leogriel/) for the full command reference, config schema, Windows notes, and coexistence with other tools.
 
+For CI regressions, the repository includes an [official composite GitHub Action](./docs/github-action.md) that performs a frozen install, writes the Job Summary, uploads JSON/Markdown/HTML and badge artifacts, and can update a marked pull-request comment.
+
 ## Development
 
 **Requirements:** Node.js >= 22.13, pnpm 11.x
