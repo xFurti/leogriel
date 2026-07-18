@@ -7,6 +7,18 @@ import { archiveName, releasePackages } from './release-packages.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
+export function npmInvocation(args, options = {}) {
+  const platform = options.platform ?? process.platform;
+  const execPath = options.execPath ?? process.execPath;
+  if (platform === 'win32') {
+    return {
+      command: execPath,
+      args: [join(dirname(execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js'), ...args],
+    };
+  }
+  return { command: 'npm', args };
+}
+
 export function tarballIntegrity(buffer) {
   return `sha512-${createHash('sha512').update(buffer).digest('base64')}`;
 }
@@ -25,7 +37,9 @@ export function resolveDistTag(version, override) {
 }
 
 function npm(args, options = {}) {
-  const result = spawnSync('npm', args, { cwd: root, encoding: 'utf8', ...options });
+  const invocation = npmInvocation(args);
+  const result = spawnSync(invocation.command, invocation.args, { cwd: root, encoding: 'utf8', ...options });
+  if (result.error) throw result.error;
   return result;
 }
 

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { extractReleaseNotes } from '../extract-release-notes.mjs';
-import { publicationDecision, resolveDistTag, tarballIntegrity } from '../publish-release.mjs';
+import { npmInvocation, publicationDecision, resolveDistTag, tarballIntegrity } from '../publish-release.mjs';
 
 test('extracts one changelog release section', () => {
   const changelog = '# Changelog\n\n## [0.7.0] - 2026-07-14\n\n### Added\n\n- Search.\n\n## [0.6.1] - 2026-07-13\n\n- Fix.';
@@ -17,4 +17,19 @@ test('publication decisions are idempotent and reject conflicts', () => {
   assert.equal(resolveDistTag('1.2.3-beta.1'), 'next');
   assert.equal(resolveDistTag('1.2.3-beta.1', 'beta'), 'beta');
   assert.throws(() => resolveDistTag('1.2.3', '1.2.3'), /cannot be a version/);
+});
+
+test('release publishing invokes the npm CLI through Node on Windows', () => {
+  const windows = npmInvocation(['view', '@leogriel/core'], {
+    platform: 'win32',
+    execPath: 'C:\\Node\\node.exe',
+  });
+  assert.equal(windows.command, 'C:\\Node\\node.exe');
+  assert.match(windows.args[0], /node_modules[\\/]npm[\\/]bin[\\/]npm-cli\.js$/);
+  assert.deepEqual(windows.args.slice(1), ['view', '@leogriel/core']);
+
+  assert.deepEqual(
+    npmInvocation(['publish', 'archive.tgz'], { platform: 'linux', execPath: '/usr/bin/node' }),
+    { command: 'npm', args: ['publish', 'archive.tgz'] },
+  );
 });
