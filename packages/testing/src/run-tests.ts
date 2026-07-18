@@ -21,6 +21,11 @@ export interface RunSkillTestsOptions {
   leogrielVersion: string;
   lockfileEntry?: unknown;
   projectRoot?: string;
+  comparison?: {
+    requestedRef: string;
+    commit: string;
+    skillPath: string;
+  };
 }
 
 export async function runSkillTests(testFile: SkillTestFile, options: RunSkillTestsOptions): Promise<SkillTestResult> {
@@ -28,12 +33,18 @@ export async function runSkillTests(testFile: SkillTestFile, options: RunSkillTe
   if (!Number.isInteger(runs) || runs < 1 || runs > 20) throw new Error('--runs must be an integer between 1 and 20');
   const parsedSkill = await parseSkillDirectory(options.skillPath);
   if (canonicalizeName(testFile.skill) !== parsedSkill.name) throw new Error(`Test YAML skill ${testFile.skill} does not match executed skill ${parsedSkill.name}`);
+  const parsedReference = options.comparison
+    ? await parseSkillDirectory(options.comparison.skillPath)
+    : undefined;
+  if (parsedReference && parsedReference.name !== parsedSkill.name) {
+    throw new Error(`Git comparison skill ${parsedReference.name} does not match executed skill ${parsedSkill.name}`);
+  }
   for (const testCase of testFile.cases) {
     if (testCase.runner?.id && testCase.runner.id !== options.runner.id) throw new Error(`Case ${testCase.name} requires runner ${testCase.runner.id}, not ${options.runner.id}`);
   }
   const testIntegrity = await computeTestIntegrity(options.testFilePath, testFile);
   const modelSeed = options.model || testFile.cases.map((testCase) => testCase.runner?.model || 'runner-default').join(',');
-  const seed = options.seed ?? stableSeed(`${testIntegrity}\0${parsedSkill.integrity}\0${options.runner.id}\0${modelSeed}\0${runs}`);
+  const seed = options.seed ?? stableSeed(`${testIntegrity}\0${parsedReference?.integrity || 'no-skill-baseline'}\0${parsedSkill.integrity}\0${options.runner.id}\0${modelSeed}\0${runs}`);
   const runId = `${new Date().toISOString().replace(/[:.]/g, '-')}-${randomUUID()}`;
   const auth = resolveCodexAuth();
   const detection = await options.runner.detect();
@@ -58,6 +69,7 @@ export async function runSkillTests(testFile: SkillTestFile, options: RunSkillTe
         const isolation = await createIsolation(fixture);
         try {
           if (variant === 'skill') await installTestSkill(isolation.workspace, options.skillPath, parsedSkill.name);
+          else if (options.comparison) await installTestSkill(isolation.workspace, options.comparison.skillPath, parsedSkill.name);
           const initialFiles = await snapshotWorkspace(isolation.workspace);
           const requestedModel = options.model || testCase.runner?.model;
           const network = testCase.network || { mode: 'deny', webSearch: 'disabled' };
@@ -130,6 +142,12 @@ export async function runSkillTests(testFile: SkillTestFile, options: RunSkillTe
     schemaVersion: 1,
     skill: testFile.skill,
     skillMetadata: { path: options.skillPath, integrity: parsedSkill.integrity, lockfileEntry: options.lockfileEntry },
+    comparison: options.comparison && parsedReference ? {
+      requestedRef: options.comparison.requestedRef,
+      commit: options.comparison.commit,
+      referenceIntegrity: parsedReference.integrity,
+      candidateIntegrity: parsedSkill.integrity,
+    } : undefined,
     leogrielVersion: options.leogrielVersion,
     runner: options.runner.id,
     runnerDetection: detection,

@@ -327,8 +327,9 @@ leogriel plugin remove my-plugin</code></pre>
 <h2>Test comportamentali 0.9 (sperimentali)</h2>
 <pre><code>leogriel test init my-skill
 leogriel test validate
-leogriel test my-skill --runs 3 --model MODEL --json</code></pre>
-<p>Baseline e skill eseguono lo stesso task in workspace, HOME, USERPROFILE, XDG e CODEX_HOME distinti. Rete e web search sono negati di default. I test sono sequenziali; i verdetti usano test case completi e run abbinate, non il conteggio delle assertion. Le assertion <code>command</code> richiedono conferma o <code>--trust-tests</code> in CI.</p>
+leogriel test my-skill --runs 3 --model MODEL --json
+leogriel test my-skill --compare main --runs 3 --model MODEL --json</code></pre>
+<p>Baseline e skill eseguono lo stesso task in workspace, HOME, USERPROFILE, XDG e CODEX_HOME distinti. Con <code>--compare</code>, la baseline è la stessa skill estratta dal commit immutabile risolto dal ref Git; il report registra ref, commit e le due integrità. Rete e web search sono negati di default. I test sono sequenziali; i verdetti usano test case completi e run abbinate, non il conteggio delle assertion. Le assertion <code>command</code> richiedono conferma o <code>--trust-tests</code> in CI.</p>
 <div class="alert alert-warn"><strong>Isolamento</strong> Riduce il caricamento di configurazioni personali ma non Ã¨ una sandbox assoluta. I workspace conservati possono contenere output sensibili.</div>
 
 <h2>Primi passi</h2>
@@ -1067,8 +1068,9 @@ leogriel plugin remove my-plugin</code></pre>
 <h2>0.9 behavioral testing (experimental)</h2>
 <pre><code>leogriel test init my-skill
 leogriel test validate
-leogriel test my-skill --runs 3 --model MODEL --json</code></pre>
-<p>Baseline and skill execute the same task with separate workspaces, HOME, USERPROFILE, XDG, and CODEX_HOME trees. Network and web search are denied by default. Tests are sequential; verdicts use whole test cases and paired runs rather than assertion counts. <code>command</code> assertions require confirmation or <code>--trust-tests</code> in CI.</p>
+leogriel test my-skill --runs 3 --model MODEL --json
+leogriel test my-skill --compare main --runs 3 --model MODEL --json</code></pre>
+<p>Baseline and skill execute the same task with separate workspaces, HOME, USERPROFILE, XDG, and CODEX_HOME trees. With <code>--compare</code>, the baseline is the same skill extracted from the immutable commit resolved from the Git ref; the report records the ref, commit, and both integrity hashes. Network and web search are denied by default. Tests are sequential; verdicts use whole test cases and paired runs rather than assertion counts. <code>command</code> assertions require confirmation or <code>--trust-tests</code> in CI.</p>
 <div class="alert alert-warn"><strong>Isolation</strong> This reduces personal configuration leakage but is not an absolute sandbox. Retained workspaces may contain sensitive generated output.</div>
 
 <h2>First-time setup</h2>

@@ -59,9 +59,10 @@ Exit codes are 0 for success, 1 for warnings/partial results, and 2 for fatal or
 leogriel test init my-skill
 leogriel test validate
 leogriel test my-skill --runs 3 --model <model> --json
+leogriel test my-skill --compare main --runs 3 --model <model> --json
 ```
 
-Tests are sequential and pair a clean baseline with the skill variant. Network and web search are denied by default. Command assertions require an interactive confirmation or `--trust-tests` in non-interactive use; that flag does not sandbox commands or enable network access. Keep-workspace output may contain sensitive generated files.
+Tests are sequential and pair a clean baseline with the skill variant. With `--compare`, the baseline is the same skill from the exact commit resolved from the Git ref; the result records both integrity hashes. Network and web search are denied by default. Command assertions require an interactive confirmation or `--trust-tests` in non-interactive use; that flag does not sandbox commands or enable network access. Keep-workspace output may contain sensitive generated files.
 
 For GitHub code scanning, emit pure SARIF:
 

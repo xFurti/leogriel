@@ -19,5 +19,6 @@ leogriel plugin add npm:@example/plugin@^1 --dry-run
 leogriel test init my-skill
 leogriel test validate
 leogriel test my-skill --runs 3 --model <model> --json
+leogriel test my-skill --compare main --runs 3 --model <model> --json
 leogriel completion powershell
 ```

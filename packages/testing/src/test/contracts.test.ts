@@ -231,3 +231,47 @@ test('derived seed covers test and skill integrity, runner, model, and run count
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test('git comparison installs the reference skill as the paired baseline', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'testing-compare-'));
+  const reference = join(root, 'reference');
+  const candidate = join(root, 'candidate');
+  const previous = process.env.CODEX_API_KEY;
+  process.env.CODEX_API_KEY = 'test-secret-abcdefghijklmnop';
+  const runner: AgentRunner = {
+    id: 'fake',
+    detect: async () => ({ available: true, capabilities: [] }),
+    run: async (request) => {
+      const installed = await readFile(join(request.workspace, '.codex', 'skills', 'demo', 'SKILL.md'), 'utf8');
+      if (installed.includes('candidate')) await writeFile(join(request.workspace, 'output.txt'), 'ready');
+      return { ok: true, exitCode: 0, durationMs: 1, requestedModel: null, output: '' };
+    },
+  };
+  try {
+    await Promise.all([mkdir(reference), mkdir(candidate)]);
+    await writeFile(join(reference, 'SKILL.md'), '---\nname: demo\ndescription: reference\n---\nreference');
+    await writeFile(join(candidate, 'SKILL.md'), '---\nname: demo\ndescription: candidate\n---\ncandidate');
+    const file = validateTestFile({
+      version: 1,
+      skill: 'demo',
+      cases: [{ name: 'case', prompt: 'work', assertions: [{ type: 'file-exists', path: 'output.txt' }] }],
+    });
+    const result = await runSkillTests(file, {
+      testFilePath: join(root, 'test.yaml'),
+      skillPath: candidate,
+      comparison: { requestedRef: 'main', commit: 'a'.repeat(40), skillPath: reference },
+      runner,
+      runs: 2,
+      leogrielVersion: '1.0.0-beta.2',
+    });
+    assert.equal(result.verdict, 'improved');
+    assert.equal(result.baselinePassRate, 0);
+    assert.equal(result.skillPassRate, 1);
+    assert.equal(result.comparison?.requestedRef, 'main');
+    assert.equal(result.comparison?.commit, 'a'.repeat(40));
+    assert.notEqual(result.comparison?.referenceIntegrity, result.comparison?.candidateIntegrity);
+  } finally {
+    if (previous === undefined) delete process.env.CODEX_API_KEY; else process.env.CODEX_API_KEY = previous;
+    await rm(root, { recursive: true, force: true });
+  }
+});

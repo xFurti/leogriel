@@ -4,7 +4,7 @@ There will be no `0.10.0`. After `0.9.0`, the project may ship focused `0.9.1` a
 
 ## Required before 1.0
 
-- `leogriel test --compare <git-ref>` and repeatable regression testing.
+- [x] `leogriel test --compare <git-ref>` and repeatable paired regression testing. Implemented after beta.2; external validation remains required before RC.
 - An official GitHub Action with GitHub Job Summary, Markdown/HTML reports, downloadable artifacts, badges, and pull-request comments.
 - Stable manifest, lock, artifact, test YAML, JSON envelope, plugin, catalog, audit, and AgentRunner contracts with migration guides.
 - At least two reliable AgentRunner implementations with capability detection and fail-closed isolation.

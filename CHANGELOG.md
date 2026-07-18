@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added `leogriel test <skill> --compare <git-ref>` to run paired regressions between the skill at an immutable Git commit and the current working-tree candidate, recording both integrity hashes.
+
 ### Changed
 
 - Restricted every published package to an explicit public root export in preparation for stable API contracts.

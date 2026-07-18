@@ -232,6 +232,7 @@ leogriel test init my-skill
 leogriel test validate
 leogriel test list --json
 leogriel test my-skill --runs 3 --model <model> --json
+leogriel test my-skill --compare main --runs 3 --model <model> --json
 leogriel test my-skill --output my-skill-result.json
 ```
 
@@ -240,6 +241,8 @@ Tests are sequential. Network and web search are denied by default and must be e
 This reduces configuration leakage but is not an absolute security sandbox. Authentication accepts `CODEX_API_KEY` or `OPENAI_API_KEY`; conflicting values fail before execution, and the selected key is exposed only to the Codex process. Opt-in live runs can instead use `LEOGRIEL_CODEX_AUTH_MODE=chatgpt` with an explicit, dedicated `LEOGRIEL_CODEX_AUTH_HOME` already authenticated by `codex login`; leogriel checks `codex login status`, never falls back to `~/.codex`, and does not copy, log, modify, redact, or delete that profile. Agent subprocesses receive an explicit safe allowlist derived from the isolated environment—enough to find executables and use isolated HOME and temporary directories—while API keys and every non-allowlisted variable remain excluded. If no model is pinned, paired results are useful within that execution but are not declared stable across dates or environments.
 
 Case verdicts use whole-case pass/fail outcomes and paired runs, not assertion counts. The aggregate verdict is `improved`, `regressed`, `unchanged`, or `inconclusive`; mixed outcomes, errors, timeouts, and fewer than three samples are inconclusive. See [behavioral testing](./docs/behavioral-testing.md) and the [1.0 roadmap](./ROADMAP.md).
+
+`--compare <git-ref>` turns the paired baseline into the same skill materialized from the exact commit behind that ref. The candidate remains the current working-tree skill; the report records the requested ref, immutable commit, and both canonical integrity hashes. Current test YAML and fixtures are used for both variants.
 
 See the [docs site](https://xfurti.github.io/leogriel/) for the full command reference, config schema, Windows notes, and coexistence with other tools.
 

@@ -7,6 +7,7 @@ import { CodexRunner, loadTestFile, runSkillTests, type SkillTestFile } from '@l
 import { loadLockfile } from '@leogriel/lockfile';
 import { cliLog, cliWarn } from '../lib/output.js';
 import { handleCommandError, LeogrielError } from '../lib/errors.js';
+import { materializeGitSkill, removeMaterializedGitSkill } from '../lib/git-comparison.js';
 
 export function registerTest(program: Command, version: string): void {
   const command = program.command('test [skill]').description('Run experimental paired behavioral tests')
@@ -17,39 +18,52 @@ export function registerTest(program: Command, version: string): void {
     .option('--timeout <ms>', 'agent timeout in milliseconds', '120000')
     .option('--keep-workspace', 'persist workspaces under .leogriel/artifacts/test')
     .option('--model <model>', 'pin a runner model')
+    .option('--compare <git-ref>', 'compare the current skill against the same skill at a Git ref')
     .option('--trust-tests', 'allow command assertions without an interactive confirmation')
     .action(async (skill, options) => {
       if (!skill) return;
       try {
-        if (options.agent !== 'codex') throw new LeogrielError('Only the codex runner is available in 1.0.0-beta.2', 'UNSUPPORTED_RUNNER', 2);
+        if (options.agent !== 'codex') throw new LeogrielError(`Only the codex runner is available in ${version}`, 'UNSUPPORTED_RUNNER', 2);
         const cwd = await requireLeogrielProject();
         const testPath = await findTestFile(cwd, skill);
         const testFile = await loadTestFile(testPath);
         await authorizeCommands(testFile, Boolean(options.trustTests));
         const skillPath = await findSkillPath(cwd, skill);
         const lock = await loadLockfile(cwd);
-        const result = await runSkillTests(testFile, {
-          testFilePath: testPath,
-          skillPath,
-          runner: new CodexRunner(),
-          runs: parseRuns(options.runs),
-          model: options.model,
-          timeoutMs: parsePositive(options.timeout, '--timeout'),
-          keepWorkspace: Boolean(options.keepWorkspace),
-          leogrielVersion: version,
-          lockfileEntry: lock?.skills[safeName(skill)],
-          projectRoot: cwd,
-        });
-        if (result.warning) cliWarn(result.warning);
-        if (options.keepWorkspace) cliWarn('Kept workspaces may contain sensitive agent-generated files or output. Credentials and isolated HOME/XDG/CODEX_HOME directories were not copied intentionally.');
-        if (options.output) {
-          const artifact = await writeArtifact('test', options.output, result, {
-            cwd,
-            knownSecrets: { CODEX_API_KEY: process.env.CODEX_API_KEY, OPENAI_API_KEY: process.env.OPENAI_API_KEY },
+        const comparison = options.compare
+          ? await materializeGitSkill(cwd, skillPath, options.compare)
+          : undefined;
+        try {
+          const result = await runSkillTests(testFile, {
+            testFilePath: testPath,
+            skillPath,
+            runner: new CodexRunner(),
+            runs: parseRuns(options.runs),
+            model: options.model,
+            timeoutMs: parsePositive(options.timeout, '--timeout'),
+            keepWorkspace: Boolean(options.keepWorkspace),
+            leogrielVersion: version,
+            lockfileEntry: lock?.skills[safeName(skill)],
+            projectRoot: cwd,
+            comparison: comparison ? {
+              requestedRef: comparison.requestedRef,
+              commit: comparison.commit,
+              skillPath: comparison.skillPath,
+            } : undefined,
           });
-          cliLog(JSON.stringify({ ...result, artifact: artifact.path }, null, 2));
-        } else cliLog(JSON.stringify(result, null, 2));
-        process.exitCode = result.verdict === 'regressed' ? 1 : result.verdict === 'inconclusive' ? 1 : 0;
+          if (result.warning) cliWarn(result.warning);
+          if (options.keepWorkspace) cliWarn('Kept workspaces may contain sensitive agent-generated files or output. Credentials and isolated HOME/XDG/CODEX_HOME directories were not copied intentionally.');
+          if (options.output) {
+            const artifact = await writeArtifact('test', options.output, result, {
+              cwd,
+              knownSecrets: { CODEX_API_KEY: process.env.CODEX_API_KEY, OPENAI_API_KEY: process.env.OPENAI_API_KEY },
+            });
+            cliLog(JSON.stringify({ ...result, artifact: artifact.path }, null, 2));
+          } else cliLog(JSON.stringify(result, null, 2));
+          process.exitCode = result.verdict === 'regressed' ? 1 : result.verdict === 'inconclusive' ? 1 : 0;
+        } finally {
+          await removeMaterializedGitSkill(comparison);
+        }
       } catch (error) { handleCommandError(error, 'test'); }
     });
 
