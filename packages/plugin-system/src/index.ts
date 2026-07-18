@@ -14,6 +14,7 @@ export type {
   PluginProgram,
   PluginCommand,
   PluginAuditRule,
+  PluginAuditCategory,
   PluginManifestEntry,
   PluginLockEntry,
   PluginInspection,

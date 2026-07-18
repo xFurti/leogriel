@@ -19,6 +19,18 @@ export interface PluginAPI {
   registerAuditRule(rule: PluginAuditRule): void;
 }
 
+export type PluginAuditCategory =
+  | 'integrity'
+  | 'provenance'
+  | 'filesystem'
+  | 'execution'
+  | 'network'
+  | 'secrets'
+  | 'prompt-injection'
+  | 'policy'
+  | 'plugin'
+  | 'managed-target';
+
 export interface PluginAuditRule {
   id: string;
   run(skillName: string, skillPath: string): Promise<Array<{
@@ -29,6 +41,10 @@ export interface PluginAuditRule {
     helpUri?: string;
     location?: { path: string; startLine?: number; endLine?: number };
     fingerprint?: string;
+    category?: PluginAuditCategory;
+    remediation?: string;
+    confidence?: 'low' | 'medium' | 'high';
+    evidence?: string[];
   }>>;
 }
 

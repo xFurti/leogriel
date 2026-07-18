@@ -12,6 +12,9 @@
   "homepage": "https://xfurti.github.io/leogriel/",
   "type": "module",
   "main": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "bin": {
     "leogriel": "./bin/leogriel.js"
   },

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Restricted every published package to an explicit public root export in preparation for stable API contracts.
+- Extended plugin audit findings with categories, remediation, confidence, and evidence fields matching the first-party audit model.
+- Updated `tar` to 7.5.20 and removed the deprecated external `@types/tar` package.
+
+### Fixed
+
+- Made the release gate execute the root test command so release-script contract tests cannot be skipped.
+- Updated the architecture document to reflect the completed Leogriel rebrand and current beta baseline.
+
 ## [1.0.0-beta.2] - 2026-07-18
 
 ### Leogriel beta

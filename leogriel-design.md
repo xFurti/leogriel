@@ -2,14 +2,14 @@
 
 **Author:** xFurti & Gabry848
 **Date:** 2026-07-10
-**Status:** Implemented through release 0.9.0; Leogriel rebrand in progress
-**Version:** 0.9.0 + unreleased rebrand
+**Status:** Implemented through Leogriel 1.0.0-beta.2; 1.0 readiness work in progress
+**Version:** 1.0.0-beta.2
 
 ---
 
 ## Current implementation baseline
 
-Version 0.9.0 plus the unreleased Leogriel rebrand is the implemented baseline for this document. The original proposal and historical PR plan remain below for architectural context; when they differ from this section, the implemented baseline wins.
+Leogriel 1.0.0-beta.2 is the implemented baseline for this document. The rebrand from skillctl is complete; compatibility names remain only where migration requires them. The original proposal and historical PR plan remain below for architectural context; when they differ from this section, the implemented baseline wins.
 
 - Project dependencies are vendored under `.leogriel/skills/<name>` and use project-relative manifest and lock paths; explicit personal skills remain under `~/.leogriel/skills/<name>`.
 - Local add and plain import copy content into the project store. Import discovers enabled agent directories, deduplicates identical content, and requires explicit resolution for same-name conflicts.

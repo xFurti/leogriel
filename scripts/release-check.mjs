@@ -51,7 +51,7 @@ if (!changelog.includes(`## [${version}] - `)) throw new Error(`CHANGELOG.md has
 runPnpm(['install', '--frozen-lockfile']);
 runPnpm(['-r', 'build']);
 runPnpm(['-r', 'lint']);
-runPnpm(['-r', 'test']);
+runPnpm(['test']);
 runPnpm(['test:coverage']);
 runPnpm(['audit', '--prod']);
 run(process.execPath, ['packages/cli/bin/leogriel.js', 'skill', 'validate', 'skills/leogriel', '--strict']);

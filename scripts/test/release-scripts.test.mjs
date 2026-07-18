@@ -71,6 +71,20 @@ test('every publishable workspace package cleans stale output before packing', a
   }
 });
 
+test('every publishable workspace package exposes only its public root', async () => {
+  const packageNames = [
+    'core', 'manifest', 'lockfile', 'link-manager', 'plugin-system', 'project-state',
+    'adapters', 'security', 'registry', 'import', 'testing', 'cli',
+  ];
+  for (const packageName of packageNames) {
+    const packageJson = JSON.parse(await readFile(join(root, 'packages', packageName, 'package.json'), 'utf8'));
+    assert.deepEqual(Object.keys(packageJson.exports), ['.'], packageJson.name);
+    const rootExport = packageJson.exports['.'];
+    const entrypoint = typeof rootExport === 'string' ? rootExport : rootExport.import;
+    assert.equal(entrypoint, './dist/index.js', packageJson.name);
+  }
+});
+
 test('release packing removes stale build output before rebuilding', async () => {
   const script = await readFile(join(root, 'scripts', 'pack-all.mjs'), 'utf8');
   const clean = script.indexOf("runPnpm(['-r', 'run', 'clean']);");
@@ -87,4 +101,10 @@ test('version preparation updates the canonical and distributable Leogriel skill
   const script = await readFile(join(root, 'scripts', 'set-version.mjs'), 'utf8');
   assert.match(script, /join\(root, 'skills', 'leogriel'\)/);
   assert.match(script, /join\(root, '\.leogriel', 'skills', 'leogriel'\)/);
+});
+
+test('release checks include root release-script tests', async () => {
+  const script = await readFile(join(root, 'scripts', 'release-check.mjs'), 'utf8');
+  assert.match(script, /runPnpm\(\['test'\]\);/);
+  assert.doesNotMatch(script, /runPnpm\(\['-r', 'test'\]\);/);
 });
